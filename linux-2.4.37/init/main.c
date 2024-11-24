@@ -364,7 +364,8 @@ asmlinkage void __init start_kernel(void)
  * enable them
  */
 	lock_kernel();
-	printk(linux_banner);
+// warning: format not a string literal and no format arguments [-Wformat-security]
+//	printk(linux_banner);
 	setup_arch(&command_line);
 	printk("Kernel command line: %s\n", saved_command_line);
 	parse_options(command_line);

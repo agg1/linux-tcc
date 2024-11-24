@@ -31,7 +31,7 @@
 
 #include <asm/boot.h>
 
-SETUPSECTS	= 4			/* default nr of setup-sectors */
+SETUPSECTS	= 32			/* default nr of setup-sectors */
 BOOTSEG		= 0x07C0		/* original address of boot-sector */
 INITSEG		= DEF_INITSEG		/* we move boot here - out of the way */
 SETUPSEG	= DEF_SETUPSEG		/* setup starts here */

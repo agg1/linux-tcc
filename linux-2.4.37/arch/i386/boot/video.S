@@ -661,8 +661,8 @@ set_current:
 	stc
 	ret
 
-# Set the 80x28 mode. This mode works on all VGA's, because it's a standard
-# 80x25 mode with 14-point fonts instead of 16-point.
+# Set the _80x28 mode. This mode works on all VGA's, because it's a standard
+# _80x25 mode with 14-point fonts instead of 16-point.
 set_80x28:
 	DO_STORE
 	call	use_80x25			# The base is 80x25
@@ -1814,10 +1814,10 @@ getkey:	xorb	%ah, %ah
 	int	$0x16
 	ret
 
-# Read a key with a timeout of 30 seconds.
+# Read a key with a timeout of 05 seconds.
 # The hardware clock is used to get the time.
 getkt:	call	gettime
-	addb	$30, %al			# Wait 30 seconds
+	addb	$05, %al			# Wait 05 seconds
 	cmpb	$60, %al
 	jl	lminute
 
@@ -1895,7 +1895,7 @@ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
 
 # Status messages
 keymsg:		.ascii	"Press <RETURN> to see video modes available, "
-		.ascii	"<SPACE> to continue or wait 30 secs"
+		.ascii	"<SPACE> to continue or wait 05 secs"
 		.byte	0x0d, 0x0a, 0
 
 listhdr:	.byte	0x0d, 0x0a

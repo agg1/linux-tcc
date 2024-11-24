@@ -43,7 +43,7 @@ typedef unsigned long u32;
 #define DEFAULT_MINOR_ROOT 0
 
 /* Minimal number of setup sectors (see also bootsect.S) */
-#define SETUP_SECTS 4
+#define SETUP_SECTS 32
 
 byte buf[1024];
 int fd;
@@ -51,10 +51,10 @@ int is_big_kernel;
 
 void die(const char * str, ...)
 {
-	va_list args;
-	va_start(args, str);
-	vfprintf(stderr, str, args);
-	fputc('\n', stderr);
+//	va_list args;
+//	va_start(args, str);
+//	vfprintf(stderr, str, args);
+//	fputc('\n', stderr);
 	exit(1);
 }
 
@@ -151,7 +151,8 @@ int main(int argc, char ** argv)
 	fprintf (stderr, "System is %d kB\n", sz/1024);
 	sys_size = (sz + 15) / 16;
 	/* 0x28000*16 = 2.5 MB, conservative estimate for the current maximum */
-	if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
+//	if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
+	if (sys_size > (is_big_kernel ? 0x80000 : DEF_SYSSIZE))
 		die("System is too big. Try using %smodules.",
 			is_big_kernel ? "" : "bzImage or ");
 	if (sys_size > 0xefff)

@@ -54,8 +54,16 @@ r_base = .
 	lmsw	%ax		# into protected mode
 	jmp	flush_instr
 flush_instr:
+### https://stackoverflow.com/questions/39323061/gnu-as-compilation-error-on-instruction-far-jmp-0x8-0x80000
+### tcc is not aware of ljmpl , and ljmp implies different adressing and sizes (16bit/32bit)
+
+#ifdef __TINYC__
+	ljmpl	$__KERNEL_CS, $0x00100000
+			# compilation/assembling passes, see what happens...
+#else
 	ljmpl	$__KERNEL_CS, $0x00100000
 			# jump to startup_32 in arch/i386/kernel/head.S
+#endif
 
 idt_48:
 	.word	0			# idt limit = 0
