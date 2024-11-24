@@ -60,8 +60,9 @@
 		     LOCK_SECTION_END \
 		     ::"a" (rw) : "memory")
 
+// linux/include/asm/spinlock.h:197: error: bad expression syntax [%]
 #define __build_write_lock_const(rw, helper) \
-	asm volatile(LOCK "subl $" RW_LOCK_BIAS_STR ",(%0)\n\t" \
+	asm volatile(LOCK "subl $" RW_LOCK_BIAS_STR ",%0\n\t" \
 		     "jnz 2f\n" \
 		     "1:\n" \
 		     LOCK_SECTION_START("") \
