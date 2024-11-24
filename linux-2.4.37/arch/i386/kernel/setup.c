@@ -168,7 +168,7 @@ struct e820map e820;
 unsigned char aux_device_present;
 
 extern void mcheck_init(struct cpuinfo_x86 *c);
-extern void dmi_scan_machine(void);
+//extern void dmi_scan_machine(void);
 extern int root_mountflags;
 extern char _text, _etext, _edata, _end;
 
@@ -1233,7 +1233,8 @@ void __init setup_arch(char **cmdline_p)
 #endif
 	paging_init();
 
-	dmi_scan_machine();
+	//tcc include/asm/string.h:180: error: bad operand with opcode 'leal'
+	//dmi_scan_machine();
 
 	/*
 	 * Parse the ACPI tables for possible boot-time SMP configuration.
