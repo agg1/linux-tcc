@@ -1,6 +1,14 @@
 #ifndef __ARCH_I386_POSIX_TYPES_H
 #define __ARCH_I386_POSIX_TYPES_H
 
+// linux-5.9
+typedef long long __kernel_long_t;
+typedef unsigned long long __kernel_ulong_t;
+//#define __kernel_long_t __kernel_long_t
+
+//
+typedef int		__kernel_clockid_t;
+
 /*
  * This file is generally used by user-level software, so you need to
  * be a little careful about namespace pollution etc.  Also, we cannot

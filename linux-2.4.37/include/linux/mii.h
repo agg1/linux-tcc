@@ -19,6 +19,11 @@
 #define MII_ADVERTISE       0x04        /* Advertisement control reg   */
 #define MII_LPA             0x05        /* Link partner ability reg    */
 #define MII_EXPANSION       0x06        /* Expansion register          */
+#define MII_CTRL1000		0x09	/* 1000BASE-T control          */
+#define MII_STAT1000		0x0a	/* 1000BASE-T status           */
+#define	MII_MMD_CTRL		0x0d	/* MMD Access Control Register */
+#define	MII_MMD_DATA		0x0e	/* MMD Access Data Register */
+#define MII_ESTATUS		0x0f	/* Extended Status             */
 #define MII_DCOUNTER        0x12        /* Disconnect counter          */
 #define MII_FCSCOUNTER      0x13        /* False carrier counter       */
 #define MII_NWAYTEST        0x14        /* N-way auto-neg test reg     */
@@ -33,6 +38,7 @@
 
 /* Basic mode control register. */
 #define BMCR_RESV               0x007f  /* Unused...                   */
+#define BMCR_SPEED1000		0x0040	/* MSB of Speed (1000)         */
 #define BMCR_CTST               0x0080  /* Collision test              */
 #define BMCR_FULLDPLX           0x0100  /* Full duplex                 */
 #define BMCR_ANRESTART          0x0200  /* Auto negotiation restart    */
@@ -74,6 +80,9 @@
 			ADVERTISE_CSMA)
 #define ADVERTISE_ALL (ADVERTISE_10HALF | ADVERTISE_10FULL | \
                        ADVERTISE_100HALF | ADVERTISE_100FULL)
+
+#define ADVERTISE_1000FULL	0x0200  /* Advertise 1000BASE-T full duplex */
+#define ADVERTISE_1000HALF	0x0100  /* Advertise 1000BASE-T half duplex */
 
 /* Link partner ability register. */
 #define LPA_SLCT                0x001f  /* Same as advertise selector  */

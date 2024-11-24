@@ -16,11 +16,14 @@
 /* A word of warning: Our uio structure will clash with the C library one (which is now obsolete). Remove the C
    library one from sys/uio.h if you have a very old library set */
 
+#ifndef __DEFINED_struct_iovec
 struct iovec
 {
 	void *iov_base;		/* BSD uses caddr_t (1003.1g requires void *) */
 	__kernel_size_t iov_len; /* Must be size_t (1003.1g) */
 };
+#define __DEFINED_struct_iovec
+#endif
 
 /*
  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)

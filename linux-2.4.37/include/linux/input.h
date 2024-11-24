@@ -91,6 +91,7 @@ struct input_event {
 #define EV_REP			0x14
 #define EV_FF			0x15
 #define EV_MAX			0x1f
+#define EV_CNT			(EV_MAX+1)
 
 /*
  * Keys and buttons
@@ -458,7 +459,9 @@ struct input_event {
 
 #define SND_CLICK		0x00
 #define SND_BELL		0x01
+#define SND_TONE		0x02
 #define SND_MAX			0x07
+#define SND_CNT			(SND_MAX+1)
 
 /*
  * IDs.

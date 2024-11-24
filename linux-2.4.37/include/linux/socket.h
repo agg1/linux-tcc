@@ -28,7 +28,8 @@ typedef unsigned short	sa_family_t;
 /*
  *	1003.1g requires sa_family_t and that sa_data is char.
  */
- 
+
+#ifndef _SYS_SOCKET_H
 struct sockaddr {
 	sa_family_t	sa_family;	/* address family, AF_xxx	*/
 	char		sa_data[14];	/* 14 bytes of protocol address	*/
@@ -68,6 +69,7 @@ struct cmsghdr {
         int		cmsg_level;	/* originating protocol */
         int		cmsg_type;	/* protocol-specific type */
 };
+#endif
 
 /*
  *	Ancilliary data object information MACROS
@@ -142,11 +144,13 @@ __KINLINE struct cmsghdr * cmsg_nxthdr (struct msghdr *__msg, struct cmsghdr *__
 #define	SCM_RIGHTS	0x01		/* rw: access rights (array of int) */
 #define SCM_CREDENTIALS 0x02		/* rw: struct ucred		*/
 
+#ifndef _SYS_SOCKET_H
 struct ucred {
 	__u32	pid;
 	__u32	uid;
 	__u32	gid;
 };
+#endif
 
 /* Supported address families. */
 #define AF_UNSPEC	0

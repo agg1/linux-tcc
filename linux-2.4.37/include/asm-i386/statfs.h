@@ -9,6 +9,7 @@ typedef __kernel_fsid_t	fsid_t;
 
 #endif
 
+#ifndef _SYS_STATFS_H
 struct statfs {
 	long f_type;
 	long f_bsize;
@@ -21,5 +22,6 @@ struct statfs {
 	long f_namelen;
 	long f_spare[6];
 };
+#endif
 
 #endif

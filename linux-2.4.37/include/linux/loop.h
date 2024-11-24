@@ -109,6 +109,23 @@ struct loop_info {
 	char		reserved[4];
 };
 
+// linux-5.9
+struct loop_info64 {
+	__u64		   lo_device;			/* ioctl r/o */
+	__u64		   lo_inode;			/* ioctl r/o */
+	__u64		   lo_rdevice;			/* ioctl r/o */
+	__u64		   lo_offset;
+	__u64		   lo_sizelimit;/* bytes, 0 == max available */
+	__u32		   lo_number;			/* ioctl r/o */
+	__u32		   lo_encrypt_type;
+	__u32		   lo_encrypt_key_size;		/* ioctl w/o */
+	__u32		   lo_flags;
+	__u8		   lo_file_name[LO_NAME_SIZE];
+	__u8		   lo_crypt_name[LO_NAME_SIZE];
+	__u8		   lo_encrypt_key[LO_KEY_SIZE]; /* ioctl w/o */
+	__u64		   lo_init[2];
+};
+
 /*
  * Loop filter types
  */
@@ -151,5 +168,13 @@ int loop_unregister_transfer(int number);
 #define LOOP_CLR_FD	0x4C01
 #define LOOP_SET_STATUS	0x4C02
 #define LOOP_GET_STATUS	0x4C03
+// linux-5.9
+#define LOOP_SET_STATUS64	0x4C04
+#define LOOP_GET_STATUS64	0x4C05
+#define LOOP_CHANGE_FD		0x4C06
+#define LOOP_SET_CAPACITY	0x4C07
+#define LOOP_SET_DIRECT_IO	0x4C08
+#define LOOP_SET_BLOCK_SIZE	0x4C09
+#define LOOP_CONFIGURE		0x4C0A
 
 #endif
