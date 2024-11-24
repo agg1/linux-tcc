@@ -42,8 +42,8 @@
 #define _SCSIGLUE_H_
 
 #include <linux/blk.h>
-#include "scsi.h"
-#include "hosts.h"
+#include "../../scsi/scsi.h"
+#include "../../scsi/hosts.h"
 
 extern unsigned char usb_stor_sense_notready[18];
 extern Scsi_Host_Template usb_stor_host_template;

@@ -50,8 +50,8 @@
 #include <linux/completion.h>
 #include <linux/spinlock.h>
 #include <asm/atomic.h>
-#include "scsi.h"
-#include "hosts.h"
+#include "../../scsi/scsi.h"
+#include "../../scsi/hosts.h"
 
 /* 
  * GUID definitions

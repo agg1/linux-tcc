@@ -42,7 +42,7 @@
 #define _PROTOCOL_H_
 
 #include <linux/blk.h>
-#include "scsi.h"
+#include "../../scsi/scsi.h"
 #include "usb.h"
 
 /* Sub Classes */

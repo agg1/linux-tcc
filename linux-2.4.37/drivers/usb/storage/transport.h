@@ -44,7 +44,7 @@
 #include <linux/config.h>
 #include <linux/blk.h>
 #include "usb.h"
-#include "scsi.h"
+#include "../../scsi/scsi.h"
 
 /* Protocols */
 
