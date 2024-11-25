@@ -50,8 +50,8 @@ static int __init no_387(char *s)
 
 __setup("no387", no_387);
 
-static double __initdata x = 4195835.0;
-static double __initdata y = 3145727.0;
+double __initdata x = 4195835.0;
+double __initdata y = 3145727.0;
 
 /*
  * This used to check for exceptions.. 
@@ -66,6 +66,8 @@ static double __initdata y = 3145727.0;
  */
 static void __init check_fpu(void)
 {
+	s32 fdiv_bug;
+
 	if (!boot_cpu_data.hard_math) {
 #ifndef CONFIG_MATH_EMULATION
 		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
@@ -94,6 +96,8 @@ static void __init check_fpu(void)
 		printk("done.\n");
 	}
 
+	kernel_fpu_begin();
+
 	/* Test for the divl bug.. */
 	__asm__("fninit\n\t"
 		"fldl %1\n\t"
@@ -104,8 +108,12 @@ static void __init check_fpu(void)
 		"fistpl %0\n\t"
 		"fwait\n\t"
 		"fninit"
-		: "=m" (*&boot_cpu_data.fdiv_bug)
+		: "=m" (*&fdiv_bug)
 		: "m" (*&x), "m" (*&y));
+
+	kernel_fpu_end();
+	boot_cpu_data.fdiv_bug = fdiv_bug;
+
 	if (boot_cpu_data.fdiv_bug)
 		printk("Hmm, FPU with FDIV bug.\n");
 }
