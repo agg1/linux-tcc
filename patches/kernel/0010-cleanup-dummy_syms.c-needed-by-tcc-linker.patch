@@ -1,0 +1,149 @@
+From 2f0522ebb373a5d4d8a699ec9054b64d17be80d0 Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Mon, 25 Nov 2024 05:24:45 +0000
+Subject: [PATCH 10/10] cleanup dummy_syms.c needed by tcc linker
+
+---
+ linux-2.4.37/arch/i386/lib/dummy_syms.c | 118 +++++-------------------
+ 1 file changed, 22 insertions(+), 96 deletions(-)
+
+diff --git a/linux-2.4.37/arch/i386/lib/dummy_syms.c b/linux-2.4.37/arch/i386/lib/dummy_syms.c
+index 07c6645..c7b25c0 100644
+--- a/linux-2.4.37/arch/i386/lib/dummy_syms.c
++++ b/linux-2.4.37/arch/i386/lib/dummy_syms.c
+@@ -1,4 +1,3 @@
+-/* small TinyCC runtime for the Linux kernel */
+ #ifdef __TINYC__
+ 
+ int abs(int a)
+@@ -9,105 +8,32 @@ int abs(int a)
+         return a;
+ }
+ 
+-/* these symbols are needed because TCC is not smart enough to
+-   suppress unused code */
+-
+- #define DUMMY(x) const char x = 0xcc;
+-  DUMMY(__put_user_bad)
+-  DUMMY(__get_user_X)
+-  DUMMY(__get_user_bad)
+-  DUMMY(__this_fixmap_does_not_exist)
+-  DUMMY(__bad_udelay)
+-  DUMMY(save_i387_soft)
+-  DUMMY(restore_i387_soft)
+-  DUMMY(__buggy_fxsr_alignment)
+-  DUMMY(__skb_cb_too_small_for_tcp)
+-  DUMMY(cookie_v4_init_sequence)
+-  DUMMY(netlink_skb_parms_too_large)
+-  DUMMY(__struct_cpy_bug)
+-  DUMMY(cpu_2_physical_apicid)
+-  DUMMY(__error_in_apic_c)
+-
+-/* */
+-
+-typedef int Wtype;
+-typedef unsigned int UWtype;
+-typedef unsigned int USItype;
+-typedef long long DWtype;
+-typedef unsigned long long UDWtype;
+-
+-struct DWstruct {
+-    Wtype low, high;
+-};
++// symbols provided by libtcc1
++//long long __ashrdi3(long long a, int b) {
++//    return a >> b;
++//}
++//long long __ashldi3(long long a, int b) {
++//    return a << b;
++//}
++//unsigned long long __lshrdi3(unsigned long long a, int b) {
++//    return a >> b;
++//}
+ 
+-typedef union
+-{
+-  struct DWstruct s;
+-  DWtype ll;
+-} DWunion;
+ 
++#define DUMMY(x) const char x = 0xcc;
+ 
+-/* XXX: fix tcc's code generator to do this instead */
+-long long __sardi3(long long a, int b)
+-{
+-    DWunion u;
+-    u.ll = a;
+-    if (b >= 32) {
+-        u.s.low = u.s.high >> (b - 32);
+-        u.s.high = u.s.high >> 31;
+-    } else if (b != 0) {
+-        u.s.low = ((unsigned)u.s.low >> b) | (u.s.high << (32 - b));
+-        u.s.high = u.s.high >> b;
+-    }
+-    return u.ll;
+-}
+-//    return a >> b;
++/* these symbols are needed because TCC is not smart enough to suppress unused code */
++DUMMY(__this_fixmap_does_not_exist)
+ 
+-/* XXX: fix tcc's code generator to do this instead */
+-long long __shldi3(long long a, int b)
+-{
+-    DWunion u;
+-    u.ll = a;
+-    if (b >= 32) {
+-        u.s.high = (unsigned)u.s.low << (b - 32);
+-        u.s.low = 0;
+-    } else if (b != 0) {
+-        u.s.high = ((unsigned)u.s.high << b) | (u.s.low >> (32 - b));
+-        u.s.low = (unsigned)u.s.low << b;
+-    }
+-    return u.ll;
+-}
+-//    return a << b;
++DUMMY(__put_user_bad)
++DUMMY(__get_user_bad)
++DUMMY(__get_user_X)
++//DUMMY(__bad_udelay)
++//DUMMY(__bad_ndelay)
+ 
+-/* XXX: fix tcc's code generator to do this instead */
+-long long __ashrdi3(long long a, int b)
+-{
+-    DWunion u;
+-    u.ll = a;
+-    if (b >= 32) {
+-        u.s.low = u.s.high >> (b - 32);
+-        u.s.high = u.s.high >> 31;
+-    } else if (b != 0) {
+-        u.s.low = ((unsigned)u.s.low >> b) | (u.s.high << (32 - b));
+-        u.s.high = u.s.high >> b;
+-    }
+-    return u.ll;
+-}
+-//    return a >> b;
++// depending on kernel config further dummy symbols may be necessary
++DUMMY(tcp_v4_lookup)
++DUMMY(irttp_cleanup)
++DUMMY(__br_lock_usage_bug)
+ 
+-/* XXX: fix tcc's code generator to do this instead */
+-long long __ashldi3(long long a, int b)
+-{
+-    DWunion u;
+-    u.ll = a;
+-    if (b >= 32) {
+-        u.s.high = (unsigned)u.s.low << (b - 32);
+-        u.s.low = 0;
+-    } else if (b != 0) {
+-        u.s.high = ((unsigned)u.s.high << b) | ((unsigned)u.s.low >> (32 - b));
+-        u.s.low = (unsigned)u.s.low << b;
+-    }
+-    return u.ll;
+-}
+-//    return a << b;
+ #endif
+-- 
+2.35.1
+

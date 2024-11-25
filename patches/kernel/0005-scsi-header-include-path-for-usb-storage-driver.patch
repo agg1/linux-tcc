@@ -1,0 +1,85 @@
+From e9eb203c6a529769ea9ca8839e0a8f4ccb75d23e Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Sun, 24 Nov 2024 22:27:02 +0000
+Subject: [PATCH 05/10] scsi header include path for usb storage driver
+
+---
+ linux-2.4.37/drivers/usb/storage/debug.h     | 2 +-
+ linux-2.4.37/drivers/usb/storage/protocol.h  | 2 +-
+ linux-2.4.37/drivers/usb/storage/scsiglue.h  | 4 ++--
+ linux-2.4.37/drivers/usb/storage/transport.h | 2 +-
+ linux-2.4.37/drivers/usb/storage/usb.h       | 4 ++--
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/linux-2.4.37/drivers/usb/storage/debug.h b/linux-2.4.37/drivers/usb/storage/debug.h
+index c5477dc..71b824a 100644
+--- a/linux-2.4.37/drivers/usb/storage/debug.h
++++ b/linux-2.4.37/drivers/usb/storage/debug.h
+@@ -48,7 +48,7 @@
+ #include <linux/kernel.h>
+ #include <linux/blk.h>
+ #include <linux/cdrom.h>
+-#include "scsi.h"
++#include "../../scsi/scsi.h"
+ 
+ #define USB_STORAGE "usb-storage: "
+ 
+diff --git a/linux-2.4.37/drivers/usb/storage/protocol.h b/linux-2.4.37/drivers/usb/storage/protocol.h
+index ece3d58..a114144 100644
+--- a/linux-2.4.37/drivers/usb/storage/protocol.h
++++ b/linux-2.4.37/drivers/usb/storage/protocol.h
+@@ -42,7 +42,7 @@
+ #define _PROTOCOL_H_
+ 
+ #include <linux/blk.h>
+-#include "scsi.h"
++#include "../../scsi/scsi.h"
+ #include "usb.h"
+ 
+ /* Sub Classes */
+diff --git a/linux-2.4.37/drivers/usb/storage/scsiglue.h b/linux-2.4.37/drivers/usb/storage/scsiglue.h
+index 13b9f3b..611a839 100644
+--- a/linux-2.4.37/drivers/usb/storage/scsiglue.h
++++ b/linux-2.4.37/drivers/usb/storage/scsiglue.h
+@@ -42,8 +42,8 @@
+ #define _SCSIGLUE_H_
+ 
+ #include <linux/blk.h>
+-#include "scsi.h"
+-#include "hosts.h"
++#include "../../scsi/scsi.h"
++#include "../../scsi/hosts.h"
+ 
+ extern unsigned char usb_stor_sense_notready[18];
+ extern Scsi_Host_Template usb_stor_host_template;
+diff --git a/linux-2.4.37/drivers/usb/storage/transport.h b/linux-2.4.37/drivers/usb/storage/transport.h
+index 711f028..fb22a80 100644
+--- a/linux-2.4.37/drivers/usb/storage/transport.h
++++ b/linux-2.4.37/drivers/usb/storage/transport.h
+@@ -44,7 +44,7 @@
+ #include <linux/config.h>
+ #include <linux/blk.h>
+ #include "usb.h"
+-#include "scsi.h"
++#include "../../scsi/scsi.h"
+ 
+ /* Protocols */
+ 
+diff --git a/linux-2.4.37/drivers/usb/storage/usb.h b/linux-2.4.37/drivers/usb/storage/usb.h
+index 0cf9005..839a9a9 100644
+--- a/linux-2.4.37/drivers/usb/storage/usb.h
++++ b/linux-2.4.37/drivers/usb/storage/usb.h
+@@ -50,8 +50,8 @@
+ #include <linux/completion.h>
+ #include <linux/spinlock.h>
+ #include <asm/atomic.h>
+-#include "scsi.h"
+-#include "hosts.h"
++#include "../../scsi/scsi.h"
++#include "../../scsi/hosts.h"
+ 
+ /* 
+  * GUID definitions
+-- 
+2.35.1
+

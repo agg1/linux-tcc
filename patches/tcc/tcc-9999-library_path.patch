@@ -1,0 +1,105 @@
+diff --git a/libtcc.c b/libtcc.c
+index f686feb5..c9c687c3 100644
+--- a/libtcc.c
++++ b/libtcc.c
+@@ -890,6 +890,7 @@ LIBTCCAPI void tcc_delete(TCCState *s1)
+ 
+ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+ {
++    char *cpath;
+ #ifdef CONFIG_TCC_PIE
+     if (output_type == TCC_OUTPUT_EXE)
+         output_type |= TCC_OUTPUT_DYN;
+@@ -897,9 +898,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+     s->output_type = output_type;
+ 
+     if (!s->nostdinc) {
+-        /* default include paths */
+-        /* -isystem paths have already been handled */
+-        tcc_add_sysinclude_path(s, CONFIG_TCC_SYSINCLUDEPATHS);
++        /* override include path with TCC_CPATH as stdinc */
++        /* helpful to sanitize cross-development includes */
++        cpath = getenv("TCC_CPATH");
++        if(cpath != NULL) {
++            tcc_add_sysinclude_path(s, cpath);
++        }
++        else {
++            /* default include paths */
++            /* -isystem paths have already been handled */
++            tcc_add_sysinclude_path(s, CONFIG_TCC_SYSINCLUDEPATHS);
++        }
+     }
+ 
+     if (output_type == TCC_OUTPUT_PREPROCESS) {
+@@ -916,7 +925,7 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+         return 0;
+     }
+ 
+-    tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
++//    tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
+ 
+ #ifdef TCC_TARGET_PE
+ # ifdef TCC_IS_NATIVE
+@@ -928,8 +937,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+     tcc_add_macos_sdkpath(s);
+ # endif
+ #else
++
++    char *crt_path = getenv("TCC_LIBRARY_PATH");
++    if(crt_path != NULL) {
++        tcc_split_path(s, &s->crt_paths, &s->nb_crt_paths, crt_path);
++    }
++    else {
++        /* paths for crt objects */
++        tcc_split_path(s, &s->crt_paths, &s->nb_crt_paths, CONFIG_TCC_CRTPREFIX);
++    }
++
+     /* paths for crt objects */
+-    tcc_split_path(s, &s->crt_paths, &s->nb_crt_paths, CONFIG_TCC_CRTPREFIX);
+     if (output_type != TCC_OUTPUT_MEMORY && !s->nostdlib)
+         tccelf_add_crtbegin(s);
+ #endif
+diff --git a/tcc.c b/tcc.c
+index 838f41d9..b215c36f 100644
+--- a/tcc.c
++++ b/tcc.c
+@@ -221,18 +221,33 @@ static void set_environment(TCCState *s)
+ {
+     char * path;
+ 
+-    path = getenv("C_INCLUDE_PATH");
+-    if(path != NULL) {
+-        tcc_add_sysinclude_path(s, path);
+-    }
+-    path = getenv("CPATH");
++    path = getenv("TCC_CPATH");
+     if(path != NULL) {
+         tcc_add_include_path(s, path);
+     }
+-    path = getenv("LIBRARY_PATH");
++    else {
++        path = getenv("C_INCLUDE_PATH");
++        if(path != NULL) {
++            tcc_add_sysinclude_path(s, path);
++        }
++        path = getenv("CPATH");
++        if(path != NULL) {
++            tcc_add_include_path(s, path);
++        }
++    }
++    path = getenv("TCC_LIBRARY_PATH");
+     if(path != NULL) {
+         tcc_add_library_path(s, path);
+     }
++    else {
++        path = getenv("LIBRARY_PATH");
++        if(path != NULL) {
++            tcc_add_library_path(s, path);
++        }
++        else {
++            tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
++        }
++    }
+ }
+ 
+ static char *default_outputfile(TCCState *s, const char *first_file)

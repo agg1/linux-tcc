@@ -1,0 +1,153 @@
+From fe4208320022f1e1c29d053261ec7bd31469111a Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Sun, 24 Nov 2024 22:10:48 +0000
+Subject: [PATCH 02/10] bootcode related patches
+
+---
+ linux-2.4.37/arch/i386/boot/bootsect.S     |  2 +-
+ linux-2.4.37/arch/i386/boot/tools/build.c  | 13 +++++++------
+ linux-2.4.37/arch/i386/boot/video.S        | 10 +++++-----
+ linux-2.4.37/arch/i386/kernel/trampoline.S |  8 ++++++++
+ linux-2.4.37/drivers/video/fbcon.c         |  2 ++
+ linux-2.4.37/init/main.c                   |  3 ++-
+ 6 files changed, 25 insertions(+), 13 deletions(-)
+
+diff --git a/linux-2.4.37/arch/i386/boot/bootsect.S b/linux-2.4.37/arch/i386/boot/bootsect.S
+index 0bcb2a3..23e0504 100644
+--- a/linux-2.4.37/arch/i386/boot/bootsect.S
++++ b/linux-2.4.37/arch/i386/boot/bootsect.S
+@@ -31,7 +31,7 @@
+ 
+ #include <asm/boot.h>
+ 
+-SETUPSECTS	= 4			/* default nr of setup-sectors */
++SETUPSECTS	= 32			/* default nr of setup-sectors */
+ BOOTSEG		= 0x07C0		/* original address of boot-sector */
+ INITSEG		= DEF_INITSEG		/* we move boot here - out of the way */
+ SETUPSEG	= DEF_SETUPSEG		/* setup starts here */
+diff --git a/linux-2.4.37/arch/i386/boot/tools/build.c b/linux-2.4.37/arch/i386/boot/tools/build.c
+index 2edd0a4..820c8a4 100644
+--- a/linux-2.4.37/arch/i386/boot/tools/build.c
++++ b/linux-2.4.37/arch/i386/boot/tools/build.c
+@@ -43,7 +43,7 @@ typedef unsigned long u32;
+ #define DEFAULT_MINOR_ROOT 0
+ 
+ /* Minimal number of setup sectors (see also bootsect.S) */
+-#define SETUP_SECTS 4
++#define SETUP_SECTS 32
+ 
+ byte buf[1024];
+ int fd;
+@@ -51,10 +51,10 @@ int is_big_kernel;
+ 
+ void die(const char * str, ...)
+ {
+-	va_list args;
+-	va_start(args, str);
+-	vfprintf(stderr, str, args);
+-	fputc('\n', stderr);
++//	va_list args;
++//	va_start(args, str);
++//	vfprintf(stderr, str, args);
++//	fputc('\n', stderr);
+ 	exit(1);
+ }
+ 
+@@ -151,7 +151,8 @@ int main(int argc, char ** argv)
+ 	fprintf (stderr, "System is %d kB\n", sz/1024);
+ 	sys_size = (sz + 15) / 16;
+ 	/* 0x28000*16 = 2.5 MB, conservative estimate for the current maximum */
+-	if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
++//	if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
++	if (sys_size > (is_big_kernel ? 0x80000 : DEF_SYSSIZE))
+ 		die("System is too big. Try using %smodules.",
+ 			is_big_kernel ? "" : "bzImage or ");
+ 	if (sys_size > 0xefff)
+diff --git a/linux-2.4.37/arch/i386/boot/video.S b/linux-2.4.37/arch/i386/boot/video.S
+index 1a49d97..54e875b 100644
+--- a/linux-2.4.37/arch/i386/boot/video.S
++++ b/linux-2.4.37/arch/i386/boot/video.S
+@@ -661,8 +661,8 @@ set_current:
+ 	stc
+ 	ret
+ 
+-# Set the 80x28 mode. This mode works on all VGA's, because it's a standard
+-# 80x25 mode with 14-point fonts instead of 16-point.
++# Set the _80x28 mode. This mode works on all VGA's, because it's a standard
++# _80x25 mode with 14-point fonts instead of 16-point.
+ set_80x28:
+ 	DO_STORE
+ 	call	use_80x25			# The base is 80x25
+@@ -1814,10 +1814,10 @@ getkey:	xorb	%ah, %ah
+ 	int	$0x16
+ 	ret
+ 
+-# Read a key with a timeout of 30 seconds.
++# Read a key with a timeout of 05 seconds.
+ # The hardware clock is used to get the time.
+ getkt:	call	gettime
+-	addb	$30, %al			# Wait 30 seconds
++	addb	$05, %al			# Wait 05 seconds
+ 	cmpb	$60, %al
+ 	jl	lminute
+ 
+@@ -1895,7 +1895,7 @@ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
+ 
+ # Status messages
+ keymsg:		.ascii	"Press <RETURN> to see video modes available, "
+-		.ascii	"<SPACE> to continue or wait 30 secs"
++		.ascii	"<SPACE> to continue or wait 05 secs"
+ 		.byte	0x0d, 0x0a, 0
+ 
+ listhdr:	.byte	0x0d, 0x0a
+diff --git a/linux-2.4.37/arch/i386/kernel/trampoline.S b/linux-2.4.37/arch/i386/kernel/trampoline.S
+index d36ef8d..bf7d39d 100644
+--- a/linux-2.4.37/arch/i386/kernel/trampoline.S
++++ b/linux-2.4.37/arch/i386/kernel/trampoline.S
+@@ -54,8 +54,16 @@ r_base = .
+ 	lmsw	%ax		# into protected mode
+ 	jmp	flush_instr
+ flush_instr:
++### https://stackoverflow.com/questions/39323061/gnu-as-compilation-error-on-instruction-far-jmp-0x8-0x80000
++### tcc is not aware of ljmpl , and ljmp implies different adressing and sizes (16bit/32bit)
++
++#ifdef __TINYC__
++	ljmpl	$__KERNEL_CS, $0x00100000
++			# compilation/assembling passes, see what happens...
++#else
+ 	ljmpl	$__KERNEL_CS, $0x00100000
+ 			# jump to startup_32 in arch/i386/kernel/head.S
++#endif
+ 
+ idt_48:
+ 	.word	0			# idt limit = 0
+diff --git a/linux-2.4.37/drivers/video/fbcon.c b/linux-2.4.37/drivers/video/fbcon.c
+index 1f66819..4529d35 100644
+--- a/linux-2.4.37/drivers/video/fbcon.c
++++ b/linux-2.4.37/drivers/video/fbcon.c
+@@ -575,6 +575,8 @@ static void fbcon_setup(int con, int init, int logo)
+     if (con != fg_console || (p->fb_info->flags & FBINFO_FLAG_MODULE) ||
+         p->type == FB_TYPE_TEXT)
+     	logo = 0;
++    else
++        logo = 0;
+ 
+     p->var.xoffset = p->var.yoffset = p->yscroll = 0;  /* reset wrap/pan */
+ 
+diff --git a/linux-2.4.37/init/main.c b/linux-2.4.37/init/main.c
+index a1d0841..ceb306a 100644
+--- a/linux-2.4.37/init/main.c
++++ b/linux-2.4.37/init/main.c
+@@ -364,7 +364,8 @@ asmlinkage void __init start_kernel(void)
+  * enable them
+  */
+ 	lock_kernel();
+-	printk(linux_banner);
++// warning: format not a string literal and no format arguments [-Wformat-security]
++//	printk(linux_banner);
+ 	setup_arch(&command_line);
+ 	printk("Kernel command line: %s\n", saved_command_line);
+ 	parse_options(command_line);
+-- 
+2.35.1
+

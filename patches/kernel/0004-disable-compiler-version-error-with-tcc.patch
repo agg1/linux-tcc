@@ -1,0 +1,32 @@
+From 9f17b6bc1a425516e72d8549737b92861277eb71 Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Sun, 24 Nov 2024 22:23:52 +0000
+Subject: [PATCH 04/10] disable compiler version #error with tcc
+
+---
+ linux-2.4.37/include/linux/compiler.h | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/linux-2.4.37/include/linux/compiler.h b/linux-2.4.37/include/linux/compiler.h
+index e2ddf28..e39cdb3 100644
+--- a/linux-2.4.37/include/linux/compiler.h
++++ b/linux-2.4.37/include/linux/compiler.h
+@@ -41,15 +41,6 @@
+ #endif
+ #endif
+ 
+-#ifdef __KERNEL__
+-#if __GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 2
+-#error "GCC >= 4.2 miscompiles kernel 2.4, do not use it!"
+-#error "While the resulting kernel may boot, you will encounter random bugs"
+-#error "at runtime. Only versions 2.95.3 to 4.1 are known to work reliably."
+-#error "To build with another version, for instance 3.3, please do"
+-#error "   make bzImage CC=gcc-3.3 "
+-#endif
+-#endif
+ 
+ /* no checker support, so we unconditionally define this as (null) */
+ #define __user
+-- 
+2.35.1
+

@@ -1,0 +1,47 @@
+diff --git a/libtcc.c b/libtcc.c
+index ebc30baa..7735fc95 100644
+--- a/libtcc.c
++++ b/libtcc.c
+@@ -1486,6 +1486,16 @@ static int tcc_set_linker(TCCState *s, const char *option)
+             else
+                 s->filetype &= ~AFF_WHOLE_ARCHIVE;
+         } else if (link_option(option, "z=", &p)) {
++            tcc_warning("ignore unsupported linker option '%s'", option);
++            ignoring = 1;
++        } else if (link_option(option, "version-script=", &p)) {
++            tcc_warning("ignore unsupported linker option '%s'", option);
++            ignoring = 1;
++        } else if (link_option(option, "no-undefined", &p)) {
++            tcc_warning("ignore unsupported linker option '%s'", option);
++            ignoring = 1;
++        } else if (link_option(option, "allow-shlib-undefined", &p)) {
++            tcc_warning("ignore unsupported linker option '%s'", option);
+             ignoring = 1;
+         } else if (p) {
+             return 0;
+@@ -1891,8 +1901,10 @@ dorun:
+         for(popt = tcc_options; ; ++popt) {
+             const char *p1 = popt->name;
+             const char *r1 = r + 1;
+-            if (p1 == NULL)
+-                return tcc_error_noabort("invalid option -- '%s'", r);
++            if (p1 == NULL) {
++                tcc_warning("invalid option -- '%s'", r);
++                break;
++            }
+             if (!strstart(p1, &r1))
+                 continue;
+             optarg = r1;
+diff --git a/tccelf.c b/tccelf.c
+index 96c6a15d..3a95bc7c 100644
+--- a/tccelf.c
++++ b/tccelf.c
+@@ -713,7 +713,7 @@ ST_FUNC int set_elf_sym(Section *s, addr_t value, unsigned long size,
+                 printf("new_bind=%x new_shndx=%x new_vis=%x old_bind=%x old_shndx=%x old_vis=%x\n",
+                        sym_bind, shndx, new_vis, esym_bind, esym->st_shndx, esym_vis);
+ #endif
+-                tcc_error_noabort("'%s' defined twice", name);
++                tcc_warning("'%s' defined twice", name);
+             }
+         } else {
+             esym->st_other = other;

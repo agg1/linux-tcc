@@ -1,5 +1,12 @@
+LOG
 btmp
 temp
+isoroot
 usr
 linux-2.4.37/.config
 linux-2.4.37/.config.old
+linux-2.4.37/include/asm
+linux-2.4.37/include/linux/autoconf.h
+linux-2.4.37/include/linux/version.h
+tccboot.iso
+tccboot-hybrid.iso

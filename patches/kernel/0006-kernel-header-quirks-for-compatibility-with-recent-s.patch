@@ -1,0 +1,825 @@
+From 5d7c4909eb9b51ba1c7e241de9372bd670055a49 Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Sun, 24 Nov 2024 22:32:07 +0000
+Subject: [PATCH 06/10] kernel header quirks for compatibility with recent
+ software
+
+---
+ linux-2.4.37/include/asm-i386/posix_types.h |   8 +
+ linux-2.4.37/include/asm-i386/statfs.h      |   2 +
+ linux-2.4.37/include/linux/const.h          |  31 +++
+ linux-2.4.37/include/linux/ethtool.h        | 200 ++++++++++----------
+ linux-2.4.37/include/linux/input.h          |   3 +
+ linux-2.4.37/include/linux/kernel.h         |  10 +
+ linux-2.4.37/include/linux/loop.h           |  25 +++
+ linux-2.4.37/include/linux/magic.h          | 101 ++++++++++
+ linux-2.4.37/include/linux/mii.h            |   9 +
+ linux-2.4.37/include/linux/netlink.h        |   2 +
+ linux-2.4.37/include/linux/rtnetlink.h      |   1 +
+ linux-2.4.37/include/linux/socket.h         |   6 +-
+ linux-2.4.37/include/linux/types.h          |  32 ++++
+ linux-2.4.37/include/linux/uio.h            |   3 +
+ 14 files changed, 332 insertions(+), 101 deletions(-)
+ create mode 100644 linux-2.4.37/include/linux/const.h
+ create mode 100644 linux-2.4.37/include/linux/magic.h
+
+diff --git a/linux-2.4.37/include/asm-i386/posix_types.h b/linux-2.4.37/include/asm-i386/posix_types.h
+index 5529f32..a9b3799 100644
+--- a/linux-2.4.37/include/asm-i386/posix_types.h
++++ b/linux-2.4.37/include/asm-i386/posix_types.h
+@@ -1,6 +1,14 @@
+ #ifndef __ARCH_I386_POSIX_TYPES_H
+ #define __ARCH_I386_POSIX_TYPES_H
+ 
++// linux-5.9
++typedef long long __kernel_long_t;
++typedef unsigned long long __kernel_ulong_t;
++//#define __kernel_long_t __kernel_long_t
++
++//
++typedef int		__kernel_clockid_t;
++
+ /*
+  * This file is generally used by user-level software, so you need to
+  * be a little careful about namespace pollution etc.  Also, we cannot
+diff --git a/linux-2.4.37/include/asm-i386/statfs.h b/linux-2.4.37/include/asm-i386/statfs.h
+index 113d5d4..1b2db2f 100644
+--- a/linux-2.4.37/include/asm-i386/statfs.h
++++ b/linux-2.4.37/include/asm-i386/statfs.h
+@@ -9,6 +9,7 @@ typedef __kernel_fsid_t	fsid_t;
+ 
+ #endif
+ 
++#ifndef _SYS_STATFS_H
+ struct statfs {
+ 	long f_type;
+ 	long f_bsize;
+@@ -21,5 +22,6 @@ struct statfs {
+ 	long f_namelen;
+ 	long f_spare[6];
+ };
++#endif
+ 
+ #endif
+diff --git a/linux-2.4.37/include/linux/const.h b/linux-2.4.37/include/linux/const.h
+new file mode 100644
+index 0000000..fd885c7
+--- /dev/null
++++ b/linux-2.4.37/include/linux/const.h
+@@ -0,0 +1,31 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/* const.h: Macros for dealing with constants.  */
++
++#ifndef _LINUX_CONST_H
++#define _LINUX_CONST_H
++
++/* Some constant macros are used in both assembler and
++ * C code.  Therefore we cannot annotate them always with
++ * 'UL' and other type specifiers unilaterally.  We
++ * use the following macros to deal with this.
++ *
++ * Similarly, _AT() will cast an expression with a type in C, but
++ * leave it unchanged in asm.
++ */
++
++#ifdef __ASSEMBLY__
++#define _AC(X,Y)	X
++#define _AT(T,X)	X
++#else
++#define __AC(X,Y)	(X##Y)
++#define _AC(X,Y)	__AC(X,Y)
++#define _AT(T,X)	((T)(X))
++#endif
++
++#define _UL(x)		(_AC(x, UL))
++#define _ULL(x)		(_AC(x, ULL))
++
++#define _BITUL(x)	(_UL(1) << (x))
++#define _BITULL(x)	(_ULL(1) << (x))
++
++#endif /* _LINUX_CONST_H */
+diff --git a/linux-2.4.37/include/linux/ethtool.h b/linux-2.4.37/include/linux/ethtool.h
+index ec45678..0eab6a5 100644
+--- a/linux-2.4.37/include/linux/ethtool.h
++++ b/linux-2.4.37/include/linux/ethtool.h
+@@ -15,24 +15,24 @@
+ 
+ /* This should work for both 32 and 64 bit userland. */
+ struct ethtool_cmd {
+-	u32	cmd;
+-	u32	supported;	/* Features this interface supports */
+-	u32	advertising;	/* Features this interface advertises */
+-	u16	speed;		/* The forced speed, 10Mb, 100Mb, gigabit */
+-	u8	duplex;		/* Duplex, half or full */
+-	u8	port;		/* Which connector port */
+-	u8	phy_address;
+-	u8	transceiver;	/* Which tranceiver to use */
+-	u8	autoneg;	/* Enable or disable autonegotiation */
+-	u32	maxtxpkt;	/* Tx pkts before generating tx int */
+-	u32	maxrxpkt;	/* Rx pkts before generating rx int */
+-	u32	reserved[4];
++	__u32	cmd;
++	__u32	supported;	/* Features this interface supports */
++	__u32	advertising;	/* Features this interface advertises */
++	__u16	speed;		/* The forced speed, 10Mb, 100Mb, gigabit */
++	__u8	duplex;		/* Duplex, half or full */
++	__u8	port;		/* Which connector port */
++	__u8	phy_address;
++	__u8	transceiver;	/* Which tranceiver to use */
++	__u8	autoneg;	/* Enable or disable autonegotiation */
++	__u32	maxtxpkt;	/* Tx pkts before generating tx int */
++	__u32	maxrxpkt;	/* Rx pkts before generating rx int */
++	__u32	reserved[4];
+ };
+ 
+ #define ETHTOOL_BUSINFO_LEN	32
+ /* these strings are set to whatever the driver author decides... */
+ struct ethtool_drvinfo {
+-	u32	cmd;
++	__u32	cmd;
+ 	char	driver[32];	/* driver short name, "tulip", "eepro100" */
+ 	char	version[32];	/* driver version string */
+ 	char	fw_version[32];	/* firmware version string, if applicable */
+@@ -40,53 +40,53 @@ struct ethtool_drvinfo {
+ 				/* For PCI devices, use pci_dev->slot_name. */
+ 	char	reserved1[32];
+ 	char	reserved2[16];
+-	u32	n_stats;	/* number of u64's from ETHTOOL_GSTATS */
+-	u32	testinfo_len;
+-	u32	eedump_len;	/* Size of data from ETHTOOL_GEEPROM (bytes) */
+-	u32	regdump_len;	/* Size of data from ETHTOOL_GREGS (bytes) */
++	__u32	n_stats;	/* number of __u64's from ETHTOOL_GSTATS */
++	__u32	testinfo_len;
++	__u32	eedump_len;	/* Size of data from ETHTOOL_GEEPROM (bytes) */
++	__u32	regdump_len;	/* Size of data from ETHTOOL_GREGS (bytes) */
+ };
+ 
+ #define SOPASS_MAX	6
+ /* wake-on-lan settings */
+ struct ethtool_wolinfo {
+-	u32	cmd;
+-	u32	supported;
+-	u32	wolopts;
+-	u8	sopass[SOPASS_MAX]; /* SecureOn(tm) password */
++	__u32	cmd;
++	__u32	supported;
++	__u32	wolopts;
++	__u8	sopass[SOPASS_MAX]; /* SecureOn(tm) password */
+ };
+ 
+ /* for passing single values */
+ struct ethtool_value {
+-	u32	cmd;
+-	u32	data;
++	__u32	cmd;
++	__u32	data;
+ };
+ 
+ /* for passing big chunks of data */
+ struct ethtool_regs {
+-	u32	cmd;
+-	u32	version; /* driver-specific, indicates different chips/revs */
+-	u32	len; /* bytes */
+-	u8	data[0];
++	__u32	cmd;
++	__u32	version; /* driver-specific, indicates different chips/revs */
++	__u32	len; /* bytes */
++	__u8	data[0];
+ };
+ 
+ /* for passing EEPROM chunks */
+ struct ethtool_eeprom {
+-	u32	cmd;
+-	u32	magic;
+-	u32	offset; /* in bytes */
+-	u32	len; /* in bytes */
+-	u8	data[0];
++	__u32	cmd;
++	__u32	magic;
++	__u32	offset; /* in bytes */
++	__u32	len; /* in bytes */
++	__u8	data[0];
+ };
+ 
+ /* for configuring coalescing parameters of chip */
+ struct ethtool_coalesce {
+-	u32	cmd;	/* ETHTOOL_{G,S}COALESCE */
++	__u32	cmd;	/* ETHTOOL_{G,S}COALESCE */
+ 
+ 	/* How many usecs to delay an RX interrupt after
+ 	 * a packet arrives.  If 0, only rx_max_coalesced_frames
+ 	 * is used.
+ 	 */
+-	u32	rx_coalesce_usecs;
++	__u32	rx_coalesce_usecs;
+ 
+ 	/* How many packets to delay an RX interrupt after
+ 	 * a packet arrives.  If 0, only rx_coalesce_usecs is
+@@ -94,21 +94,21 @@ struct ethtool_coalesce {
+ 	 * to zero as this would cause RX interrupts to never be
+ 	 * generated.
+ 	 */
+-	u32	rx_max_coalesced_frames;
++	__u32	rx_max_coalesced_frames;
+ 
+ 	/* Same as above two parameters, except that these values
+ 	 * apply while an IRQ is being serviced by the host.  Not
+ 	 * all cards support this feature and the values are ignored
+ 	 * in that case.
+ 	 */
+-	u32	rx_coalesce_usecs_irq;
+-	u32	rx_max_coalesced_frames_irq;
++	__u32	rx_coalesce_usecs_irq;
++	__u32	rx_max_coalesced_frames_irq;
+ 
+ 	/* How many usecs to delay a TX interrupt after
+ 	 * a packet is sent.  If 0, only tx_max_coalesced_frames
+ 	 * is used.
+ 	 */
+-	u32	tx_coalesce_usecs;
++	__u32	tx_coalesce_usecs;
+ 
+ 	/* How many packets to delay a TX interrupt after
+ 	 * a packet is sent.  If 0, only tx_coalesce_usecs is
+@@ -116,22 +116,22 @@ struct ethtool_coalesce {
+ 	 * to zero as this would cause TX interrupts to never be
+ 	 * generated.
+ 	 */
+-	u32	tx_max_coalesced_frames;
++	__u32	tx_max_coalesced_frames;
+ 
+ 	/* Same as above two parameters, except that these values
+ 	 * apply while an IRQ is being serviced by the host.  Not
+ 	 * all cards support this feature and the values are ignored
+ 	 * in that case.
+ 	 */
+-	u32	tx_coalesce_usecs_irq;
+-	u32	tx_max_coalesced_frames_irq;
++	__u32	tx_coalesce_usecs_irq;
++	__u32	tx_max_coalesced_frames_irq;
+ 
+ 	/* How many usecs to delay in-memory statistics
+ 	 * block updates.  Some drivers do not have an in-memory
+ 	 * statistic block, and in such cases this value is ignored.
+ 	 * This value must not be zero.
+ 	 */
+-	u32	stats_block_coalesce_usecs;
++	__u32	stats_block_coalesce_usecs;
+ 
+ 	/* Adaptive RX/TX coalescing is an algorithm implemented by
+ 	 * some drivers to improve latency under low packet rates and
+@@ -140,18 +140,18 @@ struct ethtool_coalesce {
+ 	 * not implemented by the driver causes these values to be
+ 	 * silently ignored.
+ 	 */
+-	u32	use_adaptive_rx_coalesce;
+-	u32	use_adaptive_tx_coalesce;
++	__u32	use_adaptive_rx_coalesce;
++	__u32	use_adaptive_tx_coalesce;
+ 
+ 	/* When the packet rate (measured in packets per second)
+ 	 * is below pkt_rate_low, the {rx,tx}_*_low parameters are
+ 	 * used.
+ 	 */
+-	u32	pkt_rate_low;
+-	u32	rx_coalesce_usecs_low;
+-	u32	rx_max_coalesced_frames_low;
+-	u32	tx_coalesce_usecs_low;
+-	u32	tx_max_coalesced_frames_low;
++	__u32	pkt_rate_low;
++	__u32	rx_coalesce_usecs_low;
++	__u32	rx_max_coalesced_frames_low;
++	__u32	tx_coalesce_usecs_low;
++	__u32	tx_max_coalesced_frames_low;
+ 
+ 	/* When the packet rate is below pkt_rate_high but above
+ 	 * pkt_rate_low (both measured in packets per second) the
+@@ -162,43 +162,43 @@ struct ethtool_coalesce {
+ 	 * is above pkt_rate_high, the {rx,tx}_*_high parameters are
+ 	 * used.
+ 	 */
+-	u32	pkt_rate_high;
+-	u32	rx_coalesce_usecs_high;
+-	u32	rx_max_coalesced_frames_high;
+-	u32	tx_coalesce_usecs_high;
+-	u32	tx_max_coalesced_frames_high;
++	__u32	pkt_rate_high;
++	__u32	rx_coalesce_usecs_high;
++	__u32	rx_max_coalesced_frames_high;
++	__u32	tx_coalesce_usecs_high;
++	__u32	tx_max_coalesced_frames_high;
+ 
+ 	/* How often to do adaptive coalescing packet rate sampling,
+ 	 * measured in seconds.  Must not be zero.
+ 	 */
+-	u32	rate_sample_interval;
++	__u32	rate_sample_interval;
+ };
+ 
+ /* for configuring RX/TX ring parameters */
+ struct ethtool_ringparam {
+-	u32	cmd;	/* ETHTOOL_{G,S}RINGPARAM */
++	__u32	cmd;	/* ETHTOOL_{G,S}RINGPARAM */
+ 
+ 	/* Read only attributes.  These indicate the maximum number
+ 	 * of pending RX/TX ring entries the driver will allow the
+ 	 * user to set.
+ 	 */
+-	u32	rx_max_pending;
+-	u32	rx_mini_max_pending;
+-	u32	rx_jumbo_max_pending;
+-	u32	tx_max_pending;
++	__u32	rx_max_pending;
++	__u32	rx_mini_max_pending;
++	__u32	rx_jumbo_max_pending;
++	__u32	tx_max_pending;
+ 
+ 	/* Values changeable by the user.  The valid values are
+ 	 * in the range 1 to the "*_max_pending" counterpart above.
+ 	 */
+-	u32	rx_pending;
+-	u32	rx_mini_pending;
+-	u32	rx_jumbo_pending;
+-	u32	tx_pending;
++	__u32	rx_pending;
++	__u32	rx_mini_pending;
++	__u32	rx_jumbo_pending;
++	__u32	tx_pending;
+ };
+ 
+ /* for configuring link flow control parameters */
+ struct ethtool_pauseparam {
+-	u32	cmd;	/* ETHTOOL_{G,S}PAUSEPARAM */
++	__u32	cmd;	/* ETHTOOL_{G,S}PAUSEPARAM */
+ 
+ 	/* If the link is being auto-negotiated (via ethtool_cmd.autoneg
+ 	 * being true) the user may set 'autonet' here non-zero to have the
+@@ -210,9 +210,9 @@ struct ethtool_pauseparam {
+ 	 * then {rx,tx}_pause force the driver to use/not-use pause
+ 	 * flow control.
+ 	 */
+-	u32	autoneg;
+-	u32	rx_pause;
+-	u32	tx_pause;
++	__u32	autoneg;
++	__u32	rx_pause;
++	__u32	tx_pause;
+ };
+ 
+ #define ETH_GSTRING_LEN		32
+@@ -223,10 +223,10 @@ enum ethtool_stringset {
+ 
+ /* for passing string sets for data tagging */
+ struct ethtool_gstrings {
+-	u32	cmd;		/* ETHTOOL_GSTRINGS */
+-	u32	string_set;	/* string set id e.c. ETH_SS_TEST, etc*/
+-	u32	len;		/* number of strings in the string set */
+-	u8	data[0];
++	__u32	cmd;		/* ETHTOOL_GSTRINGS */
++	__u32	string_set;	/* string set id e.c. ETH_SS_TEST, etc*/
++	__u32	len;		/* number of strings in the string set */
++	__u8	data[0];
+ };
+ 
+ enum ethtool_test_flags {
+@@ -236,28 +236,28 @@ enum ethtool_test_flags {
+ 
+ /* for requesting NIC test and getting results*/
+ struct ethtool_test {
+-	u32	cmd;		/* ETHTOOL_TEST */
+-	u32	flags;		/* ETH_TEST_FL_xxx */
+-	u32	reserved;
+-	u32	len;		/* result length, in number of u64 elements */
+-	u64	data[0];
++	__u32	cmd;		/* ETHTOOL_TEST */
++	__u32	flags;		/* ETH_TEST_FL_xxx */
++	__u32	reserved;
++	__u32	len;		/* result length, in number of __u64 elements */
++	__u64	data[0];
+ };
+ 
+ /* for dumping NIC-specific statistics */
+ struct ethtool_stats {
+-	u32	cmd;		/* ETHTOOL_GSTATS */
+-	u32	n_stats;	/* number of u64's being returned */
+-	u64	data[0];
++	__u32	cmd;		/* ETHTOOL_GSTATS */
++	__u32	n_stats;	/* number of __u64's being returned */
++	__u64	data[0];
+ };
+ 
+ struct net_device;
+ 
+ /* Some generic methods drivers may use in their ethtool_ops */
+-u32 ethtool_op_get_link(struct net_device *dev);
+-u32 ethtool_op_get_tx_csum(struct net_device *dev);
+-int ethtool_op_set_tx_csum(struct net_device *dev, u32 data);
+-u32 ethtool_op_get_sg(struct net_device *dev);
+-int ethtool_op_set_sg(struct net_device *dev, u32 data);
++__u32 ethtool_op_get_link(struct net_device *dev);
++__u32 ethtool_op_get_tx_csum(struct net_device *dev);
++int ethtool_op_set_tx_csum(struct net_device *dev, __u32 data);
++__u32 ethtool_op_get_sg(struct net_device *dev);
++int ethtool_op_set_sg(struct net_device *dev, __u32 data);
+ 
+ /**
+  * &ethtool_ops - Alter and report network device settings
+@@ -320,31 +320,31 @@ struct ethtool_ops {
+ 	void	(*get_regs)(struct net_device *, struct ethtool_regs *, void *);
+ 	void	(*get_wol)(struct net_device *, struct ethtool_wolinfo *);
+ 	int	(*set_wol)(struct net_device *, struct ethtool_wolinfo *);
+-	u32	(*get_msglevel)(struct net_device *);
+-	void	(*set_msglevel)(struct net_device *, u32);
++	__u32	(*get_msglevel)(struct net_device *);
++	void	(*set_msglevel)(struct net_device *, __u32);
+ 	int	(*nway_reset)(struct net_device *);
+-	u32	(*get_link)(struct net_device *);
++	__u32	(*get_link)(struct net_device *);
+ 	int	(*get_eeprom_len)(struct net_device *);
+-	int	(*get_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
+-	int	(*set_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
++	int	(*get_eeprom)(struct net_device *, struct ethtool_eeprom *, __u8 *);
++	int	(*set_eeprom)(struct net_device *, struct ethtool_eeprom *, __u8 *);
+ 	int	(*get_coalesce)(struct net_device *, struct ethtool_coalesce *);
+ 	int	(*set_coalesce)(struct net_device *, struct ethtool_coalesce *);
+ 	void	(*get_ringparam)(struct net_device *, struct ethtool_ringparam *);
+ 	int	(*set_ringparam)(struct net_device *, struct ethtool_ringparam *);
+ 	void	(*get_pauseparam)(struct net_device *, struct ethtool_pauseparam*);
+ 	int	(*set_pauseparam)(struct net_device *, struct ethtool_pauseparam*);
+-	u32	(*get_rx_csum)(struct net_device *);
+-	int	(*set_rx_csum)(struct net_device *, u32);
+-	u32	(*get_tx_csum)(struct net_device *);
+-	int	(*set_tx_csum)(struct net_device *, u32);
+-	u32	(*get_sg)(struct net_device *);
+-	int	(*set_sg)(struct net_device *, u32);
++	__u32	(*get_rx_csum)(struct net_device *);
++	int	(*set_rx_csum)(struct net_device *, __u32);
++	__u32	(*get_tx_csum)(struct net_device *);
++	int	(*set_tx_csum)(struct net_device *, __u32);
++	__u32	(*get_sg)(struct net_device *);
++	int	(*set_sg)(struct net_device *, __u32);
+ 	int	(*self_test_count)(struct net_device *);
+-	void	(*self_test)(struct net_device *, struct ethtool_test *, u64 *);
+-	void	(*get_strings)(struct net_device *, u32 stringset, u8 *);
+-	int	(*phys_id)(struct net_device *, u32);
++	void	(*self_test)(struct net_device *, struct ethtool_test *, __u64 *);
++	void	(*get_strings)(struct net_device *, __u32 stringset, __u8 *);
++	int	(*phys_id)(struct net_device *, __u32);
+ 	int	(*get_stats_count)(struct net_device *);
+-	void	(*get_ethtool_stats)(struct net_device *, struct ethtool_stats *, u64 *);
++	void	(*get_ethtool_stats)(struct net_device *, struct ethtool_stats *, __u64 *);
+ 	int	(*begin)(struct net_device *);
+ 	void	(*complete)(struct net_device *);
+ };
+diff --git a/linux-2.4.37/include/linux/input.h b/linux-2.4.37/include/linux/input.h
+index 3618f13..a41d560 100644
+--- a/linux-2.4.37/include/linux/input.h
++++ b/linux-2.4.37/include/linux/input.h
+@@ -91,6 +91,7 @@ struct input_event {
+ #define EV_REP			0x14
+ #define EV_FF			0x15
+ #define EV_MAX			0x1f
++#define EV_CNT			(EV_MAX+1)
+ 
+ /*
+  * Keys and buttons
+@@ -458,7 +459,9 @@ struct input_event {
+ 
+ #define SND_CLICK		0x00
+ #define SND_BELL		0x01
++#define SND_TONE		0x02
+ #define SND_MAX			0x07
++#define SND_CNT			(SND_MAX+1)
+ 
+ /*
+  * IDs.
+diff --git a/linux-2.4.37/include/linux/kernel.h b/linux-2.4.37/include/linux/kernel.h
+index 4aeef56..6885210 100644
+--- a/linux-2.4.37/include/linux/kernel.h
++++ b/linux-2.4.37/include/linux/kernel.h
+@@ -208,4 +208,14 @@ struct sysinfo {
+ 	} \
+ } while (0)
+ 
++// kernel-5.9 macros
++/*
++ * 'kernel.h' contains some often-used function prototypes etc
++ */
++#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
++#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
++
++#define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
++
++
+ #endif /* _LINUX_KERNEL_H */
+diff --git a/linux-2.4.37/include/linux/loop.h b/linux-2.4.37/include/linux/loop.h
+index 1162234..b21f865 100644
+--- a/linux-2.4.37/include/linux/loop.h
++++ b/linux-2.4.37/include/linux/loop.h
+@@ -109,6 +109,23 @@ struct loop_info {
+ 	char		reserved[4];
+ };
+ 
++// linux-5.9
++struct loop_info64 {
++	__u64		   lo_device;			/* ioctl r/o */
++	__u64		   lo_inode;			/* ioctl r/o */
++	__u64		   lo_rdevice;			/* ioctl r/o */
++	__u64		   lo_offset;
++	__u64		   lo_sizelimit;/* bytes, 0 == max available */
++	__u32		   lo_number;			/* ioctl r/o */
++	__u32		   lo_encrypt_type;
++	__u32		   lo_encrypt_key_size;		/* ioctl w/o */
++	__u32		   lo_flags;
++	__u8		   lo_file_name[LO_NAME_SIZE];
++	__u8		   lo_crypt_name[LO_NAME_SIZE];
++	__u8		   lo_encrypt_key[LO_KEY_SIZE]; /* ioctl w/o */
++	__u64		   lo_init[2];
++};
++
+ /*
+  * Loop filter types
+  */
+@@ -151,5 +168,13 @@ int loop_unregister_transfer(int number);
+ #define LOOP_CLR_FD	0x4C01
+ #define LOOP_SET_STATUS	0x4C02
+ #define LOOP_GET_STATUS	0x4C03
++// linux-5.9
++#define LOOP_SET_STATUS64	0x4C04
++#define LOOP_GET_STATUS64	0x4C05
++#define LOOP_CHANGE_FD		0x4C06
++#define LOOP_SET_CAPACITY	0x4C07
++#define LOOP_SET_DIRECT_IO	0x4C08
++#define LOOP_SET_BLOCK_SIZE	0x4C09
++#define LOOP_CONFIGURE		0x4C0A
+ 
+ #endif
+diff --git a/linux-2.4.37/include/linux/magic.h b/linux-2.4.37/include/linux/magic.h
+new file mode 100644
+index 0000000..f3956fc
+--- /dev/null
++++ b/linux-2.4.37/include/linux/magic.h
+@@ -0,0 +1,101 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef __LINUX_MAGIC_H__
++#define __LINUX_MAGIC_H__
++
++#define ADFS_SUPER_MAGIC	0xadf5
++#define AFFS_SUPER_MAGIC	0xadff
++#define AFS_SUPER_MAGIC                0x5346414F
++#define AUTOFS_SUPER_MAGIC	0x0187
++#define CODA_SUPER_MAGIC	0x73757245
++#define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
++#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
++#define DEBUGFS_MAGIC          0x64626720
++#define SECURITYFS_MAGIC	0x73636673
++#define SELINUX_MAGIC		0xf97cff8c
++#define SMACK_MAGIC		0x43415d53	/* "SMAC" */
++#define RAMFS_MAGIC		0x858458f6	/* some random number */
++#define TMPFS_MAGIC		0x01021994
++#define HUGETLBFS_MAGIC 	0x958458f6	/* some random number */
++#define SQUASHFS_MAGIC		0x73717368
++#define ECRYPTFS_SUPER_MAGIC	0xf15f
++#define EFS_SUPER_MAGIC		0x414A53
++#define EROFS_SUPER_MAGIC_V1	0xE0F5E1E2
++#define EXT2_SUPER_MAGIC	0xEF53
++#define EXT3_SUPER_MAGIC	0xEF53
++#define XENFS_SUPER_MAGIC	0xabba1974
++#define EXT4_SUPER_MAGIC	0xEF53
++#define BTRFS_SUPER_MAGIC	0x9123683E
++#define NILFS_SUPER_MAGIC	0x3434
++#define F2FS_SUPER_MAGIC	0xF2F52010
++#define HPFS_SUPER_MAGIC	0xf995e849
++#define ISOFS_SUPER_MAGIC	0x9660
++#define JFFS2_SUPER_MAGIC	0x72b6
++#define XFS_SUPER_MAGIC		0x58465342	/* "XFSB" */
++#define PSTOREFS_MAGIC		0x6165676C
++#define EFIVARFS_MAGIC		0xde5e81e4
++#define HOSTFS_SUPER_MAGIC	0x00c0ffee
++#define OVERLAYFS_SUPER_MAGIC	0x794c7630
++
++#define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
++#define MINIX_SUPER_MAGIC2	0x138F		/* minix v1 fs, 30 char names */
++#define MINIX2_SUPER_MAGIC	0x2468		/* minix v2 fs, 14 char names */
++#define MINIX2_SUPER_MAGIC2	0x2478		/* minix v2 fs, 30 char names */
++#define MINIX3_SUPER_MAGIC	0x4d5a		/* minix v3 fs, 60 char names */
++
++#define MSDOS_SUPER_MAGIC	0x4d44		/* MD */
++#define NCP_SUPER_MAGIC		0x564c		/* Guess, what 0x564c is :-) */
++#define NFS_SUPER_MAGIC		0x6969
++#define OCFS2_SUPER_MAGIC	0x7461636f
++#define OPENPROM_SUPER_MAGIC	0x9fa1
++#define QNX4_SUPER_MAGIC	0x002f		/* qnx4 fs detection */
++#define QNX6_SUPER_MAGIC	0x68191122	/* qnx6 fs detection */
++#define AFS_FS_MAGIC		0x6B414653
++
++#define REISERFS_SUPER_MAGIC	0x52654973	/* used by gcc */
++					/* used by file system utilities that
++	                                   look at the superblock, etc.  */
++#define REISERFS_SUPER_MAGIC_STRING	"ReIsErFs"
++#define REISER2FS_SUPER_MAGIC_STRING	"ReIsEr2Fs"
++#define REISER2FS_JR_SUPER_MAGIC_STRING	"ReIsEr3Fs"
++
++#define SMB_SUPER_MAGIC		0x517B
++#define CGROUP_SUPER_MAGIC	0x27e0eb
++#define CGROUP2_SUPER_MAGIC	0x63677270
++
++#define RDTGROUP_SUPER_MAGIC	0x7655821
++
++#define STACK_END_MAGIC		0x57AC6E9D
++
++#define TRACEFS_MAGIC          0x74726163
++
++#define V9FS_MAGIC		0x01021997
++
++#define BDEVFS_MAGIC            0x62646576
++#define DAXFS_MAGIC             0x64646178
++#define BINFMTFS_MAGIC          0x42494e4d
++#define DEVPTS_SUPER_MAGIC	0x1cd1
++#define BINDERFS_SUPER_MAGIC	0x6c6f6f70
++#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
++#define PIPEFS_MAGIC            0x50495045
++#define PROC_SUPER_MAGIC	0x9fa0
++#define SOCKFS_MAGIC		0x534F434B
++#define SYSFS_MAGIC		0x62656572
++#define USBDEVICE_SUPER_MAGIC	0x9fa2
++#define MTD_INODE_FS_MAGIC      0x11307854
++#define ANON_INODE_FS_MAGIC	0x09041934
++#define BTRFS_TEST_MAGIC	0x73727279
++#define NSFS_MAGIC		0x6e736673
++#define BPF_FS_MAGIC		0xcafe4a11
++#define AAFS_MAGIC		0x5a3c69f0
++#define ZONEFS_MAGIC		0x5a4f4653
++
++/* Since UDF 2.01 is ISO 13346 based... */
++#define UDF_SUPER_MAGIC		0x15013346
++#define BALLOON_KVM_MAGIC	0x13661366
++#define ZSMALLOC_MAGIC		0x58295829
++#define DMA_BUF_MAGIC		0x444d4142	/* "DMAB" */
++#define DEVMEM_MAGIC		0x454d444d	/* "DMEM" */
++#define Z3FOLD_MAGIC		0x33
++#define PPC_CMM_MAGIC		0xc7571590
++
++#endif /* __LINUX_MAGIC_H__ */
+diff --git a/linux-2.4.37/include/linux/mii.h b/linux-2.4.37/include/linux/mii.h
+index 0c1271d..c584a68 100644
+--- a/linux-2.4.37/include/linux/mii.h
++++ b/linux-2.4.37/include/linux/mii.h
+@@ -19,6 +19,11 @@
+ #define MII_ADVERTISE       0x04        /* Advertisement control reg   */
+ #define MII_LPA             0x05        /* Link partner ability reg    */
+ #define MII_EXPANSION       0x06        /* Expansion register          */
++#define MII_CTRL1000		0x09	/* 1000BASE-T control          */
++#define MII_STAT1000		0x0a	/* 1000BASE-T status           */
++#define	MII_MMD_CTRL		0x0d	/* MMD Access Control Register */
++#define	MII_MMD_DATA		0x0e	/* MMD Access Data Register */
++#define MII_ESTATUS		0x0f	/* Extended Status             */
+ #define MII_DCOUNTER        0x12        /* Disconnect counter          */
+ #define MII_FCSCOUNTER      0x13        /* False carrier counter       */
+ #define MII_NWAYTEST        0x14        /* N-way auto-neg test reg     */
+@@ -33,6 +38,7 @@
+ 
+ /* Basic mode control register. */
+ #define BMCR_RESV               0x007f  /* Unused...                   */
++#define BMCR_SPEED1000		0x0040	/* MSB of Speed (1000)         */
+ #define BMCR_CTST               0x0080  /* Collision test              */
+ #define BMCR_FULLDPLX           0x0100  /* Full duplex                 */
+ #define BMCR_ANRESTART          0x0200  /* Auto negotiation restart    */
+@@ -75,6 +81,9 @@
+ #define ADVERTISE_ALL (ADVERTISE_10HALF | ADVERTISE_10FULL | \
+                        ADVERTISE_100HALF | ADVERTISE_100FULL)
+ 
++#define ADVERTISE_1000FULL	0x0200  /* Advertise 1000BASE-T full duplex */
++#define ADVERTISE_1000HALF	0x0100  /* Advertise 1000BASE-T half duplex */
++
+ /* Link partner ability register. */
+ #define LPA_SLCT                0x001f  /* Same as advertise selector  */
+ #define LPA_10HALF              0x0020  /* Can do 10mbps half-duplex   */
+diff --git a/linux-2.4.37/include/linux/netlink.h b/linux-2.4.37/include/linux/netlink.h
+index 539ee45..0f956d2 100644
+--- a/linux-2.4.37/include/linux/netlink.h
++++ b/linux-2.4.37/include/linux/netlink.h
+@@ -9,8 +9,10 @@
+ #define NETLINK_NFLOG		5	/* netfilter/iptables ULOG */
+ #define NETLINK_ARPD		8
+ #define NETLINK_ROUTE6		11	/* af_inet6 route comm channel */
++#define NETLINK_NETFILTER	12	/* netfilter subsystem */
+ #define NETLINK_IP6_FW		13
+ #define NETLINK_DNRTMSG		14	/* DECnet routing messages */
++#define NETLINK_KOBJECT_UEVENT	15	/* Kernel messages to userspace */
+ #define NETLINK_TAPBASE		16	/* 16 to 31 are ethertap */
+ 
+ #define MAX_LINKS 32		
+diff --git a/linux-2.4.37/include/linux/rtnetlink.h b/linux-2.4.37/include/linux/rtnetlink.h
+index 20636a2..5d1dad1 100644
+--- a/linux-2.4.37/include/linux/rtnetlink.h
++++ b/linux-2.4.37/include/linux/rtnetlink.h
+@@ -323,6 +323,7 @@ enum
+ /* ifa_flags */
+ 
+ #define IFA_F_SECONDARY		0x01
++#define IFA_F_TEMPORARY		IFA_F_SECONDARY
+ 
+ #define IFA_F_DEPRECATED	0x20
+ #define IFA_F_TENTATIVE		0x40
+diff --git a/linux-2.4.37/include/linux/socket.h b/linux-2.4.37/include/linux/socket.h
+index 22b86ec..0f61ab9 100644
+--- a/linux-2.4.37/include/linux/socket.h
++++ b/linux-2.4.37/include/linux/socket.h
+@@ -28,7 +28,8 @@ typedef unsigned short	sa_family_t;
+ /*
+  *	1003.1g requires sa_family_t and that sa_data is char.
+  */
+- 
++
++#ifndef _SYS_SOCKET_H
+ struct sockaddr {
+ 	sa_family_t	sa_family;	/* address family, AF_xxx	*/
+ 	char		sa_data[14];	/* 14 bytes of protocol address	*/
+@@ -68,6 +69,7 @@ struct cmsghdr {
+         int		cmsg_level;	/* originating protocol */
+         int		cmsg_type;	/* protocol-specific type */
+ };
++#endif
+ 
+ /*
+  *	Ancilliary data object information MACROS
+@@ -142,11 +144,13 @@ __KINLINE struct cmsghdr * cmsg_nxthdr (struct msghdr *__msg, struct cmsghdr *__
+ #define	SCM_RIGHTS	0x01		/* rw: access rights (array of int) */
+ #define SCM_CREDENTIALS 0x02		/* rw: struct ucred		*/
+ 
++#ifndef _SYS_SOCKET_H
+ struct ucred {
+ 	__u32	pid;
+ 	__u32	uid;
+ 	__u32	gid;
+ };
++#endif
+ 
+ /* Supported address families. */
+ #define AF_UNSPEC	0
+diff --git a/linux-2.4.37/include/linux/types.h b/linux-2.4.37/include/linux/types.h
+index cbe1f4a..6c6d790 100644
+--- a/linux-2.4.37/include/linux/types.h
++++ b/linux-2.4.37/include/linux/types.h
+@@ -122,6 +122,38 @@ typedef		__s64		int64_t;
+ 
+ #endif /* __KERNEL_STRICT_NAMES */
+ 
++// linux-5.9 definitions
++#ifdef __CHECKER__
++#define __bitwise__ __attribute__((bitwise))
++#else
++#define __bitwise__
++#endif
++#define __bitwise __bitwise__
++
++typedef __u16 __bitwise __le16;
++typedef __u16 __bitwise __be16;
++typedef __u32 __bitwise __le32;
++typedef __u32 __bitwise __be32;
++typedef __u64 __bitwise __le64;
++typedef __u64 __bitwise __be64;
++
++typedef __u16 __bitwise __sum16;
++typedef __u32 __bitwise __wsum;
++
++/*
++ * aligned_u64 should be used in defining kernel<->userspace ABIs to avoid
++ * common 32/64-bit compat problems.
++ * 64-bit values align to 4-byte boundaries on x86_32 (and possibly other
++ * architectures) and to 8-byte boundaries on 64-bit architectures.  The new
++ * aligned_64 type enforces 8-byte alignment so that structs containing
++ * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
++ * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
++ */
++#define __aligned_u64 __u64 __attribute__((aligned(8)))
++#define __aligned_be64 __be64 __attribute__((aligned(8)))
++#define __aligned_le64 __le64 __attribute__((aligned(8)))
++
++
+ /*
+  * Below are truly Linux-specific types that should never collide with
+  * any application/library that wants linux/types.h.
+diff --git a/linux-2.4.37/include/linux/uio.h b/linux-2.4.37/include/linux/uio.h
+index beaafff..d6b9e08 100644
+--- a/linux-2.4.37/include/linux/uio.h
++++ b/linux-2.4.37/include/linux/uio.h
+@@ -16,11 +16,14 @@
+ /* A word of warning: Our uio structure will clash with the C library one (which is now obsolete). Remove the C
+    library one from sys/uio.h if you have a very old library set */
+ 
++#ifndef __DEFINED_struct_iovec
+ struct iovec
+ {
+ 	void *iov_base;		/* BSD uses caddr_t (1003.1g requires void *) */
+ 	__kernel_size_t iov_len; /* Must be size_t (1003.1g) */
+ };
++#define __DEFINED_struct_iovec
++#endif
+ 
+ /*
+  *	UIO_MAXIOV shall be at least 16 1003.1g (5.4.1.1)
+-- 
+2.35.1
+

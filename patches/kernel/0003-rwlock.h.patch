@@ -1,0 +1,28 @@
+From 82595ee9c8008faf7889ee1a25508e2801594d34 Mon Sep 17 00:00:00 2001
+From: crossbuild <crossbuild@localhost>
+Date: Sun, 24 Nov 2024 22:22:27 +0000
+Subject: [PATCH 03/10] rwlock.h linux/include/asm/spinlock.h:197: error: bad
+ expression syntax [%]
+
+---
+ linux-2.4.37/include/asm-i386/rwlock.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/linux-2.4.37/include/asm-i386/rwlock.h b/linux-2.4.37/include/asm-i386/rwlock.h
+index 5c2f470..c4512ec 100644
+--- a/linux-2.4.37/include/asm-i386/rwlock.h
++++ b/linux-2.4.37/include/asm-i386/rwlock.h
+@@ -60,8 +60,9 @@
+ 		     LOCK_SECTION_END \
+ 		     ::"a" (rw) : "memory")
+ 
++// linux/include/asm/spinlock.h:197: error: bad expression syntax [%]
+ #define __build_write_lock_const(rw, helper) \
+-	asm volatile(LOCK "subl $" RW_LOCK_BIAS_STR ",(%0)\n\t" \
++	asm volatile(LOCK "subl $" RW_LOCK_BIAS_STR ",%0\n\t" \
+ 		     "jnz 2f\n" \
+ 		     "1:\n" \
+ 		     LOCK_SECTION_START("") \
+-- 
+2.35.1
+
