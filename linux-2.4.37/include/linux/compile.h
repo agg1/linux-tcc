@@ -1,0 +1,6 @@
+#define UTS_VERSION "#1 Thu Jan 01 00:00:00 -00 1970"
+#define LINUX_COMPILE_TIME "00:00:00"
+#define LINUX_COMPILE_BY "root"
+#define LINUX_COMPILE_HOST "localhost"
+#define LINUX_COMPILE_DOMAIN "localdomain"
+#define LINUX_COMPILER "TCC"
