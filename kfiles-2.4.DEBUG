@@ -195,6 +195,17 @@ usr/src/linux/fs/nls/nls_cp437.c
 usr/src/linux/fs/nls/nls_iso8859-1.c
 usr/src/linux/fs/nls/nls_iso8859-15.c
 usr/src/linux/fs/nls/nls_utf8.c
+usr/src/linux/fs/squashfs/inode.c
+usr/src/linux/lib/zlib_inflate/infblock.c
+usr/src/linux/lib/zlib_inflate/infcodes.c
+usr/src/linux/lib/zlib_inflate/inffast.c
+usr/src/linux/lib/zlib_inflate/inflate.c
+usr/src/linux/lib/zlib_inflate/inflate_syms.c
+usr/src/linux/lib/zlib_inflate/inftrees.c
+usr/src/linux/lib/zlib_inflate/infutil.c
+usr/src/linux/lib/zlib_deflate/deflate.c
+usr/src/linux/lib/zlib_deflate/deflate_syms.c
+usr/src/linux/lib/zlib_deflate/deftree.c
 
 usr/src/linux/drivers/acpi/tables.c
 

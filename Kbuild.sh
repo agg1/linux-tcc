@@ -213,16 +213,16 @@ REALAS="i486-gentoo-linux-musl-as"
 #. ./kfiles-2.4.TINY
 #
 ### OK; small config from original bellard tccboot.iso
-KCONF=kconfig-i486-2.4.37.11.SMALL
-. ./kfiles-2.4.SMALL
+#KCONF=kconfig-i486-2.4.37.11.SMALL
+#. ./kfiles-2.4.SMALL
 
 ### partial, with broken math-emu softfloat, needs additional patchset, tested and booting
 #KCONF=kconfig-i486-2.4.37.11.ALL
 #. ./kfiles-2.4.ALL
 
 ### reasonably complete configuration including ioapic,usb,smp,squashfs with sufficient test coverage
-#KCONF=kconfig-i486-2.4.37.11.DEBUG
-#. ./kfiles-2.4.DEBUG
+KCONF=kconfig-i486-2.4.37.11.DEBUG
+. ./kfiles-2.4.DEBUG
 
 #
 prepare_config

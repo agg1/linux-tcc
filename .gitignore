@@ -8,5 +8,6 @@ linux-2.4.37/.config.old
 linux-2.4.37/include/asm
 linux-2.4.37/include/linux/autoconf.h
 linux-2.4.37/include/linux/version.h
+linux-2.4.37/scripts/lxdialog
 tccboot.iso
 tccboot-hybrid.iso
