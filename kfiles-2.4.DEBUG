@@ -1,6 +1,12 @@
 #usr/src/linux/fs/devpts/root.c
 #usr/src/linux/fs/devpts/inode.c
 
+# ahci locks the system during boot within virtualbox
+# maybe it's related to flawed rwlock.h patch which probably cause trouble with smp too
+# keep it disabled and systems should configure their SATA controller to legacy-IDE mode
+# furthermore USB support is available for disk storage and cdrom
+#usr/src/linux/drivers/scsi/ahci.c
+
 # separately pre-processed
 #usr/src/linux/arch/i386/kernel/trampoline.S
 
@@ -370,6 +376,9 @@ usr/src/linux/drivers/usb/storage/usb.c
 usr/src/linux/drivers/usb/host/ehci-hcd.c
 usr/src/linux/drivers/usb/host/usb-ohci.c
 usr/src/linux/drivers/usb/host/usb-uhci.c
+
+usr/src/linux/drivers/scsi/libata-scsi.c
+usr/src/linux/drivers/scsi/ata_piix.c
 
 usr/src/linux/drivers/bluetooth/hci_bcsp.c
 usr/src/linux/drivers/bluetooth/hci_h4.c

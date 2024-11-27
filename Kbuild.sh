@@ -159,12 +159,12 @@ label linux-nosmp
 
 label linux-debug
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd.ext2 root=/dev/ram ramdisk_size=32768 devfs=nomount console=ttyS0,9600 console=tty0 nosmp debug
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd.ext2 root=/dev/ram ramdisk_size=32768 console=ttyS0,9600 console=tty0 nosmp debug
 " > isoroot/isolinux/isolinux.cfg
 
 #label tccboot
 #	kernel /boot/tccboot
-#	append initrd=/boot/example.romfs root=/dev/ram ramdisk_size=20000
+#	append initrd=/boot/example.romfs root=/dev/ram ramdisk_size=20000 devfs=nomount
 
 
 	cp /usr/share/syslinux/isolinux.bin isoroot/isolinux/
