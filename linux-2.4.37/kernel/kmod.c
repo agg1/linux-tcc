@@ -97,8 +97,7 @@ int exec_usermodehelper(char *program_path, char *argv[], char *envp[])
 	int i;
 	struct task_struct *curtask = current;
 
-	curtask->session = 1;
-	curtask->pgrp = 1;
+	set_special_pids(1, 1);
 
 	use_init_fs_context();
 
@@ -108,12 +107,13 @@ int exec_usermodehelper(char *program_path, char *argv[], char *envp[])
 	   as the super user right after the execve fails if you time
 	   the signal just right.
 	*/
-	spin_lock_irq(&curtask->sigmask_lock);
+	spin_lock_irq(&curtask->sighand->siglock);
 	sigemptyset(&curtask->blocked);
 	flush_signals(curtask);
 	flush_signal_handlers(curtask);
-	recalc_sigpending(curtask);
-	spin_unlock_irq(&curtask->sigmask_lock);
+	current->sighand->action[SIGCHLD-1].sa.sa_handler = SIG_DFL;
+	recalc_sigpending_tsk(curtask);
+	spin_unlock_irq(&curtask->sighand->siglock);
 
 	for (i = 0; i < curtask->files->max_fds; i++ ) {
 		if (curtask->files->fd[i]) close(i);
@@ -221,20 +221,20 @@ int request_module(const char * module_name)
 	}
 
 	/* Block everything but SIGKILL/SIGSTOP */
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	tmpsig = current->blocked;
 	siginitsetinv(&current->blocked, sigmask(SIGKILL) | sigmask(SIGSTOP));
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	waitpid_result = waitpid(pid, NULL, __WCLONE);
 	atomic_dec(&kmod_concurrent);
 
 	/* Allow signals again.. */
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	current->blocked = tmpsig;
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	if (waitpid_result != pid) {
 		printk(KERN_ERR "request_module[%s]: waitpid(%d,...) failed, errno %d\n",

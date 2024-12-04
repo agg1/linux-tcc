@@ -35,10 +35,13 @@
 #include <linux/highmem.h>
 #include <linux/spinlock.h>
 #include <linux/personality.h>
+#include <linux/binfmts.h>
 #include <linux/swap.h>
 #include <linux/utsname.h>
 #define __NO_VERSION__
 #include <linux/module.h>
+#include <linux/proc_fs.h>
+#include <linux/ptrace.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
@@ -477,42 +480,193 @@ static int exec_mmap(void)
  * This function makes sure the current process has its own signal table,
  * so that flush_signal_handlers can later reset the handlers without
  * disturbing other processes.  (Other processes might share the signal
- * table via the CLONE_SIGNAL option to clone().)
+ * table via the CLONE_SIGHAND option to clone().)
  */
- 
-static inline int make_private_signals(void)
+static inline int de_thread(struct task_struct *tsk)
 {
-	struct signal_struct * newsig;
+	struct signal_struct *newsig, *oldsig = tsk->signal;
+	struct sighand_struct *newsighand, *oldsighand = tsk->sighand;
+	spinlock_t *lock = &oldsighand->siglock;
+	int count;
 
-	if (atomic_read(&current->sig->count) <= 1)
+	/*
+	 * If we don't share sighandlers, then we aren't sharing anything
+	 * and we can just re-use it all.
+	 */
+	if (atomic_read(&oldsighand->count) <= 1)
 		return 0;
-	newsig = kmem_cache_alloc(sigact_cachep, GFP_KERNEL);
-	if (newsig == NULL)
+
+	newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
+	if (!newsighand)
 		return -ENOMEM;
-	spin_lock_init(&newsig->siglock);
-	atomic_set(&newsig->count, 1);
-	memcpy(newsig->action, current->sig->action, sizeof(newsig->action));
-	spin_lock_irq(&current->sigmask_lock);
-	current->sig = newsig;
-	spin_unlock_irq(&current->sigmask_lock);
+
+	spin_lock_init(&newsighand->siglock);
+	atomic_set(&newsighand->count, 1);
+	memcpy(newsighand->action, oldsighand->action, sizeof(newsighand->action));
+
+	/*
+	 * See if we need to allocate a new signal structure
+	 */
+	newsig = NULL;
+	if (atomic_read(&oldsig->count) > 1) {
+		newsig = kmem_cache_alloc(signal_cachep, GFP_KERNEL);
+		if (!newsig) {
+			kmem_cache_free(sighand_cachep, newsighand);
+			return -ENOMEM;
+		}
+		atomic_set(&newsig->count, 1);
+		newsig->group_exit = 0;
+		newsig->group_exit_code = 0;
+		newsig->group_exit_task = NULL;
+		newsig->group_stop_count = 0;
+		newsig->curr_target = NULL;
+		init_sigpending(&newsig->shared_pending);
+	}
+
+	if (thread_group_empty(current))
+		goto no_thread_group;
+	/*
+	 * Kill all other threads in the thread group:
+	 */
+	read_lock(&tasklist_lock);
+	spin_lock_irq(lock);
+	if (oldsig->group_exit) {
+		/*
+		 * Another group action in progress, just
+		 * return so that the signal is processed.
+		 */
+		spin_unlock_irq(lock);
+		read_unlock(&tasklist_lock);
+		kmem_cache_free(sighand_cachep, newsighand);
+		if (newsig)
+			kmem_cache_free(signal_cachep, newsig);
+		return -EAGAIN;
+	}
+	oldsig->group_exit = 1;
+	zap_other_threads(current);
+
+	/*
+	 * Account for the thread group leader hanging around:
+	 */
+	count = 2;
+	if (current->pid == current->tgid)
+		count = 1;
+	while (atomic_read(&oldsig->count) > count) {
+		oldsig->group_exit_task = current;
+		current->state = TASK_UNINTERRUPTIBLE;
+		spin_unlock_irq(lock);
+		read_unlock(&tasklist_lock);
+		schedule();
+		read_lock(&tasklist_lock);
+		spin_lock_irq(lock);
+		if (oldsig->group_exit_task)
+			BUG();
+	}
+	spin_unlock_irq(lock);
+	read_unlock(&tasklist_lock);
+
+	/*
+	 * At this point all other threads have exited, all we have to
+	 * do is to wait for the thread group leader to become inactive,
+	 * and to assume its PID:
+	 */
+	if (current->pid != current->tgid) {
+		struct task_struct *leader = current->group_leader, *parent;
+		unsigned long state, ptrace;
+
+		/*
+		 * Wait for the thread group leader to be a zombie.
+		 * It should already be zombie at this point, most
+		 * of the time.
+		 */
+		while (leader->state != TASK_ZOMBIE)
+			yield();
+
+		write_lock_irq(&tasklist_lock);
+
+		if (leader->tgid != current->tgid)
+			BUG();
+		if (current->pid == current->tgid)
+			BUG();
+		/*
+		 * An exec() starts a new thread group with the
+		 * TGID of the previous thread group. Rehash the
+		 * two threads with a switched PID, and release
+		 * the former thread group leader:
+		 */
+		ptrace = leader->ptrace;
+		parent = leader->parent;
+		if (unlikely(ptrace) && unlikely(parent == current)) {
+			/*
+			 * Joker was ptracing his own group leader,
+			 * and now he wants to be his own parent!
+			 * We can't have that.
+			 */
+			ptrace = 0;
+		}
+
+		ptrace_unlink(current);
+		ptrace_unlink(leader);
+		remove_parent(current);
+		remove_parent(leader);
+
+		switch_exec_pids(leader, current);
+
+		current->parent = current->real_parent = leader->real_parent;
+		leader->parent = leader->real_parent = child_reaper;
+		current->group_leader = current;
+		leader->group_leader = leader;
+
+		add_parent(current, current->parent);
+		add_parent(leader, leader->parent);
+		if (ptrace) {
+			current->ptrace = ptrace;
+			__ptrace_link(current, parent);
+		}
+
+		list_del(&current->tasks);
+		list_add_tail(&current->tasks, &init_task.tasks);
+		current->exit_signal = SIGCHLD;
+		state = leader->state;
+
+		write_unlock_irq(&tasklist_lock);
+
+		if (state != TASK_ZOMBIE)
+			BUG();
+		release_task(leader);
+        }
+
+no_thread_group:
+
+	write_lock_irq(&tasklist_lock);
+	spin_lock(&oldsighand->siglock);
+	spin_lock(&newsighand->siglock);
+
+	if (current == oldsig->curr_target)
+		oldsig->curr_target = next_thread(current);
+	if (newsig)
+		current->signal = newsig;
+	current->sighand = newsighand;
+	init_sigpending(&current->pending);
+	recalc_sigpending();
+
+	spin_unlock(&newsighand->siglock);
+	spin_unlock(&oldsighand->siglock);
+	write_unlock_irq(&tasklist_lock);
+
+	if (newsig && atomic_dec_and_test(&oldsig->count))
+		kmem_cache_free(signal_cachep, oldsig);
+
+	if (atomic_dec_and_test(&oldsighand->count))
+		kmem_cache_free(sighand_cachep, oldsighand);
+
+	if (!thread_group_empty(current))
+		BUG();
+	if (current->tgid != current->pid)
+		BUG();
 	return 0;
 }
 	
-/*
- * If make_private_signals() made a copy of the signal table, decrement the
- * refcount of the original table, and free it if necessary.
- * We don't do that in make_private_signals() so that we can back off
- * in flush_old_exec() if an error occurs after calling make_private_signals().
- */
-
-static inline void release_old_signals(struct signal_struct * oldsig)
-{
-	if (current->sig == oldsig)
-		return;
-	if (atomic_dec_and_test(&oldsig->count))
-		kmem_cache_free(sigact_cachep, oldsig);
-}
-
 /*
  * These functions flushes out all traces of the currently running executable
  * so that a new one can be started
@@ -546,27 +700,6 @@ static inline void flush_old_files(struct files_struct * files)
 	write_unlock(&files->file_lock);
 }
 
-/*
- * An execve() will automatically "de-thread" the process.
- * Note: we don't have to hold the tasklist_lock to test
- * whether we migth need to do this. If we're not part of
- * a thread group, there is no way we can become one
- * dynamically. And if we are, we only need to protect the
- * unlink - even if we race with the last other thread exit,
- * at worst the list_del_init() might end up being a no-op.
- */
-static inline void de_thread(struct task_struct *tsk)
-{
-	if (!list_empty(&tsk->thread_group)) {
-		write_lock_irq(&tasklist_lock);
-		list_del_init(&tsk->thread_group);
-		write_unlock_irq(&tasklist_lock);
-	}
-
-	/* Minor oddity: this might stay the same. */
-	tsk->tgid = tsk->pid;
-}
-
 void get_task_comm(char *buf, struct task_struct *tsk)
 {
 	/* buf must be at least sizeof(tsk->comm) in size */
@@ -588,38 +721,41 @@ int flush_old_exec(struct linux_binprm * bprm)
 	char * name;
 	int i, ch, retval;
 	unsigned new_mm_dumpable;
-	struct signal_struct * oldsig;
-	struct files_struct * files;
+//	struct signal_struct * oldsig;
+//	struct files_struct * files;
 	char tcomm[sizeof(current->comm)];
 
-	/*
-	 * Make sure we have a private signal table
-	 */
-	oldsig = current->sig;
-	retval = make_private_signals();
-	if (retval) goto flush_failed;
 
-	/*
-	 * Make sure we have private file handles. Ask the
-	 * fork helper to do the work for us and the exit
-	 * helper to do the cleanup of the old one.
-	 */
-	 
-	files = current->files;		/* refcounted so safe to hold */
-	retval = unshare_files();
-	if(retval)
-		goto flush_failed;
-	
+//	/*
+//	 * Make sure we have private file handles. Ask the
+//	 * fork helper to do the work for us and the exit
+//	 * helper to do the cleanup of the old one.
+//	 */
+// ?	 
+//	files = current->files;		/* refcounted so safe to hold */
+//	retval = unshare_files();
+//	if(retval)
+//		goto flush_failed;
+//	
 	/* 
 	 * Release all of the old mmap stuff
 	 */
 	retval = exec_mmap();
-	if (retval) goto mmap_failed;
+	if (retval)
+		goto out; // mmap_failed
+
+	/*
+	 * Make sure we have a private signal table and that
+	 * we are unassociated from the previous thread group.
+	 */
+	retval = de_thread(current);
+	if (retval)
+		goto out;
 
 	/* This is the point of no return */
-	steal_locks(files);
-	put_files_struct(files);
-	release_old_signals(oldsig);
+// ?
+//	steal_locks(files);
+//	put_files_struct(files);
 
 	current->sas_ss_sp = current->sas_ss_size = 0;
 
@@ -645,8 +781,6 @@ int flush_old_exec(struct linux_binprm * bprm)
 
 	flush_thread();
 
-	de_thread(current);
-
 	if (bprm->e_uid != current->euid || bprm->e_gid != current->egid) {
 		current->mm->dumpable = 0;
 		current->pdeath_signal = 0;
@@ -665,16 +799,17 @@ int flush_old_exec(struct linux_binprm * bprm)
 
 	return 0;
 
-mmap_failed:
-	put_files_struct(current->files);
-	current->files = files;
-flush_failed:
-	spin_lock_irq(&current->sigmask_lock);
-	if (current->sig != oldsig) {
-		kmem_cache_free(sigact_cachep, current->sig);
-		current->sig = oldsig;
-	}
-	spin_unlock_irq(&current->sigmask_lock);
+//mmap_failed:
+//	put_files_struct(current->files);
+//	current->files = files;
+//flush_failed:
+//	spin_lock_irq(&current->sigmask_lock);
+//	if (current->sig != oldsig) {
+//		kmem_cache_free(sigact_cachep, current->sig);
+//		current->sig = oldsig;
+//	}
+//	spin_unlock_irq(&current->sigmask_lock);
+out:
 	return retval;
 }
 
@@ -784,7 +919,7 @@ void compute_creds(struct linux_binprm *bprm)
 		if (must_not_trace_exec(current)
 		    || atomic_read(&current->fs->count) > 1
 		    || atomic_read(&current->files->count) > 1
-		    || atomic_read(&current->sig->count) > 1) {
+		    || atomic_read(&current->sighand->count) > 1) {
 			if(!capable(CAP_SETUID)) {
 				bprm->e_uid = current->uid;
 				bprm->e_gid = current->gid;
@@ -1054,7 +1189,7 @@ void format_corename(char *corename, const char *pattern, long signr)
 			case 'p':
 				pid_in_pattern = 1;
 				rc = snprintf(out_ptr, out_end - out_ptr,
-					      "%d", current->pid);
+					      "%d", current->tgid);
 				if (rc > out_end - out_ptr)
 					goto out;
 				out_ptr += rc;
@@ -1126,7 +1261,7 @@ void format_corename(char *corename, const char *pattern, long signr)
 	if (!pid_in_pattern
             && (core_uses_pid || atomic_read(&current->mm->mm_users) != 1)) {
 		rc = snprintf(out_ptr, out_end - out_ptr,
-			      ".%d", current->pid);
+			      ".%d", current->tgid);
 		if (rc > out_end - out_ptr)
 			goto out;
 		out_ptr += rc;
@@ -1135,33 +1270,86 @@ void format_corename(char *corename, const char *pattern, long signr)
 	*out_ptr = 0;
 }
 
-int do_coredump(long signr, struct pt_regs * regs)
+static void zap_threads (struct mm_struct *mm)
 {
-	struct linux_binfmt * binfmt;
+	struct task_struct *g, *p;
+
+	read_lock(&tasklist_lock);
+	do_each_thread(g,p)
+		if (mm == p->mm && p != current) {
+			force_sig_specific(SIGKILL, p);
+			mm->core_waiters++;
+		}
+	while_each_thread(g,p);
+
+	read_unlock(&tasklist_lock);
+}
+
+static void coredump_wait(struct mm_struct *mm)
+{
+	DECLARE_COMPLETION(startup_done);
+
+	if (mm->core_waiters)
+		BUG();
+	mm->core_waiters++; /* let other threads block */
+	mm->core_startup_done = &startup_done;
+
+	/* give other threads a chance to run: */
+	yield();
+
+	zap_threads(mm);
+	if (--mm->core_waiters) {
+		up_write(&mm->mmap_sem);
+		wait_for_completion(&startup_done);
+	} else
+		up_write(&mm->mmap_sem);
+	BUG_ON(mm->core_waiters);
+}
+
+int do_coredump(long signr, int exit_code, struct pt_regs * regs)
+{
 	char corename[CORENAME_MAX_SIZE + 1];
-	struct file * file;
+	struct mm_struct *mm = current->mm;
+	struct linux_binfmt * binfmt;
 	struct inode * inode;
 	int retval = 0;
+	struct file * file;
 	int fsuid = current->fsuid;
 
 	lock_kernel();
 	binfmt = current->binfmt;
 	if (!binfmt || !binfmt->core_dump)
 		goto fail;
+	down_write(&mm->mmap_sem);
 	if (!is_dumpable(current))
 	{
+		up_write(&mm->mmap_sem);
 		if(!core_setuid_ok || !current->task_dumpable)
 			goto fail;
 		current->fsuid = 0;
 	}
-	current->mm->dumpable = 0;
+	mm->dumpable = 0;
+	init_completion(&mm->core_done);
+	spin_lock_irq(&current->sighand->siglock);
+	current->signal->group_exit = 1;
+	current->signal->group_exit_code = exit_code;
+	spin_unlock_irq(&current->sighand->siglock);
+	coredump_wait(mm);
+
+	/*
+	 * Clear any false indication of pending signals that might
+	 * be seen by the filesystem code called to write the core file.
+	 */
+	current->signal->group_stop_count = 0;
+	current->sigpending = 0;
+
 	if (current->rlim[RLIMIT_CORE].rlim_cur < binfmt->min_coredump)
-		goto fail;
+		goto fail_unlock;
 
  	format_corename(corename, core_pattern, signr);
 	file = filp_open(corename, O_CREAT | 2 | O_NOFOLLOW, 0600);
 	if (IS_ERR(file))
-		goto fail;
+		goto fail_unlock;
 	inode = file->f_dentry->d_inode;
 	if (inode->i_nlink > 1)
 		goto close_fail;	/* multiple links - don't dump */
@@ -1185,8 +1373,11 @@ int do_coredump(long signr, struct pt_regs * regs)
 
 	retval = binfmt->core_dump(signr, regs, file);
 
+	current->signal->group_exit_code |= 0x80;
 close_fail:
 	filp_close(file, NULL);
+fail_unlock:
+	complete_all(&mm->core_done);
 fail:
 	if (fsuid != current->fsuid)
 		current->fsuid = fsuid;

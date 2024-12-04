@@ -64,9 +64,9 @@ static inline int md_capable_admin(void)
 /* 009 */
 static inline void md_flush_signals (void)
 {
-	spin_lock(&current->sigmask_lock);
+	spin_lock(&current->sighand->siglock);
 	flush_signals(current);
-	spin_unlock(&current->sigmask_lock);
+	spin_unlock(&current->sighand->siglock);
 }
  
 /* 010 */

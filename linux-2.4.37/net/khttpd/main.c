@@ -118,11 +118,11 @@ static int MainDaemon(void *cpu_pointer)
 	
 
 	/* Block all signals except SIGKILL, SIGSTOP and SIGHUP */
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	tmpsig = current->blocked;
 	siginitsetinv(&current->blocked, sigmask(SIGKILL) | sigmask(SIGSTOP)| sigmask(SIGHUP));
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 	
 	
 	if (MainSocket->sk==NULL)
@@ -202,11 +202,11 @@ static int ManagementDaemon(void *unused)
 	daemonize();
 	
 	/* Block all signals except SIGKILL and SIGSTOP */
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	tmpsig = current->blocked;
 	siginitsetinv(&current->blocked, sigmask(SIGKILL) | sigmask(SIGSTOP) );
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	/* main loop */
 	while (sysctl_khttpd_unload==0)

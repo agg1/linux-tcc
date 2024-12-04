@@ -747,10 +747,11 @@ void do_tty_hangup(void *data)
 	struct tty_struct *tty = (struct tty_struct *) data;
 	struct file * cons_filp = NULL;
 	struct file *f = NULL;
-	struct task_struct *p;
+	struct task_struct *p, *t;
 	struct list_head *l;
 	struct tty_ldisc *ld;
 	int    closecount = 0, n;
+	struct pid *pid;
 
 	if (!tty)
 		return;
@@ -820,17 +821,23 @@ void do_tty_hangup(void *data)
 	   tty_release is called */
 
 	read_lock(&tasklist_lock);
- 	for_each_task(p) {
-		if ((tty->session > 0) && (p->session == tty->session) &&
-		    p->leader) {
-			send_sig(SIGHUP,p,1);
-			send_sig(SIGCONT,p,1);
+	if (tty->session > 0) {
+		for_each_task_pid(tty->session, PIDTYPE_SID, p, l, pid) {
+			if (p->tty == tty)
+				p->tty = NULL;
+			for (t = next_thread(p); t != p; t = next_thread(t)) {
+				if (t->tty == tty)
+					t->tty = NULL;
+			}
+			if (!p->leader)
+				continue;
+			send_sig(SIGHUP, p, 1);
+			send_sig(SIGCONT, p, 1);
 			if (tty->pgrp > 0)
 				p->tty_old_pgrp = tty->pgrp;
 		}
-		if (p->tty == tty)
-			p->tty = NULL;
 	}
+
 	read_unlock(&tasklist_lock);
 
 	tty->flags = 0;
@@ -875,6 +882,19 @@ void tty_hangup(struct tty_struct * tty)
 	schedule_task(&tty->tq_hangup);
 }
 
+static void clear_controlling_tty(int session)
+{
+	struct task_struct *p, *t;
+	struct list_head *p_entry;
+	struct pid *p_pid;
+
+	for_each_task_pid(session, PIDTYPE_SID, p, p_entry, p_pid) {
+		p->tty = NULL;
+		for (t = next_thread(p); t != p; t = next_thread(t))
+			t->tty = NULL;
+	}
+}
+
 void tty_vhangup(struct tty_struct * tty)
 {
 #ifdef TTY_DEBUG_HANGUP
@@ -908,7 +928,10 @@ void disassociate_ctty(int on_exit)
 	struct tty_struct *tty = current->tty;
 	struct task_struct *p;
 	int tty_pgrp = -1;
+	struct list_head *l;
+	struct pid *pid;
 
+	lock_kernel();
 	if (tty) {
 		tty_pgrp = tty->pgrp;
 		if (on_exit && tty->driver.type != TTY_DRIVER_TYPE_PTY)
@@ -918,6 +941,7 @@ void disassociate_ctty(int on_exit)
 			kill_pg(current->tty_old_pgrp, SIGHUP, on_exit);
 			kill_pg(current->tty_old_pgrp, SIGCONT, on_exit);
 		}
+		unlock_kernel();
 		return;
 	}
 	if (tty_pgrp > 0) {
@@ -931,10 +955,10 @@ void disassociate_ctty(int on_exit)
 	tty->pgrp = -1;
 
 	read_lock(&tasklist_lock);
-	for_each_task(p)
-	  	if (p->session == current->session)
-			p->tty = NULL;
+	for_each_task_pid(current->session, PIDTYPE_SID, p, l, pid)
+		p->tty = NULL;
 	read_unlock(&tasklist_lock);
+	unlock_kernel();
 }
 
 void stop_tty(struct tty_struct *tty)
@@ -1590,12 +1614,15 @@ static void release_dev(struct file * filp)
 	 */
 	if (tty_closing || o_tty_closing) {
 		struct task_struct *p;
+		struct list_head *l;
+		struct pid *pid;
 
 		read_lock(&tasklist_lock);
-		for_each_task(p) {
-			if (p->tty == tty || (o_tty && p->tty == o_tty))
+		for_each_task_pid(tty->session, PIDTYPE_SID, p, l, pid)
+			p->tty = NULL;
+		if (o_tty)
+			for_each_task_pid(o_tty->session, PIDTYPE_SID, p,l, pid)
 				p->tty = NULL;
-		}
 		read_unlock(&tasklist_lock);
 	}
 
@@ -1866,7 +1893,7 @@ static int tty_fasync(int fd, struct file * filp, int on)
 		if (!waitqueue_active(&tty->read_wait))
 			tty->minimum_to_wake = 1;
 		if (filp->f_owner.pid == 0) {
-			filp->f_owner.pid = (-tty->pgrp) ? : current->pid;
+			filp->f_owner.pid = (-tty->pgrp) ? : current->tgid;
 			filp->f_owner.uid = current->uid;
 			filp->f_owner.euid = current->euid;
 		}
@@ -1979,11 +2006,12 @@ static int tiocsctty(struct tty_struct *tty, int arg)
 			 * Steal it away
 			 */
 			struct task_struct *p;
+			struct list_head *l;
+			struct pid *pid;
 
 			read_lock(&tasklist_lock);
-			for_each_task(p)
-				if (p->tty == tty)
-					p->tty = NULL;
+			for_each_task_pid(tty->session, PIDTYPE_SID, p, l, pid)
+				p->tty = NULL;
 			read_unlock(&tasklist_lock);
 		} else
 			return -EPERM;
@@ -2281,7 +2309,7 @@ static void __do_SAK(void *arg)
 		tty->driver.flush_buffer(tty);
 
 	read_lock(&tasklist_lock);
-	for_each_task(p) {
+	for_each_process(p) {
 		if ((p->tty == tty) ||
 		    ((session > 0) && (p->session == session))) {
 			send_sig(SIGKILL, p, 1);

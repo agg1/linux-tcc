@@ -25,6 +25,7 @@
 #include <linux/string.h>
 #include <linux/seq_file.h>
 #include <linux/namespace.h>
+#include <linux/ptrace.h>
 
 /*
  * For hysterical raisins we keep the same inumbers as in the old procfs.
@@ -34,7 +35,7 @@
  * about magical ranges too.
  */
 
-#define fake_ino(pid,ino) (((pid)<<16)|(ino))
+#define fake_ino(pid,ino) (((ino_t)(pid) << PROC_INODE_SHIFT) | (ino))
 
 int proc_pid_stat(struct task_struct*,char*);
 int proc_pid_status(struct task_struct*,char*);
@@ -125,7 +126,7 @@ static int proc_root_link(struct inode *inode, struct dentry **dentry, struct vf
 
 #define MAY_PTRACE(task) \
 	(task == current || \
-	(task->p_pptr == current && \
+	(task->parent == current && \
 	(task->ptrace & PT_PTRACED) && task->state == TASK_STOPPED))
 
 static int may_ptrace_attach(struct task_struct *task)
@@ -604,7 +605,7 @@ enum pid_directory_inos {
 	PROC_PID_MAPS,
 	PROC_PID_CPU,
 	PROC_PID_MOUNTS,
-	PROC_PID_FD_DIR = 0x8000,	/* 0x8000-0xffff */
+	PROC_PID_FD_DIR = 1 << (PROC_INODE_SHIFT - 1), /* 0x8000-0xffff */
 };
 
 #define E(type,name,mode) {(type),sizeof(name)-1,(name),(mode)}
@@ -634,7 +635,8 @@ static int proc_readfd(struct file * filp, void * dirent, filldir_t filldir)
 {
 	struct inode *inode = filp->f_dentry->d_inode;
 	struct task_struct *p = inode->u.proc_i.task;
-	unsigned int fd, pid, ino;
+	unsigned int fd, pid;
+	ino_t ino;
 	int retval;
 	char buf[NUMBUF];
 	struct files_struct * files;
@@ -1060,6 +1062,13 @@ struct dentry *proc_pid_lookup(struct inode *dir, struct dentry * dentry)
 		d_add(dentry, inode);
 		return NULL;
 	}
+
+	/*
+	 * Deal with dot-aliases for threads.
+	 */
+	if (name[0] == '.')
+		name++, len--;
+
 	while (len-- > 0) {
 		c = *name - '0';
 		name++;
@@ -1083,7 +1092,7 @@ struct dentry *proc_pid_lookup(struct inode *dir, struct dentry * dentry)
 
 	inode = proc_pid_make_inode(dir->i_sb, task, PROC_PID_INO);
 
-	free_task_struct(task);
+	put_task_struct(task);
 
 	if (!inode)
 		goto out;
@@ -1105,7 +1114,7 @@ void proc_pid_delete_inode(struct inode *inode)
 	if (inode->u.proc_i.file)
 		fput(inode->u.proc_i.file);
 	if (inode->u.proc_i.task)
-		free_task_struct(inode->u.proc_i.task);
+		put_task_struct(inode->u.proc_i.task);
 }
 
 #define PROC_NUMBUF 10
@@ -1116,31 +1125,42 @@ void proc_pid_delete_inode(struct inode *inode)
  * tasklist lock while doing this, and we must release it before
  * we actually do the filldir itself, so we use a temp buffer..
  */
-static int get_pid_list(int index, unsigned int *pids)
+static int get_pid_list(int index, int *pids, struct file *filp)
 {
-	struct task_struct *p;
+	struct task_struct *p = NULL;
 	int nr_pids = 0;
+	int pid = 0, pid_cursor = (int)filp->private_data;
 
-	index--;
 	read_lock(&tasklist_lock);
-	for_each_task(p) {
-		int pid = p->pid;
-		if (!pid)
-			continue;
+	if (pid_cursor)
+		p = find_task_by_pid(pid_cursor);
+	if (!p) {
+		p = &init_task;
+		index--;
+	} else
+		index = 0;
+	__for_each_process(p) {
 		if (--index >= 0)
 			continue;
-		pids[nr_pids] = pid;
+		pid = p->pid;
+		if (!pid)
+			BUG();
+		if (p->tgid != p->pid)
+			pids[nr_pids] = -pid;
+		else
+			pids[nr_pids] = pid;
 		nr_pids++;
 		if (nr_pids >= PROC_MAXPIDS)
 			break;
 	}
+	filp->private_data = (void *)pid;
 	read_unlock(&tasklist_lock);
 	return nr_pids;
 }
 
 int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir)
 {
-	unsigned int pid_array[PROC_MAXPIDS];
+	int pid_array[PROC_MAXPIDS];
 	char buf[PROC_NUMBUF];
 	unsigned int nr = filp->f_pos - FIRST_PROCESS_ENTRY;
 	unsigned int nr_pids, i;
@@ -1153,14 +1173,16 @@ int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir)
 		nr++;
 	}
 
-	nr_pids = get_pid_list(nr, pid_array);
+	nr_pids = get_pid_list(nr, pid_array, filp);
 
 	for (i = 0; i < nr_pids; i++) {
-		int pid = pid_array[i];
+		int pid = abs(pid_array[i]);
 		ino_t ino = fake_ino(pid,PROC_PID_INO);
 		unsigned long j = PROC_NUMBUF;
 
 		do buf[--j] = '0' + (pid % 10); while (pid/=10);
+		if (pid_array[i] < 0)
+			buf[--j] = '.';
 
 		if (filldir(dirent, buf+j, PROC_NUMBUF-j, filp->f_pos, ino, DT_DIR) < 0)
 			break;

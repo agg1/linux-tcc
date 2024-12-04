@@ -725,6 +725,8 @@ static void sync_stop_set(int sync_state, int set)
 
 static int sync_thread(void *startup)
 {
+	unsigned long flags;
+
 	DECLARE_WAITQUEUE(wait, current);
 	mm_segment_t oldmm;
 	int state = IP_VS_STATE_NONE;
@@ -744,10 +746,10 @@ static int sync_thread(void *startup)
 	} else IP_VS_BUG();
 
 	/* Block all signals */
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
 	siginitsetinv(&current->blocked, 0);
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 
 	/* set up multicast address */
 	mcast_addr.sin_family = AF_INET;

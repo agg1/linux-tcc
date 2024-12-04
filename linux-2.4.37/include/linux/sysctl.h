@@ -125,6 +125,7 @@ enum
 	KERN_CORE_USES_PID=52,		/* int: use core or core.%pid */
 	KERN_TAINTED=53,	/* int: various kernel tainted flags */
 	KERN_CADPID=54,		/* int: PID of the process to notify on CAD */
+	KERN_PID_MAX=55,	/* int: max PID value of processes */
  	KERN_CORE_PATTERN=56,	/* string: pattern for core-files */
 	KERN_PPC_L3CR=57,       /* l3cr register on PPC */
 	KERN_EXCEPTION_TRACE=58, /* boolean: exception trace */

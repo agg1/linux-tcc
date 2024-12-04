@@ -243,7 +243,7 @@ is386:	pushl %ecx		# restore original EFLAGS
 2:	movl %eax,%cr0
 	call check_x87
 	incb ready
-	lgdt gdt_descr
+	lgdt cpu_gdt_descr
 	lidt idt_descr
 	ljmp $(__KERNEL_CS),$1f
 1:	movl $(__KERNEL_DS),%eax	# reload all the segment registers
@@ -251,12 +251,7 @@ is386:	pushl %ecx		# restore original EFLAGS
 	movl %eax,%es
 	movl %eax,%fs
 	movl %eax,%gs
-#ifdef CONFIG_SMP
-	movl $(__KERNEL_DS), %eax
-	movl %eax,%ss		# Reload the stack pointer (segment only)
-#else
-	lss stack_start,%esp	# Load processor stack
-#endif
+	movl %eax,%ss
 	xorl %eax,%eax
 	lldt %ax
 	cld			# gcc2 wants the direction flag cleared at all times
@@ -344,29 +339,27 @@ ignore_int:
 	jmp 1b
 
 /*
- * The interrupt descriptor table has room for 256 idt's,
- * the global descriptor table is dependent on the number
- * of tasks we can have..
+ * The IDT and GDT 'descriptors' are a strange 48-bit object
+ * only used by the lidt and lgdt instructions. They are not
+ * like usual segment descriptors - they consist of a 16-bit
+ * segment size, and 32-bit linear address value:
  */
-#define IDT_ENTRIES	256
-#define GDT_ENTRIES	(__TSS(NR_CPUS))
 
-
-.globl SYMBOL_NAME(idt)
-.globl SYMBOL_NAME(gdt)
+.globl SYMBOL_NAME(idt_descr)
+.globl SYMBOL_NAME(cpu_gdt_descr)
 
 	ALIGN
-	.word 0
-idt_descr:
+	.word 0				# 32-bit align idt_desc.address
+
+SYMBOL_NAME(idt_descr):
 	.word IDT_ENTRIES*8-1		# idt contains 256 entries
-SYMBOL_NAME(idt):
 	.long SYMBOL_NAME(idt_table)
 
-	.word 0
-gdt_descr:
+SYMBOL_NAME(cpu_gdt_descr):
 	.word GDT_ENTRIES*8-1
-SYMBOL_NAME(gdt):
-	.long SYMBOL_NAME(gdt_table)
+	.long SYMBOL_NAME(cpu_gdt_table)
+
+	.fill NR_CPUS-1,6,0		# space for the other GDT descriptors
 
 /*
  * This is initialized to create an identity-mapping at 0-8M (for bootup
@@ -419,26 +412,42 @@ ENTRY(_stext)
 
 ALIGN
 /*
- * This contains typically 140 quadwords, depending on NR_CPUS.
- *
- * NOTE! Make sure the gdt descriptor in head.S matches this if you
- * change anything.
+ * The Global Descriptor Table contains 28 quadwords, per-CPU.
  */
-ENTRY(gdt_table)
+ENTRY(cpu_gdt_table)
 	.quad 0x0000000000000000	/* NULL descriptor */
-	.quad 0x0000000000000000	/* not used */
-	.quad 0x00cf9a000000ffff	/* 0x10 kernel 4GB code at 0x00000000 */
-	.quad 0x00cf92000000ffff	/* 0x18 kernel 4GB data at 0x00000000 */
-	.quad 0x00cffa000000ffff	/* 0x23 user   4GB code at 0x00000000 */
-	.quad 0x00cff2000000ffff	/* 0x2b user   4GB data at 0x00000000 */
-	.quad 0x0000000000000000	/* not used */
-	.quad 0x0000000000000000	/* not used */
+	.quad 0x0000000000000000	/* 0x0b reserved */
+	.quad 0x0000000000000000	/* 0x13 reserved */
+	.quad 0x0000000000000000	/* 0x1b reserved */
+	.quad 0x00cffa000000ffff	/* 0x23 user 4GB code at 0x00000000 */
+	.quad 0x00cff2000000ffff	/* 0x2b user 4GB data at 0x00000000 */
+	.quad 0x0000000000000000	/* 0x33 TLS entry 1 */
+	.quad 0x0000000000000000	/* 0x3b TLS entry 2 */
+	.quad 0x0000000000000000	/* 0x43 TLS entry 3 */
+	.quad 0x0000000000000000	/* 0x4b reserved */
+	.quad 0x0000000000000000	/* 0x53 reserved */
+	.quad 0x0000000000000000	/* 0x5b reserved */
+
+	.quad 0x00cf9a000000ffff	/* 0x60 kernel 4GB code at 0x00000000 */
+	.quad 0x00cf92000000ffff	/* 0x68 kernel 4GB data at 0x00000000 */
+	.quad 0x0000000000000000	/* 0x70 TSS descriptor */
+	.quad 0x0000000000000000	/* 0x78 LDT descriptor */
+
+	/* Segments used for calling PnP BIOS */
+	.quad 0x00c09a0000000000	/* 0x80 32-bit code */
+	.quad 0x00809a0000000000	/* 0x88 16-bit code */
+	.quad 0x0080920000000000	/* 0x90 16-bit data */
+	.quad 0x0080920000000000	/* 0x98 16-bit data */
+	.quad 0x0080920000000000	/* 0xa0 16-bit data */
 	/*
 	 * The APM segments have byte granularity and their bases
 	 * and limits are set at run time.
 	 */
-	.quad 0x0040920000000000	/* 0x40 APM set up for bad BIOS's */
-	.quad 0x00409a0000000000	/* 0x48 APM CS    code */
-	.quad 0x00009a0000000000	/* 0x50 APM CS 16 code (16 bit) */
-	.quad 0x0040920000000000	/* 0x58 APM DS    data */
-	.fill NR_CPUS*4,8,0		/* space for TSS's and LDT's */
+	.quad 0x00409a0000000000	/* 0xa8 APM CS    code */
+	.quad 0x00009a0000000000	/* 0xb0 APM CS 16 code (16 bit) */
+	.quad 0x0040920000000000	/* 0xb8 APM DS    data */
+
+#if CONFIG_SMP
+	.fill (NR_CPUS-1)*GDT_ENTRIES,8,0 /* other CPU's GDT */
+#endif
+

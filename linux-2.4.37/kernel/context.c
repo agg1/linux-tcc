@@ -75,10 +75,10 @@ static int context_thread(void *startup)
 	keventd_running = 1;
 	keventd_task = curtask;
 
-	spin_lock_irq(&curtask->sigmask_lock);
+	spin_lock_irq(&curtask->sighand->siglock);
 	siginitsetinv(&curtask->blocked, sigmask(SIGCHLD));
-	recalc_sigpending(curtask);
-	spin_unlock_irq(&curtask->sigmask_lock);
+	recalc_sigpending_tsk(curtask);
+	spin_unlock_irq(&curtask->sighand->siglock);
 
 	complete((struct completion *)startup);
 
@@ -104,10 +104,10 @@ static int context_thread(void *startup)
 		if (signal_pending(curtask)) {
 			while (waitpid(-1, (unsigned int *)0, __WALL|WNOHANG) > 0)
 				;
-			spin_lock_irq(&curtask->sigmask_lock);
+			spin_lock_irq(&curtask->sighand->siglock);
 			flush_signals(curtask);
-			recalc_sigpending(curtask);
-			spin_unlock_irq(&curtask->sigmask_lock);
+			recalc_sigpending_tsk(curtask);
+			spin_unlock_irq(&curtask->sighand->siglock);
 		}
 	}
 }

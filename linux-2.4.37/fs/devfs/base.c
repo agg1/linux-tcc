@@ -1414,7 +1414,7 @@ static int is_devfsd_or_child (struct fs_info *fs_info)
     if (current == fs_info->devfsd_task) return (TRUE);
     if (current->pgrp == fs_info->devfsd_pgrp) return (TRUE);
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,1)
-    for (p = current->p_opptr; p != &init_task; p = p->p_opptr)
+    for (p = current->real_parent; p != &init_task; p = p->real_parent)
     {
 	if (p == fs_info->devfsd_task) return (TRUE);
     }

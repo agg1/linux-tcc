@@ -101,6 +101,9 @@ extern void signals_init(void);
 extern int init_pcmcia_ds(void);
 
 extern void free_initmem(void);
+
+extern void pidhash_init(void);
+
 #ifdef  CONFIG_ACPI_BUS
 extern void acpi_early_init(void);
 #else
@@ -298,7 +301,7 @@ static void __init parse_options(char *line)
 extern void setup_arch(char **);
 extern void cpu_idle(void);
 
-unsigned long wait_init_idle;
+//unsigned long wait_init_idle;
 
 #ifndef CONFIG_SMP
 
@@ -308,33 +311,34 @@ static void __init smp_init(void)
 	APIC_init_uniprocessor();
 }
 #else
-#define smp_init()	do { } while (0)
+#define smp_init()      do { } while (0)
 #endif
 
 #else
-
 
 /* Called by boot processor to activate the rest. */
 static void __init smp_init(void)
 {
 	/* Get other processors into their bootup holding patterns. */
 	smp_boot_cpus();
-	wait_init_idle = cpu_online_map;
-	clear_bit(current->processor, &wait_init_idle); /* Don't wait on me! */
+
+//	wait_init_idle = cpu_online_map;
+//	clear_bit(current->cpu, &wait_init_idle); /* Don't wait on me! */
 
 	smp_threads_ready=1;
 	smp_commence();
 
-	/* Wait for the other cpus to set up their idle processes */
-	printk("Waiting on wait_init_idle (map = 0x%lx)\n", wait_init_idle);
-	while (wait_init_idle) {
-		cpu_relax();
-		barrier();
-	}
-	printk("All processors have done init_idle\n");
+//	/* Wait for the other cpus to set up their idle processes */
+//	printk("Waiting on wait_init_idle (map = 0x%lx)\n", wait_init_idle);
+//	while (wait_init_idle) {
+//		cpu_relax();
+//		barrier();
+//	}
+//	printk("All processors have done init_idle\n");
 }
 
 #endif
+
 
 /*
  * We need to finalize in a non-__init function or else race conditions
@@ -345,11 +349,11 @@ static void __init smp_init(void)
 
 static void rest_init(void)
 {
-	kernel_thread(init, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
+	init_idle(current, smp_processor_id());
+	kernel_thread(init, NULL, CLONE_KERNEL);
 	unlock_kernel();
-	current->need_resched = 1;
- 	cpu_idle();
-} 
+	cpu_idle();
+}
 
 /*
  *	Activate the first processor.
@@ -407,6 +411,7 @@ asmlinkage void __init start_kernel(void)
 #endif
 	mem_init();
 	kmem_cache_sizes_init();
+	pidhash_init();
 	pgtable_cache_init();
 
 	/*
@@ -435,15 +440,11 @@ asmlinkage void __init start_kernel(void)
 	acpi_early_init(); /* before LAPIC and SMP init */
 	printk("POSIX conformance testing by UNIFIX\n");
 
-	/* 
-	 *	We count on the initial thread going ok 
-	 *	Like idlers init is an unlocked kernel thread, which will
-	 *	make syscalls (and thus be locked).
-	 */
-	smp_init();
 #if defined(CONFIG_SYSVIPC)
 	ipc_init();
 #endif
+
+	/* Do the rest non-__init'ed, we're now alive */
 	rest_init();
 }
 
@@ -472,7 +473,6 @@ static void __init do_initcalls(void)
  */
 static void __init do_basic_setup(void)
 {
-
 	/*
 	 * Tell the world that we're going to be the grim
 	 * reaper of innocent orphaned children.
@@ -564,6 +564,13 @@ static int init(void * unused)
 {
 	struct files_struct *files;
 	lock_kernel();
+
+	smp_init();
+
+#if CONFIG_SMP
+	migration_init();
+#endif
+
 	do_basic_setup();
 
 	prepare_namespace();

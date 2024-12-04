@@ -42,6 +42,7 @@
 
 /* External variables not in a header file. */
 extern int panic_timeout;
+extern int print_fatal_signals;
 extern int C_A_D;
 extern int bdf_prm[], bdflush_min[], bdflush_max[];
 extern int sysctl_overcommit_memory;
@@ -53,6 +54,7 @@ extern int core_uses_pid;
 extern int core_setuid_ok;
 extern char core_pattern[];
 extern int cad_pid;
+extern int pid_max;
 extern int laptop_mode;
 extern int block_dump;
 
@@ -179,6 +181,8 @@ static ctl_table kern_table[] = {
 	 0644, NULL, &proc_doutsstring, &sysctl_string},
 	{KERN_PANIC, "panic", &panic_timeout, sizeof(int),
 	 0644, NULL, &proc_dointvec},
+	{KERN_PANIC, "print_fatal_signals", &print_fatal_signals, sizeof(int),
+	 0644, NULL, &proc_dointvec},
 	{KERN_CORE_USES_PID, "core_uses_pid", &core_uses_pid, sizeof(int),
 	 0644, NULL, &proc_dointvec},
 	{KERN_CORE_SETUID, "core_setuid_ok", &core_setuid_ok, sizeof(int),
@@ -259,6 +263,8 @@ static ctl_table kern_table[] = {
 	 0600, NULL, &proc_dointvec},
 	{KERN_MAX_THREADS, "threads-max", &max_threads, sizeof(int),
 	 0644, NULL, &proc_dointvec},
+	{KERN_PID_MAX, "pid_max", &pid_max, sizeof (int),
+	 0600, NULL, &proc_dointvec},
 	{KERN_RANDOM, "random", NULL, 0, 0555, random_table},
 	{KERN_OVERFLOWUID, "overflowuid", &overflowuid, sizeof(int), 0644, NULL,
 	 &proc_dointvec_minmax, &sysctl_intvec, NULL,

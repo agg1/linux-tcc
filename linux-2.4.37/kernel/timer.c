@@ -25,6 +25,8 @@
 
 #include <asm/uaccess.h>
 
+struct kernel_stat kstat;
+
 /*
  * Timekeeping variables
  */
@@ -540,7 +542,9 @@ static inline void do_process_times(struct task_struct *p,
 	unsigned long psecs;
 
 	psecs = (p->times.tms_utime += user);
+	p->group_leader->group_times.tms_utime += user;
 	psecs += (p->times.tms_stime += system);
+	p->group_leader->group_times.tms_stime += system;
 	if (psecs / HZ > p->rlim[RLIMIT_CPU].rlim_cur) {
 		/* Send SIGXCPU every second.. */
 		if (!(psecs % HZ))
@@ -598,25 +602,7 @@ void update_process_times(int user_tick)
 	int cpu = smp_processor_id(), system = user_tick ^ 1;
 
 	update_one_process(p, user_tick, system, cpu);
-	if (p->pid) {
-		if (--p->counter <= 0) {
-			p->counter = 0;
-			/*
-			 * SCHED_FIFO is priority preemption, so this is 
-			 * not the place to decide whether to reschedule a
-			 * SCHED_FIFO task or not - Bhavesh Davda
-			 */
-			if (p->policy != SCHED_FIFO) {
-				p->need_resched = 1;
-			}
-		}
-		if (p->nice > 0)
-			kstat.per_cpu_nice[cpu] += user_tick;
-		else
-			kstat.per_cpu_user[cpu] += user_tick;
-		kstat.per_cpu_system[cpu] += system;
-	} else if (local_bh_count(cpu) || local_irq_count(cpu) > 1)
-		kstat.per_cpu_system[cpu] += system;
+	scheduler_tick(user_tick, system);
 }
 
 /*
@@ -624,17 +610,7 @@ void update_process_times(int user_tick)
  */
 static unsigned long count_active_tasks(void)
 {
-	struct task_struct *p;
-	unsigned long nr = 0;
-
-	read_lock(&tasklist_lock);
-	for_each_task(p) {
-		if ((p->state == TASK_RUNNING ||
-		     (p->state & TASK_UNINTERRUPTIBLE)))
-			nr += FIXED_1;
-	}
-	read_unlock(&tasklist_lock);
-	return nr;
+	return (nr_running() + nr_uninterruptible()) * FIXED_1;
 }
 
 /*
@@ -756,8 +732,8 @@ asmlinkage long sys_getpid(void)
 }
 
 /*
- * This is not strictly SMP safe: p_opptr could change
- * from under us. However, rather than getting any lock
+ * Accessing ->group_leader->real_parent is not SMP-safe, it could
+ * change from under us. However, rather than getting any lock
  * we can use an optimistic algorithm: get the parent
  * pid, and go back and check that the parent is still
  * the same. If it has changed (which is extremely unlikely
@@ -765,33 +741,31 @@ asmlinkage long sys_getpid(void)
  *
  * NOTE! This depends on the fact that even if we _do_
  * get an old value of "parent", we can happily dereference
- * the pointer: we just can't necessarily trust the result
+ * the pointer (it was and remains a dereferencable kernel pointer
+ * no matter what): we just can't necessarily trust the result
  * until we know that the parent pointer is valid.
  *
- * The "mb()" macro is a memory barrier - a synchronizing
- * event. It also makes sure that gcc doesn't optimize
- * away the necessary memory references.. The barrier doesn't
- * have to have all that strong semantics: on x86 we don't
- * really require a synchronizing instruction, for example.
- * The barrier is more important for code generation than
- * for any real memory ordering semantics (even if there is
- * a small window for a race, using the old pointer is
- * harmless for a while).
+ * NOTE2: ->group_leader never changes from under us.
  */
 asmlinkage long sys_getppid(void)
 {
 	int pid;
-	struct task_struct * me = current;
-	struct task_struct * parent;
+	struct task_struct *me = current;
+	struct task_struct *parent;
 
-	parent = me->p_opptr;
+	parent = me->group_leader->real_parent;
 	for (;;) {
-		pid = parent->pid;
+		pid = parent->tgid;
 #if CONFIG_SMP
 {
 		struct task_struct *old = parent;
-		mb();
-		parent = me->p_opptr;
+
+		/*
+		 * Make sure we read the pid before re-reading the
+		 * parent pointer:
+		 */
+		rmb();
+		parent = me->group_leader->real_parent;
 		if (old != parent)
 			continue;
 }
@@ -827,6 +801,89 @@ asmlinkage long sys_getegid(void)
 
 #endif
 
+static void process_timeout(unsigned long __data)
+{
+	wake_up_process((task_t *)__data);
+}
+
+/**
+ * schedule_timeout - sleep until timeout
+ * @timeout: timeout value in jiffies
+ *
+ * Make the current task sleep until @timeout jiffies have
+ * elapsed. The routine will return immediately unless
+ * the current task state has been set (see set_current_state()).
+ *
+ * You can set the task state as follows -
+ *
+ * %TASK_UNINTERRUPTIBLE - at least @timeout jiffies are guaranteed to
+ * pass before the routine returns. The routine will return 0
+ *
+ * %TASK_INTERRUPTIBLE - the routine may return early if a signal is
+ * delivered to the current task. In this case the remaining time
+ * in jiffies will be returned, or 0 if the timer expired in time
+ *
+ * The current task state is guaranteed to be TASK_RUNNING when this 
+ * routine returns.
+ *
+ * Specifying a @timeout value of %MAX_SCHEDULE_TIMEOUT will schedule
+ * the CPU away without a bound on the timeout. In this case the return
+ * value will be %MAX_SCHEDULE_TIMEOUT.
+ *
+ * In all cases the return value is guaranteed to be non-negative.
+ */
+signed long fastcall schedule_timeout(signed long timeout)
+{
+	struct timer_list timer;
+	unsigned long expire;
+
+	switch (timeout)
+	{
+	case MAX_SCHEDULE_TIMEOUT:
+		/*
+		 * These two special cases are useful to be comfortable
+		 * in the caller. Nothing more. We could take
+		 * MAX_SCHEDULE_TIMEOUT from one of the negative value
+		 * but I' d like to return a valid offset (>=0) to allow
+		 * the caller to do everything it want with the retval.
+		 */
+		schedule();
+		goto out;
+	default:
+		/*
+		 * Another bit of PARANOID. Note that the retval will be
+		 * 0 since no piece of kernel is supposed to do a check
+		 * for a negative retval of schedule_timeout() (since it
+		 * should never happens anyway). You just have the printk()
+		 * that will tell you if something is gone wrong and where.
+		 */
+		if (timeout < 0)
+		{
+			printk(KERN_ERR "schedule_timeout: wrong timeout "
+			       "value %lx from %p\n", timeout,
+			       __builtin_return_address(0));
+			current->state = TASK_RUNNING;
+			goto out;
+		}
+	}
+
+	expire = timeout + jiffies;
+
+	init_timer(&timer);
+	timer.expires = expire;
+	timer.data = (unsigned long) current;
+	timer.function = process_timeout;
+
+	add_timer(&timer);
+	schedule();
+	del_timer_sync(&timer);
+
+	timeout = expire - jiffies;
+
+ out:
+	return timeout < 0 ? 0 : timeout;
+}
+
 /* Thread ID - the internal kernel "pid" */
 asmlinkage long sys_gettid(void)
 {
@@ -846,7 +903,7 @@ asmlinkage long sys_nanosleep(struct timespec *rqtp, struct timespec *rmtp)
 
 
 	if (t.tv_sec == 0 && t.tv_nsec <= 2000000L &&
-	    current->policy != SCHED_OTHER)
+	    current->policy != SCHED_NORMAL)
 	{
 		/*
 		 * Short delay requests up to 2 ms will be handled with
@@ -873,4 +930,3 @@ asmlinkage long sys_nanosleep(struct timespec *rqtp, struct timespec *rmtp)
 	}
 	return 0;
 }
-

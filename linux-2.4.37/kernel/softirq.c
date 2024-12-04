@@ -364,13 +364,13 @@ static int ksoftirqd(void * __bind_cpu)
 	int cpu = cpu_logical_map(bind_cpu);
 
 	daemonize();
-	current->nice = 19;
+	set_user_nice(current, 19);
 	sigfillset(&current->blocked);
 
 	/* Migrate to the right CPU */
-	current->cpus_allowed = 1UL << cpu;
-	while (smp_processor_id() != cpu)
-		schedule();
+	set_cpus_allowed(current, 1UL << cpu);
+//	if (cpu() != cpu)
+//		BUG();
 
 	sprintf(current->comm, "ksoftirqd_CPU%d", bind_cpu);
 
@@ -395,13 +395,13 @@ static int ksoftirqd(void * __bind_cpu)
 	}
 }
 
-static __init int spawn_ksoftirqd(void)
+__init int spawn_ksoftirqd(void)
 {
 	int cpu;
 
 	for (cpu = 0; cpu < smp_num_cpus; cpu++) {
 		if (kernel_thread(ksoftirqd, (void *) (long) cpu,
-				  CLONE_FS | CLONE_FILES | CLONE_SIGNAL) < 0)
+				  CLONE_KERNEL) < 0)
 			printk("spawn_ksoftirqd() failed for cpu %d\n", cpu);
 		else {
 			while (!ksoftirqd_task(cpu_logical_map(cpu)))

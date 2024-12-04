@@ -106,14 +106,11 @@ static int jffs2_garbage_collect_thread(void *_c)
 
         sprintf(current->comm, "jffs2_gcd_mtd%d", c->mtd->index);
 
-	/* FIXME in the 2.2 backport */
-	current->nice = 10;
-
 	for (;;) {
-		spin_lock_irq(&current->sigmask_lock);
+		spin_lock_irq(&current->sighand->siglock);
 		siginitsetinv (&current->blocked, sigmask(SIGHUP) | sigmask(SIGKILL) | sigmask(SIGSTOP) | sigmask(SIGCONT));
-		recalc_sigpending(current);
-		spin_unlock_irq(&current->sigmask_lock);
+		recalc_sigpending();
+		spin_unlock_irq(&current->sighand->siglock);
 
 		if (!thread_should_wake(c)) {
                         set_current_state (TASK_INTERRUPTIBLE);
@@ -134,9 +131,9 @@ static int jffs2_garbage_collect_thread(void *_c)
                         siginfo_t info;
                         unsigned long signr;
 
-                        spin_lock_irq(&current->sigmask_lock);
+                        spin_lock_irq(&current->sighand->siglock);
                         signr = dequeue_signal(&current->blocked, &info);
-                        spin_unlock_irq(&current->sigmask_lock);
+                        spin_unlock_irq(&current->sighand->siglock);
 
                         switch(signr) {
                         case SIGSTOP:
@@ -161,10 +158,10 @@ static int jffs2_garbage_collect_thread(void *_c)
                         }
                 }
 		/* We don't want SIGHUP to interrupt us. STOP and KILL are OK though. */
-		spin_lock_irq(&current->sigmask_lock);
+		spin_lock_irq(&current->sighand->siglock);
 		siginitsetinv (&current->blocked, sigmask(SIGKILL) | sigmask(SIGSTOP) | sigmask(SIGCONT));
-		recalc_sigpending(current);
-		spin_unlock_irq(&current->sigmask_lock);
+		recalc_sigpending();
+		spin_unlock_irq(&current->sighand->siglock);
 
 		D1(printk(KERN_DEBUG "jffs2_garbage_collect_thread(): pass\n"));
 		jffs2_garbage_collect_pass(c);

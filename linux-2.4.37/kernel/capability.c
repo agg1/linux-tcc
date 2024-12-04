@@ -8,6 +8,8 @@
 #include <linux/mm.h>
 #include <asm/uaccess.h>
 
+unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
+
 kernel_cap_t cap_bset = CAP_INIT_EFF_SET;
 
 /* Note: never hold tasklist_lock while spinning for this one */
@@ -81,17 +83,17 @@ static void cap_set_pg(int pgrp,
                     kernel_cap_t *inheritable,
                     kernel_cap_t *permitted)
 {
-     struct task_struct *target;
+     struct task_struct *target, *g;
 
      /* FIXME: do we need to have a write lock here..? */
      read_lock(&tasklist_lock);
-     for_each_task(target) {
+     do_each_thread(g, target) {
              if (target->pgrp != pgrp)
                      continue;
              target->cap_effective   = *effective;
              target->cap_inheritable = *inheritable;
              target->cap_permitted   = *permitted;
-     }
+     } while_each_thread(g, target);
      read_unlock(&tasklist_lock);
 }
 
@@ -101,18 +103,18 @@ static void cap_set_all(kernel_cap_t *effective,
                      kernel_cap_t *inheritable,
                      kernel_cap_t *permitted)
 {
-     struct task_struct *target;
+     struct task_struct *target, *g;
 
      /* FIXME: do we need to have a write lock here..? */
      read_lock(&tasklist_lock);
      /* ALL means everyone other than self or 'init' */
-     for_each_task(target) {
+     do_each_thread(g, target) {
              if (target == current || target->pid == 1)
                      continue;
              target->cap_effective   = *effective;
              target->cap_inheritable = *inheritable;
              target->cap_permitted   = *permitted;
-     }
+     } while_each_thread(g, target);
      read_unlock(&tasklist_lock);
 }
 

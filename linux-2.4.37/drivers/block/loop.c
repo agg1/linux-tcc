@@ -571,10 +571,10 @@ static int loop_thread(void *data)
 
 	sprintf(current->comm, "loop%d", lo->lo_number);
 
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	sigfillset(&current->blocked);
 	flush_signals(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	spin_unlock_irq(&current->sighand->siglock);
 
 	spin_lock_irq(&lo->lo_lock);
 	lo->lo_state = Lo_bound;

@@ -18,6 +18,15 @@
 #include <linux/config.h>
 #include <linux/threads.h>
 
+struct desc_struct {
+	unsigned long a,b;
+};
+
+#define desc_empty(desc) \
+		(!((desc)->a + (desc)->b))
+
+#define desc_equal(desc1, desc2) \
+		(((desc1)->a == (desc2)->a) && ((desc1)->b == (desc2)->b))
 /*
  * Default implementation of macro that returns current
  * instruction pointer ("program counter").
@@ -264,7 +273,7 @@ extern unsigned int mca_pentium_flag;
 /* This decides where the kernel will search for a free chunk of vm
  * space during mmap's.
  */
-#define TASK_UNMAPPED_BASE	(TASK_SIZE / 3)
+#define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
 
 /*
  * Size of io_bitmap in longwords: 32 is ports 0-0x3ff.
@@ -360,6 +369,8 @@ struct tss_struct {
 extern struct tss_struct init_tss[NR_CPUS];
 
 struct thread_struct {
+/* cached TLS descriptors. */
+	struct desc_struct tls_array[GDT_ENTRY_TLS_ENTRIES];
 	unsigned long	esp0;
 	unsigned long	eip;
 	unsigned long	esp;
@@ -375,18 +386,21 @@ struct thread_struct {
 	struct vm86_struct	* vm86_info;
 	unsigned long		screen_bitmap;
 	unsigned long		v86flags, v86mask, saved_esp0;
+	unsigned int		saved_fs, saved_gs;
 /* IO permissions */
 	int		ioperm;
 	unsigned long	io_bitmap[IO_BITMAP_SIZE+1];
 };
 
 #define INIT_THREAD  {						\
+	{ { 0, 0 } , },						\
 	0,							\
 	0, 0, 0, 0, 						\
 	{ [0 ... 7] = 0 },	/* debugging registers */	\
 	0, 0, 0,						\
 	{ { 0, }, },		/* 387 state */			\
 	0,0,0,0,0,						\
+	0, 0,			/* fs/gs */			\
 	0,{~0,}			/* io permissions */		\
 }
 
@@ -401,7 +415,7 @@ struct thread_struct {
 	0,0,0,0, /* esp,ebp,esi,edi */				\
 	0,0,0,0,0,0, /* es,cs,ss */				\
 	0,0,0,0,0,0, /* ds,fs,gs */				\
-	__LDT(0),0, /* ldt */					\
+	GDT_ENTRY_LDT,0, /* ldt */					\
 	0, INVALID_IO_BITMAP_OFFSET, /* tace, bitmap */		\
 	{~0, } /* ioperm */					\
 }
@@ -448,9 +462,8 @@ unsigned long get_wchan(struct task_struct *p);
 #define KSTK_ESP(tsk)	(((unsigned long *)(4096+(unsigned long)(tsk)))[1022])
 
 #define THREAD_SIZE (2*PAGE_SIZE)
-#define alloc_task_struct() ((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
-#define free_task_struct(p) free_pages((unsigned long) (p), 1)
-#define get_task_struct(tsk)      atomic_inc(&virt_to_page(tsk)->count)
+#define __alloc_task_struct() ((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
+#define __free_task_struct(p) do { BUG_ON((p)->state < TASK_ZOMBIE); free_pages((unsigned long) (p), 1); } while (0)
 
 #define init_task	(init_task_union.task)
 #define init_stack	(init_task_union.stack)

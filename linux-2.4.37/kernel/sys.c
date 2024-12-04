@@ -14,9 +14,13 @@
 #include <linux/prctl.h>
 #include <linux/init.h>
 #include <linux/highuid.h>
+//#include <linux/dcookies.h>
+#include <linux/fs.h>
+#include <linux/times.h>
 
 #include <asm/uaccess.h>
 #include <asm/io.h>
+#include <asm/unistd.h>
 
 #ifndef SET_UNALIGN_CTL
 # define SET_UNALIGN_CTL(a,b)	(-EINVAL)
@@ -60,6 +64,7 @@ int fs_overflowgid = DEFAULT_FS_OVERFLOWUID;
 int C_A_D = 1;
 int cad_pid = 1;
 
+extern int system_running;
 
 /*
  *	Notifier list for kernel code which wants to be called
@@ -191,35 +196,34 @@ asmlinkage long sys_ni_syscall(void)
 	return -ENOSYS;
 }
 
-static int proc_sel(struct task_struct *p, int which, int who)
+static int set_one_prio(struct task_struct *p, int niceval, int error)
 {
-	if(p->pid)
-	{
-		switch (which) {
-			case PRIO_PROCESS:
-				if (!who && p == current)
-					return 1;
-				return(p->pid == who);
-			case PRIO_PGRP:
-				if (!who)
-					who = current->pgrp;
-				return(p->pgrp == who);
-			case PRIO_USER:
-				if (!who)
-					who = current->uid;
-				return(p->uid == who);
-		}
+	if (p->uid != current->euid &&
+		p->uid != current->uid && !capable(CAP_SYS_NICE)) {
+		error = -EPERM;
+		goto out;
 	}
-	return 0;
+
+	if (error == -ESRCH)
+		error = 0;
+	if (niceval < task_nice(p) && !capable(CAP_SYS_NICE))
+		error = -EACCES;
+	else
+		set_user_nice(p, niceval);
+out:
+	return error;
 }
 
 asmlinkage long sys_setpriority(int which, int who, int niceval)
 {
-	struct task_struct *p;
-	int error;
+	struct task_struct *g, *p;
+	struct user_struct *user;
+	struct pid *pid;
+	struct list_head *l;
+	int error = -EINVAL;
 
 	if (which > 2 || which < 0)
-		return -EINVAL;
+		goto out;
 
 	/* normalize: avoid signed division (rounding problems) */
 	error = -ESRCH;
@@ -229,23 +233,38 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 		niceval = 19;
 
 	read_lock(&tasklist_lock);
-	for_each_task(p) {
-		if (!proc_sel(p, which, who))
-			continue;
-		if (p->uid != current->euid &&
-			p->uid != current->uid && !capable(CAP_SYS_NICE)) {
-			error = -EPERM;
-			continue;
-		}
-		if (error == -ESRCH)
-			error = 0;
-		if (niceval < p->nice && !capable(CAP_SYS_NICE))
-			error = -EACCES;
-		else
-			p->nice = niceval;
-	}
-	read_unlock(&tasklist_lock);
+	switch (which) {
+		case PRIO_PROCESS:
+			if (!who)
+				who = current->pid;
+			p = find_task_by_pid(who);
+			if (p)
+				error = set_one_prio(p, niceval, error);
+			break;
+		case PRIO_PGRP:
+			if (!who)
+				who = current->pgrp;
+			for_each_task_pid(who, PIDTYPE_PGID, p, l, pid)
+				error = set_one_prio(p, niceval, error);
+			break;
+		case PRIO_USER:
+			if (!who)
+				user = current->user;
+			else
+				user = find_user(who);
 
+			if (!user)
+				goto out_unlock;
+
+			do_each_thread(g, p)
+				if (p->uid == who)
+					error = set_one_prio(p, niceval, error);
+			while_each_thread(g, p);
+			break;
+	}
+out_unlock:
+	read_unlock(&tasklist_lock);
+out:
 	return error;
 }
 
@@ -257,21 +276,55 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
  */
 asmlinkage long sys_getpriority(int which, int who)
 {
-	struct task_struct *p;
-	long retval = -ESRCH;
+	struct task_struct *g, *p;
+	struct list_head *l;
+	struct pid *pid;
+	struct user_struct *user;
+	long niceval, retval = -ESRCH;
 
 	if (which > 2 || which < 0)
 		return -EINVAL;
 
 	read_lock(&tasklist_lock);
-	for_each_task (p) {
-		long niceval;
-		if (!proc_sel(p, which, who))
-			continue;
-		niceval = 20 - p->nice;
-		if (niceval > retval)
-			retval = niceval;
+	switch (which) {
+		case PRIO_PROCESS:
+			if (!who)
+				who = current->pid;
+			p = find_task_by_pid(who);
+			if (p) {
+				niceval = 20 - task_nice(p);
+				if (niceval > retval)
+					retval = niceval;
+			}
+			break;
+		case PRIO_PGRP:
+			if (!who)
+				who = current->pgrp;
+			for_each_task_pid(who, PIDTYPE_PGID, p, l, pid) {
+				niceval = 20 - task_nice(p);
+				if (niceval > retval)
+					retval = niceval;
+			}
+			break;
+		case PRIO_USER:
+			if (!who)
+				user = current->user;
+			else
+				user = find_user(who);
+
+			if (!user)
+				goto out_unlock;
+
+			do_each_thread(g, p)
+				if (p->uid == who) {
+					niceval = 20 - task_nice(p);
+					if (niceval > retval)
+						retval = niceval;
+				}
+			while_each_thread(g, p);
+			break;
 	}
+out_unlock:
 	read_unlock(&tasklist_lock);
 
 	return retval;
@@ -841,41 +894,54 @@ asmlinkage long sys_setpgid(pid_t pid, pid_t pgid)
 	/* From this point forward we keep holding onto the tasklist lock
 	 * so that our parent does not change from under us. -DaveM
 	 */
-	read_lock(&tasklist_lock);
+	write_lock_irq(&tasklist_lock);
 
 	err = -ESRCH;
 	p = find_task_by_pid(pid);
 	if (!p)
 		goto out;
 
-	if (p->p_pptr == current || p->p_opptr == current) {
+	err = -EINVAL;
+	if (!thread_group_leader(p))
+		goto out;
+
+	if (p->parent == current || p->real_parent == current) {
 		err = -EPERM;
 		if (p->session != current->session)
 			goto out;
 		err = -EACCES;
 		if (p->did_exec)
 			goto out;
-	} else if (p != current)
-		goto out;
+	} else {
+		err = -ESRCH;
+		if (p != current)
+			goto out;
+	}
+
 	err = -EPERM;
 	if (p->leader)
 		goto out;
 	if (pgid != pid) {
-		struct task_struct * tmp;
-		for_each_task (tmp) {
-			if (tmp->pgrp == pgid &&
-			    tmp->session == current->session)
+		struct task_struct *p;
+		struct pid *pid;
+		struct list_head *l;
+
+		for_each_task_pid(pgid, PIDTYPE_PGID, p, l, pid)
+			if (p->session == current->session)
 				goto ok_pgid;
-		}
 		goto out;
 	}
 
 ok_pgid:
-	p->pgrp = pgid;
+	if (p->pgrp != pgid) {
+		detach_pid(p, PIDTYPE_PGID);
+		p->pgrp = pgid;
+		attach_pid(p, PIDTYPE_PGID, pgid);
+	}
 	err = 0;
 out:
 	/* All paths lead to here, thus we are safe. -DaveM */
-	read_unlock(&tasklist_lock);
+	write_unlock_irq(&tasklist_lock);
 	return err;
 }
 
@@ -916,7 +982,7 @@ asmlinkage long sys_getsid(pid_t pid)
 		p = find_task_by_pid(pid);
 
 		retval = -ESRCH;
-		if(p)
+		if (p)
 			retval = p->session;
 		read_unlock(&tasklist_lock);
 		return retval;
@@ -925,22 +991,25 @@ asmlinkage long sys_getsid(pid_t pid)
 
 asmlinkage long sys_setsid(void)
 {
-	struct task_struct * p;
+	struct pid *pid;
 	int err = -EPERM;
 
-	read_lock(&tasklist_lock);
-	for_each_task(p) {
-		if (p->pgrp == current->pid)
-			goto out;
-	}
+	if (!thread_group_leader(current))
+		return -EINVAL;
+
+	write_lock_irq(&tasklist_lock);
+
+	pid = find_pid(PIDTYPE_PGID, current->pid);
+	if (pid)
+		goto out;
 
 	current->leader = 1;
-	current->session = current->pgrp = current->pid;
+	__set_special_pids(current->pid, current->pid);
 	current->tty = NULL;
 	current->tty_old_pgrp = 0;
 	err = current->pgrp;
 out:
-	read_unlock(&tasklist_lock);
+	write_unlock_irq(&tasklist_lock);
 	return err;
 }
 
@@ -975,12 +1044,15 @@ asmlinkage long sys_getgroups(int gidsetsize, gid_t *grouplist)
  
 asmlinkage long sys_setgroups(int gidsetsize, gid_t *grouplist)
 {
+	gid_t groups[NGROUPS];
+
 	if (!capable(CAP_SETGID))
 		return -EPERM;
 	if ((unsigned) gidsetsize > NGROUPS)
 		return -EINVAL;
-	if(copy_from_user(current->groups, grouplist, gidsetsize * sizeof(gid_t)))
+	if(copy_from_user(groups, grouplist, gidsetsize * sizeof(gid_t)))
 		return -EFAULT;
+	memcpy(current->groups, groups, gidsetsize * sizeof(gid_t));
 	current->ngroups = gidsetsize;
 	return 0;
 }
@@ -1134,8 +1206,8 @@ asmlinkage long sys_setrlimit(unsigned int resource, struct rlimit *rlim)
 		return -EINVAL;
 	if(copy_from_user(&new_rlim, rlim, sizeof(*rlim)))
 		return -EFAULT;
-       if (new_rlim.rlim_cur > new_rlim.rlim_max)
-               return -EINVAL;
+	if (new_rlim.rlim_cur > new_rlim.rlim_max)
+		return -EINVAL;
 	old_rlim = current->rlim + resource;
 	if (((new_rlim.rlim_cur > old_rlim->rlim_max) ||
 	     (new_rlim.rlim_max > old_rlim->rlim_max)) &&
@@ -1145,6 +1217,7 @@ asmlinkage long sys_setrlimit(unsigned int resource, struct rlimit *rlim)
 		if (new_rlim.rlim_cur > NR_OPEN || new_rlim.rlim_max > NR_OPEN)
 			return -EPERM;
 	}
+
 	*old_rlim = new_rlim;
 	return 0;
 }

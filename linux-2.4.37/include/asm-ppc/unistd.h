@@ -225,7 +225,6 @@
 #define __NR_removexattr	218
 #define __NR_lremovexattr	219
 #define __NR_fremovexattr	220
-#if 0
 #define __NR_futex		221
 #define __NR_sched_setaffinity	222
 #define __NR_sched_getaffinity	223
@@ -254,7 +253,6 @@
 #define __NR_clock_gettime	246
 #define __NR_clock_getres	247
 #define __NR_clock_nanosleep	248
-#endif
 #define __NR_swapcontext	249
 
 #define __NR(n)	#n

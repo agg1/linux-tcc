@@ -189,7 +189,7 @@ static struct task_struct *find_target(int request, int pid, int *err)
 		return child; 
 
  out:
-		free_task_struct(child);
+		put_task_struct(child);
 	} 
 	return NULL; 
 	
@@ -349,7 +349,7 @@ asmlinkage long sys32_ptrace(long request, u32 pid, u32 addr, u32 data)
 		break;
 	}
 
-	free_task_struct(child);
+	put_task_struct(child);
 	return ret;
 }
 

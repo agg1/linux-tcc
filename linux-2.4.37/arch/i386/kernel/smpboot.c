@@ -296,14 +296,14 @@ static void __init synchronize_tsc_bp (void)
 			if (tsc_values[i] < avg)
 				realdelta = -realdelta;
 
-			printk("BIOS BUG: CPU#%d improperly initialized, has %ld usecs TSC skew! FIXED.\n",
-				i, realdelta);
+			printk("BIOS BUG: CPU#%d improperly initialized, has %ld usecs TSC skew! FIXED.\n", i, realdelta);
 		}
 
 		sum += delta;
 	}
 	if (!buggy)
 		printk("passed.\n");
+		;
 }
 
 static void __init synchronize_tsc_ap (void)
@@ -353,7 +353,7 @@ void __init smp_callin(void)
 	 * (This works even if the APIC is not enabled.)
 	 */
 	phys_id = GET_APIC_ID(apic_read(APIC_ID));
-	cpuid = current->processor;
+	cpuid = smp_processor_id();
 	if (test_and_set_bit(cpuid, &cpu_online_map)) {
 		printk("huh, phys CPU#%d, CPU#%d already present??\n",
 					phys_id, cpuid);
@@ -423,6 +423,7 @@ void __init smp_callin(void)
 	 */
  	smp_store_cpu_info(cpuid);
 
+	disable_APIC_timer();
 	/*
 	 * Allow the master to continue.
 	 */
@@ -453,6 +454,7 @@ int __init start_secondary(void *unused)
 	smp_callin();
 	while (!atomic_read(&smp_commenced))
 		rep_nop();
+	enable_APIC_timer();
 	/*
 	 * low-memory mappings have been cleared, flush them from
 	 * the local TLBs too.
@@ -487,14 +489,14 @@ extern struct {
 	unsigned short ss;
 } stack_start;
 
-static int __init fork_by_hand(void)
+static struct task_struct * __init fork_by_hand(void)
 {
 	struct pt_regs regs;
 	/*
 	 * don't care about the eip and regs settings since
 	 * we'll never reschedule the forked task.
 	 */
-	return do_fork(CLONE_VM|CLONE_PID, 0, &regs, 0);
+	return do_fork(CLONE_VM|CLONE_IDLETASK, 0, &regs, 0, NULL, NULL);
 }
 
 /* which physical APIC ID maps to which logical CPU number */
@@ -780,27 +782,19 @@ static void __init do_boot_cpu (int apicid)
 	 * We can't use kernel_thread since we must avoid to
 	 * reschedule the child.
 	 */
-	if (fork_by_hand() < 0)
+	idle = fork_by_hand();
+	if (IS_ERR(idle))	
 		panic("failed fork for CPU %d", cpu);
 
-	/*
-	 * We remove it from the pidhash and the runqueue
-	 * once we got the process:
-	 */
-	idle = init_task.prev_task;
-	if (!idle)
-		panic("No idle process for CPU %d", cpu);
+//	wake_up_forked_process(idle);
 
-	idle->processor = cpu;
-	idle->cpus_runnable = 1 << cpu; /* we schedule the first task manually */
+	init_idle(idle, cpu);
 
 	map_cpu_to_boot_apicid(cpu, apicid);
 
 	idle->thread.eip = (unsigned long) start_secondary;
 
-	del_from_runqueue(idle);
 	unhash_process(idle);
-	init_tasks[cpu] = idle;
 
 	/* start_eip had better be page-aligned! */
 	start_eip = setup_trampoline();
@@ -913,6 +907,7 @@ static void __init do_boot_cpu (int apicid)
 }
 
 cycles_t cacheflush_time;
+unsigned long cache_decay_ticks;
 
 static void smp_tune_scheduling (void)
 {
@@ -946,9 +941,13 @@ static void smp_tune_scheduling (void)
 		cacheflush_time = (cpu_khz>>10) * (cachesize<<10) / bandwidth;
 	}
 
+	cache_decay_ticks = (long)cacheflush_time/cpu_khz * HZ / 1000;
+
 	printk("per-CPU timeslice cutoff: %ld.%02ld usecs.\n",
 		(long)cacheflush_time/(cpu_khz/1000),
 		((long)cacheflush_time*100/(cpu_khz/1000)) % 100);
+	printk("task migration cache decay timeout: %ld msecs.\n",
+		(cache_decay_ticks + 1) * 1000 / HZ);
 }
 
 /*
@@ -1014,8 +1013,7 @@ void __init smp_boot_cpus(void)
 	map_cpu_to_boot_apicid(0, boot_cpu_apicid);
 
 	global_irq_holder = 0;
-	current->processor = 0;
-	init_idle();
+	current->cpu = 0;
 	smp_tune_scheduling();
 
 	/*

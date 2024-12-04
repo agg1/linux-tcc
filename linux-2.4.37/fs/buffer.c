@@ -3034,16 +3034,15 @@ int bdflush(void *startup)
 	 *	display semi-sane things. Not real crucial though...  
 	 */
 
-	tsk->session = 1;
-	tsk->pgrp = 1;
+	set_special_pids(1, 1);
 	strcpy(tsk->comm, "bdflush");
 
 	/* avoid getting signals */
-	spin_lock_irq(&tsk->sigmask_lock);
+	spin_lock_irq(&tsk->sighand->siglock);
 	flush_signals(tsk);
 	sigfillset(&tsk->blocked);
-	recalc_sigpending(tsk);
-	spin_unlock_irq(&tsk->sigmask_lock);
+	recalc_sigpending_tsk(tsk);
+	spin_unlock_irq(&tsk->sighand->siglock);
 
 	complete((struct completion *)startup);
 
@@ -3084,16 +3083,15 @@ int kupdate(void *startup)
 	struct task_struct * tsk = current;
 	int interval;
 
-	tsk->session = 1;
-	tsk->pgrp = 1;
+	set_special_pids(1, 1);
 	strcpy(tsk->comm, "kupdated");
 
 	/* sigstop and sigcont will stop and wakeup kupdate */
-	spin_lock_irq(&tsk->sigmask_lock);
+	spin_lock_irq(&tsk->sighand->siglock);
 	sigfillset(&tsk->blocked);
 	siginitsetinv(&current->blocked, sigmask(SIGCONT) | sigmask(SIGSTOP));
-	recalc_sigpending(tsk);
-	spin_unlock_irq(&tsk->sigmask_lock);
+	recalc_sigpending_tsk(tsk);
+	spin_unlock_irq(&tsk->sighand->siglock);
 
 	complete((struct completion *)startup);
 
@@ -3117,11 +3115,12 @@ int kupdate(void *startup)
 			int sig, stopped = 0;
 			struct siginfo info;
 
-			spin_lock_irq(&tsk->sigmask_lock);
+			spin_lock_irq(&tsk->sighand->siglock);
 			sig = dequeue_signal(&current->blocked, &info);
 			if (sig == SIGSTOP)
 				stopped = 1;
-			spin_unlock_irq(&tsk->sigmask_lock);
+			recalc_sigpending_tsk(tsk);
+			spin_unlock_irq(&tsk->sighand->siglock);
 			if (stopped) {
 				tsk->state = TASK_STOPPED;
 				schedule(); /* wait for SIGCONT */
@@ -3141,9 +3140,9 @@ static int __init bdflush_init(void)
 {
 	static struct completion startup __initdata = COMPLETION_INITIALIZER(startup);
 
-	kernel_thread(bdflush, &startup, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
+	kernel_thread(bdflush, &startup, CLONE_KERNEL);
 	wait_for_completion(&startup);
-	kernel_thread(kupdate, &startup, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
+	kernel_thread(kupdate, &startup, CLONE_KERNEL);
 	wait_for_completion(&startup);
 	return 0;
 }

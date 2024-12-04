@@ -990,10 +990,10 @@ rpciod(void *ptr)
 
 	daemonize();
 
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	siginitsetinv(&current->blocked, sigmask(SIGKILL));
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	strcpy(current->comm, "rpciod");
 
@@ -1001,7 +1001,10 @@ rpciod(void *ptr)
 	while (rpciod_users) {
 		if (signalled()) {
 			rpciod_killall();
+			spin_lock_irq(&current->sighand->siglock);
 			flush_signals(current);
+			recalc_sigpending();
+			spin_unlock_irq(&current->sighand->siglock);
 		}
 		__rpc_schedule();
 
@@ -1047,9 +1050,9 @@ rpciod_killall(void)
 		}
 	}
 
-	spin_lock_irqsave(&current->sigmask_lock, flags);
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 }
 
 /*
@@ -1125,9 +1128,9 @@ rpciod_down(void)
 		}
 		interruptible_sleep_on(&rpciod_killer);
 	}
-	spin_lock_irqsave(&current->sigmask_lock, flags);
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 out:
 	up(&rpciod_sema);
 	MOD_DEC_USE_COUNT;

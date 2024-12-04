@@ -113,6 +113,8 @@ struct pt_regs * fastcall save_v86_state(struct kernel_vm86_regs * regs)
 	tss = init_tss + smp_processor_id();
 	tss->esp0 = current->thread.esp0 = current->thread.saved_esp0;
 	current->thread.saved_esp0 = 0;
+	loadsegment(fs, current->thread.saved_fs);
+	loadsegment(gs, current->thread.saved_gs);
 	ret = KVM86->regs32;
 	return ret;
 }
@@ -277,6 +279,11 @@ static void do_sys_vm86(struct kernel_vm86_struct *info, struct task_struct *tsk
  */
 	info->regs32->eax = 0;
 	tsk->thread.saved_esp0 = tsk->thread.esp0;
+//	asm volatile("movl %%fs,%0":"=m" (tsk->thread.saved_fs));
+//	asm volatile("movl %%fs,%0":"=m" (tsk->thread.saved_fs));
+	asm volatile("movw %%gs,%0":"=m" (tsk->thread.saved_gs));
+	asm volatile("movw %%gs,%0":"=m" (tsk->thread.saved_gs));
+
 	tss = init_tss + smp_processor_id();
 	tss->esp0 = tsk->thread.esp0 = (unsigned long) &info->VM86_TSS_ESP0;
 
@@ -501,10 +508,10 @@ int handle_vm86_trap(struct kernel_vm86_regs * regs, long error_code, int trapno
 		return 1; /* we let this handle by the calling routine */
 	if (current->ptrace & PT_PTRACED) {
 		unsigned long flags;
-		spin_lock_irqsave(&current->sigmask_lock, flags);
+		spin_lock_irqsave(&current->sighand->siglock, flags);
 		sigdelset(&current->blocked, SIGTRAP);
-		recalc_sigpending(current);
-		spin_unlock_irqrestore(&current->sigmask_lock, flags);
+		recalc_sigpending();
+		spin_unlock_irqrestore(&current->sighand->siglock, flags);
 	}
 	send_sig(SIGTRAP, current, 1);
 	current->thread.trap_no = trapno;
@@ -702,16 +709,16 @@ static inline void free_vm86_irq(int irqnumber)
 
 static inline int task_valid(struct task_struct *tsk)
 {
-	struct task_struct *p;
+	struct task_struct *g, *p;
 	int ret = 0;
 
 	read_lock(&tasklist_lock);
-	for_each_task(p) {
-		if ((p == tsk) && (p->sig)) {
+	do_each_thread(g, p) 
+		if ((p == tsk) && (p->signal)) {
 			ret = 1;
 			break;
 		}
-	}
+	while_each_thread(g, p);
 	read_unlock(&tasklist_lock);
 	return ret;
 }

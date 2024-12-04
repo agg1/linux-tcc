@@ -641,7 +641,7 @@ static int semctl_main(int semid, int semnum, int cmd, int version, union semun 
 		for (un = sma->undo; un; un = un->id_next)
 			un->semadj[semnum] = 0;
 		curr->semval = val;
-		curr->sempid = current->pid;
+		curr->sempid = current->tgid;
 		sma->sem_ctime = CURRENT_TIME;
 		/* maybe some queued-up processes were waiting for this */
 		update_queue(sma);
@@ -922,7 +922,7 @@ asmlinkage long sys_semtimedop (int semid, struct sembuf *tsops,
 	} else
 		un = NULL;
 
-	error = try_atomic_semop (sma, sops, nsops, un, current->pid, 0);
+	error = try_atomic_semop (sma, sops, nsops, un, current->tgid, 0);
 	if (error <= 0)
 		goto update;
 
@@ -934,7 +934,7 @@ asmlinkage long sys_semtimedop (int semid, struct sembuf *tsops,
 	queue.sops = sops;
 	queue.nsops = nsops;
 	queue.undo = un;
-	queue.pid = current->pid;
+	queue.pid = current->tgid;
 	queue.alter = decrease;
 	queue.id = semid;
 	if (alter)
@@ -973,7 +973,7 @@ asmlinkage long sys_semtimedop (int semid, struct sembuf *tsops,
 		if (queue.status == 1)
 		{
 			error = try_atomic_semop (sma, sops, nsops, un,
-						  current->pid,0);
+						  current->tgid,0);
 			if (error <= 0) 
 				break;
 		} else {
@@ -1066,7 +1066,7 @@ found:
 			sem->semval += u->semadj[i];
 			if (sem->semval < 0)
 				sem->semval = 0; /* shouldn't happen */
-			sem->sempid = current->pid;
+			sem->sempid = current->tgid;
 		}
 		sma->sem_otime = CURRENT_TIME;
 		/* maybe some queued-up processes were waiting for this */

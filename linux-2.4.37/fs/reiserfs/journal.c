@@ -1891,10 +1891,10 @@ static int reiserfs_journal_commit_thread(void *nullp) {
 
   daemonize() ;
 
-  spin_lock_irq(&current->sigmask_lock);
+  spin_lock_irq(&current->sighand->siglock);
   sigfillset(&current->blocked);
-  recalc_sigpending(current);
-  spin_unlock_irq(&current->sigmask_lock);
+  recalc_sigpending();
+  spin_unlock_irq(&current->sighand->siglock);
 
   sprintf(current->comm, "kreiserfsd") ;
   lock_kernel() ;

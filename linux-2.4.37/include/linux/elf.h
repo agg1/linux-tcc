@@ -1,6 +1,7 @@
 #ifndef _LINUX_ELF_H
 #define _LINUX_ELF_H
 
+#include <linux/sched.h>
 #include <linux/types.h>
 #include <asm/elf.h>
 
@@ -29,8 +30,11 @@ typedef __s64	Elf64_Sxword;
 #define PT_NOTE    4
 #define PT_SHLIB   5
 #define PT_PHDR    6
+#define PT_LOOS    0x60000000
+#define PT_HIOS    0x6fffffff
 #define PT_LOPROC  0x70000000
 #define PT_HIPROC  0x7fffffff
+#define PT_GNU_EH_FRAME         0x6474e550
 #define PT_MIPS_REGINFO		0x70000000
 #define PT_MIPS_OPTIONS		0x70000001
 
@@ -580,7 +584,8 @@ typedef struct elf64_shdr {
 #define NT_PRFPREG	2
 #define NT_PRPSINFO	3
 #define NT_TASKSTRUCT	4
-#define NT_PRFPXREG	20
+#define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
+
 
 /* Note header in a PT_NOTE section */
 typedef struct elf32_note {
@@ -611,6 +616,5 @@ extern Elf64_Dyn _DYNAMIC [];
 #define elf_note	elf64_note
 
 #endif
-
 
 #endif /* _LINUX_ELF_H */

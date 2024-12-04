@@ -35,6 +35,9 @@
 
 #define _BLOCKABLE (~(sigmask(SIGKILL) | sigmask(SIGSTOP)))
 
+int print_fatal_signals;
+
+
 asmlinkage int do_signal(struct pt_regs *regs, sigset_t *oldset);
 
 void ia32_setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
@@ -94,11 +97,11 @@ sys_rt_sigsuspend(sigset_t *unewset, size_t sigsetsize, struct pt_regs regs)
 		return -EFAULT;
 	sigdelsetmask(&newset, ~_BLOCKABLE);
 
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sig->siglock);
 	saveset = current->blocked;
 	current->blocked = newset;
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sig->siglock);
 #if DEBUG_SIG
 	printk("rt_sigsuspend savset(%lx) newset(%lx) regs(%p) rip(%lx)\n",
 		saveset, newset, &regs, regs.rip);
@@ -194,10 +197,10 @@ asmlinkage long sys_rt_sigreturn(struct pt_regs regs)
 		goto badframe;
 
 	sigdelsetmask(&set, ~_BLOCKABLE);
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sig->siglock);
 	current->blocked = set;
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sig->siglock);
 	
 	if (restore_sigcontext(&regs, &frame->uc.uc_mcontext, &eax))
 		goto badframe;
@@ -430,11 +433,11 @@ handle_signal(unsigned long sig, struct k_sigaction *ka,
 		ka->sa.sa_handler = SIG_DFL;
 
 	if (!(ka->sa.sa_flags & SA_NODEFER)) {
-		spin_lock_irq(&current->sigmask_lock);
+		spin_lock_irq(&current->sig->siglock);
 		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
 		sigaddset(&current->blocked,sig);
-		recalc_sigpending(current);
-		spin_unlock_irq(&current->sigmask_lock);
+		recalc_sigpending();
+		spin_unlock_irq(&current->sig->siglock);
 	}
 }
 
@@ -464,9 +467,9 @@ int do_signal(struct pt_regs *regs, sigset_t *oldset)
 	for (;;) {
 		unsigned long signr;
 
-		spin_lock_irq(&current->sigmask_lock);
+		spin_lock_irq(&current->sig->siglock);
 		signr = dequeue_signal(&current->blocked, &info);
-		spin_unlock_irq(&current->sigmask_lock);
+		spin_unlock_irq(&current->sig->siglock);
 
 		if (!signr) { 
 			break;
@@ -493,8 +496,8 @@ int do_signal(struct pt_regs *regs, sigset_t *oldset)
 				info.si_signo = signr;
 				info.si_errno = 0;
 				info.si_code = SI_USER;
-				info.si_pid = current->p_pptr->pid;
-				info.si_uid = current->p_pptr->uid;
+				info.si_pid = current->parent->pid;
+				info.si_uid = current->parent->uid;
 			}
 
 			/* If the (new) signal is now blocked, requeue it.  */
@@ -534,7 +537,7 @@ int do_signal(struct pt_regs *regs, sigset_t *oldset)
 				struct signal_struct *sig;
 				current->state = TASK_STOPPED;
 				current->exit_code = signr;
-				sig = current->p_pptr->sig;
+				sig = current->parent->sig;
 				if (sig && !(sig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDSTOP))
 					notify_parent(current, SIGCHLD);
 				schedule();

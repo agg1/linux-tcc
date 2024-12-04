@@ -73,7 +73,7 @@ EXPORT_SYMBOL(pm_idle);
 EXPORT_SYMBOL(pm_power_off);
 EXPORT_SYMBOL(get_cmos_time);
 EXPORT_SYMBOL(apm_info);
-EXPORT_SYMBOL(gdt);
+EXPORT_SYMBOL_GPL(cpu_gdt_table);
 EXPORT_SYMBOL(empty_zero_page);
 
 #ifdef CONFIG_DEBUG_IOVIRT

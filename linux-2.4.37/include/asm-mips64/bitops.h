@@ -27,6 +27,7 @@
 
 #include <asm/system.h>
 #include <asm/sgidefs.h>
+#include <asm/mipsregs.h>
 
 /*
  * set_bit - Atomically set a bit in memory
@@ -38,7 +39,8 @@
  * Note that @nr may be almost arbitrarily large; this function is not
  * restricted to acting on a single-word quantity.
  */
-static inline void set_bit(unsigned long nr, volatile void *addr)
+extern __inline__ void
+set_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long *m = ((unsigned long *) addr) + (nr >> 6);
 	unsigned long temp;
@@ -62,7 +64,7 @@ static inline void set_bit(unsigned long nr, volatile void *addr)
  * If it's called on the same region of memory simultaneously, the effect
  * may be that only one operation succeeds.
  */
-static inline void __set_bit(int nr, volatile void * addr)
+extern __inline__ void __set_bit(int nr, volatile void * addr)
 {
 	unsigned long * m = ((unsigned long *) addr) + (nr >> 6);
 
@@ -79,7 +81,8 @@ static inline void __set_bit(int nr, volatile void * addr)
  * you should call smp_mb__before_clear_bit() and/or smp_mb__after_clear_bit()
  * in order to ensure changes are visible on other processors.
  */
-static inline void clear_bit(unsigned long nr, volatile void *addr)
+extern __inline__ void
+clear_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long *m = ((unsigned long *) addr) + (nr >> 6);
 	unsigned long temp;
@@ -105,7 +108,8 @@ static inline void clear_bit(unsigned long nr, volatile void *addr)
  * Note that @nr may be almost arbitrarily large; this function is not
  * restricted to acting on a single-word quantity.
  */
-static inline void change_bit(unsigned long nr, volatile void *addr)
+extern __inline__ void
+change_bit(unsigned long nr, volatile void *addr)
 {
 	unsigned long *m = ((unsigned long *) addr) + (nr >> 6);
 	unsigned long temp;
@@ -128,7 +132,7 @@ static inline void change_bit(unsigned long nr, volatile void *addr)
  * If it's called on the same region of memory simultaneously, the effect
  * may be that only one operation succeeds.
  */
-static inline void __change_bit(int nr, volatile void * addr)
+extern __inline__ void __change_bit(int nr, volatile void * addr)
 {
 	unsigned long * m = ((unsigned long *) addr) + (nr >> 6);
 
@@ -176,7 +180,8 @@ static inline unsigned long test_and_set_bit(unsigned long nr,
  * If two examples of this operation race, one can appear to succeed
  * but actually fail.  You must protect multiple accesses with a lock.
  */
-static inline int __test_and_set_bit(int nr, volatile void *addr)
+extern __inline__ int
+__test_and_set_bit(int nr, volatile void * addr)
 {
 	unsigned long mask, retval;
 	long *a = (unsigned long *) addr;
@@ -231,7 +236,8 @@ static inline unsigned long test_and_clear_bit(unsigned long nr,
  * If two examples of this operation race, one can appear to succeed
  * but actually fail.  You must protect multiple accesses with a lock.
  */
-static inline int __test_and_clear_bit(int nr, volatile void * addr)
+extern __inline__ int
+__test_and_clear_bit(int nr, volatile void * addr)
 {
 	unsigned long mask, retval;
 	unsigned long *a = (unsigned long *) addr;
@@ -285,7 +291,8 @@ static inline unsigned long test_and_change_bit(unsigned long nr,
  * If two examples of this operation race, one can appear to succeed
  * but actually fail.  You must protect multiple accesses with a lock.
  */
-static inline int __test_and_change_bit(int nr, volatile void *addr)
+extern __inline__ int
+__test_and_change_bit(int nr, volatile void * addr)
 {
 	unsigned long mask, retval;
 	unsigned long *a = (unsigned long *) addr;

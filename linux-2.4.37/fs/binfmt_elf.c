@@ -30,6 +30,7 @@
 #include <linux/elfcore.h>
 #include <linux/init.h>
 #include <linux/highuid.h>
+#include <linux/smp.h>
 #include <linux/smp_lock.h>
 #include <linux/compiler.h>
 #include <linux/highmem.h>
@@ -145,7 +146,6 @@ create_elf_tables(char *p, int argc, int envc,
 	} else
 		u_platform = p;
 
-#if defined(__i386__) && defined(CONFIG_SMP)
 	/*
 	 * In some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
 	 * by the processes running on the same package. One thing we can do
@@ -157,14 +157,12 @@ create_elf_tables(char *p, int argc, int envc,
 	 * removed for 2.5
 	 */
 	 
-	if(smp_num_siblings > 1)
-		u_platform = u_platform - ((current->pid % 64) << 7);
-#endif	
+	sp = (void *) (u_platform - (((current->pid+jiffies) % 64) << 7));
 
 	/*
 	 * Force 16 byte _final_ alignment here for generality.
 	 */
-	sp = (elf_addr_t *)(~15UL & (unsigned long)(u_platform));
+	sp = (elf_addr_t *)(~15UL & (unsigned long)(sp));
 	csp = sp;
 	csp -= (1+DLINFO_ITEMS)*2 + (k_platform ? 2 : 0);
 #ifdef DLINFO_ARCH_ITEMS
@@ -690,12 +688,8 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	current->mm->rss = 0;
-	retval = setup_arg_pages(bprm);
-	if (retval < 0) {
-		send_sig(SIGKILL, current, 0);
-		return retval;
-	}
-	
+	current->mm->free_area_cache = TASK_UNMAPPED_BASE;
+	setup_arg_pages(bprm); /* XXX: check error */
 	current->mm->start_stack = bprm->p;
 
 	/* Now we do a little grungy work by mmaping the ELF image into
@@ -908,8 +902,12 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 #endif
 
 	start_thread(regs, elf_entry, bprm->p);
-	if (current->ptrace & PT_PTRACED)
-		send_sig(SIGTRAP, current, 0);
+	if (unlikely(current->ptrace & PT_PTRACED)) {
+		if (current->ptrace & PT_TRACE_EXEC)
+			ptrace_notify((PTRACE_EVENT_EXEC << 8) | SIGTRAP);
+		else
+			send_sig(SIGTRAP, current, 0);
+	}
 	retval = 0;
 out:
 	return retval;
@@ -1089,7 +1087,7 @@ static int notesize(struct memelfnote *en)
 	int sz;
 
 	sz = sizeof(struct elf_note);
-	sz += roundup(strlen(en->name), 4);
+	sz += roundup(strlen(en->name) + 1, 4);
 	sz += roundup(en->datasz, 4);
 
 	return sz;
@@ -1098,7 +1096,7 @@ static int notesize(struct memelfnote *en)
 /* #define DEBUG */
 
 #ifdef DEBUG
-static void dump_regs(const char *str, elf_greg_t *r)
+static void dump_regs(const char *str, elf_gregset_t *r)
 {
 	int i;
 	static const char *regs[] = { "ebx", "ecx", "edx", "esi", "edi", "ebp",
@@ -1124,7 +1122,7 @@ static int writenote(struct memelfnote *men, struct file *file)
 {
 	struct elf_note en;
 
-	en.n_namesz = strlen(men->name);
+	en.n_namesz = strlen(men->name)+1;
 	en.n_descsz = men->datasz;
 	en.n_type = men->type;
 
@@ -1146,6 +1144,155 @@ static int writenote(struct memelfnote *men, struct file *file)
 #define DUMP_SEEK(off)	\
 	if (!dump_seek(file, (off))) \
 		goto end_coredump;
+
+static inline void fill_elf_header(struct elfhdr *elf, int segs)
+{
+	memcpy(elf->e_ident, ELFMAG, SELFMAG);
+	elf->e_ident[EI_CLASS] = ELF_CLASS;
+	elf->e_ident[EI_DATA] = ELF_DATA;
+	elf->e_ident[EI_VERSION] = EV_CURRENT;
+	memset(elf->e_ident+EI_PAD, 0, EI_NIDENT-EI_PAD);
+
+	elf->e_type = ET_CORE;
+	elf->e_machine = ELF_ARCH;
+	elf->e_version = EV_CURRENT;
+	elf->e_entry = 0;
+	elf->e_phoff = sizeof(struct elfhdr);
+	elf->e_shoff = 0;
+	elf->e_flags = 0;
+	elf->e_ehsize = sizeof(struct elfhdr);
+	elf->e_phentsize = sizeof(struct elf_phdr);
+	elf->e_phnum = segs;
+	elf->e_shentsize = 0;
+	elf->e_shnum = 0;
+	elf->e_shstrndx = 0;
+	return;
+}
+
+static inline void fill_elf_note_phdr(struct elf_phdr *phdr, int sz, off_t offset)
+{
+	phdr->p_type = PT_NOTE;
+	phdr->p_offset = offset;
+	phdr->p_vaddr = 0;
+	phdr->p_paddr = 0;
+	phdr->p_filesz = sz;
+	phdr->p_memsz = 0;
+	phdr->p_flags = 0;
+	phdr->p_align = 0;
+	return;
+}
+
+static inline void fill_note(struct memelfnote *note, const char *name, int type, 
+		unsigned int sz, void *data)
+{
+	note->name = name;
+	note->type = type;
+	note->datasz = sz;
+	note->data = data;
+	return;
+}
+
+/*
+ * fill up all the fields in prstatus from the given task struct, except registers
+ * which need to be filled up seperately.
+ */
+static inline void fill_prstatus(struct elf_prstatus *prstatus, struct task_struct *p, long signr) 
+{
+	prstatus->pr_info.si_signo = prstatus->pr_cursig = signr;
+	prstatus->pr_sigpend = p->pending.signal.sig[0];
+	prstatus->pr_sighold = p->blocked.sig[0];
+	prstatus->pr_pid = p->pid;
+	prstatus->pr_ppid = p->parent->pid;
+	prstatus->pr_pgrp = p->pgrp;
+	prstatus->pr_sid = p->session;
+	prstatus->pr_utime.tv_sec = CT_TO_SECS(p->times.tms_utime);
+	prstatus->pr_utime.tv_usec = CT_TO_USECS(p->times.tms_utime);
+	prstatus->pr_stime.tv_sec = CT_TO_SECS(p->times.tms_stime);
+	prstatus->pr_stime.tv_usec = CT_TO_USECS(p->times.tms_stime);
+	prstatus->pr_cutime.tv_sec = CT_TO_SECS(p->times.tms_cutime);
+	prstatus->pr_cutime.tv_usec = CT_TO_USECS(p->times.tms_cutime);
+	prstatus->pr_cstime.tv_sec = CT_TO_SECS(p->times.tms_cstime);
+	prstatus->pr_cstime.tv_usec = CT_TO_USECS(p->times.tms_cstime);
+}
+
+static inline void fill_psinfo(struct elf_prpsinfo *psinfo, struct task_struct *p)
+{
+	int i;
+
+	psinfo->pr_pid = p->pid;
+	psinfo->pr_ppid = p->parent->pid;
+	psinfo->pr_pgrp = p->pgrp;
+	psinfo->pr_sid = p->session;
+
+	i = p->state ? ffz(~p->state) + 1 : 0;
+	psinfo->pr_state = i;
+	psinfo->pr_sname = (i < 0 || i > 5) ? '.' : "RSDTZD"[i];
+	psinfo->pr_zomb = psinfo->pr_sname == 'Z';
+	psinfo->pr_nice = task_nice(p);
+	psinfo->pr_flag = p->flags;
+	psinfo->pr_uid = NEW_TO_OLD_UID(p->uid);
+	psinfo->pr_gid = NEW_TO_OLD_GID(p->gid);
+	strncpy(psinfo->pr_fname, p->comm, sizeof(psinfo->pr_fname));
+	return;
+}
+
+/* Here is the structure in which status of each thread is captured. */
+struct elf_thread_status
+{
+	struct list_head list;
+	struct elf_prstatus prstatus;	/* NT_PRSTATUS */
+	elf_fpregset_t fpu;		/* NT_PRFPREG */
+#ifdef ELF_CORE_COPY_XFPREGS
+	elf_fpxregset_t xfpu;		/* NT_PRXFPREG */
+#endif
+	struct memelfnote notes[3];
+	int num_notes;
+};
+
+/*
+ * In order to add the specific thread information for the elf file format,
+ * we need to keep a linked list of every threads pr_status and then
+ * create a single section for them in the final core file.
+ */
+static int elf_dump_thread_status(long signr, struct task_struct * p, struct list_head * thread_list)
+{
+
+	struct elf_thread_status *t;
+	int sz = 0;
+
+	t = kmalloc(sizeof(*t), GFP_ATOMIC);
+	if (!t)
+		return 0;
+
+	INIT_LIST_HEAD(&t->list);
+	t->num_notes = 0;
+
+	fill_prstatus(&t->prstatus, p, signr);
+	elf_core_copy_task_regs(p, &t->prstatus.pr_reg);	
+	
+	fill_note(&t->notes[0], "CORE", NT_PRSTATUS, sizeof(t->prstatus), &(t->prstatus));
+	t->num_notes++;
+	sz += notesize(&t->notes[0]);
+
+#ifndef __x86_64__
+	if ((t->prstatus.pr_fpvalid = elf_core_copy_task_fpregs(p, &t->fpu))) {
+		fill_note(&t->notes[1], "CORE", NT_PRFPREG, sizeof(t->fpu), &(t->fpu));
+		t->num_notes++;
+		sz += notesize(&t->notes[1]);
+	}
+#endif	
+
+#ifdef ELF_CORE_COPY_XFPREGS
+	if (elf_core_copy_task_xfpregs(p, &t->xfpu)) {
+		fill_note(&t->notes[2], "LINUX", NT_PRXFPREG, sizeof(t->xfpu), &(t->xfpu));
+		t->num_notes++;
+		sz += notesize(&t->notes[2]);
+	}
+#endif	
+	list_add(&t->list, thread_list);
+	return sz;
+}
+
 /*
  * Actual dumper
  *
@@ -1164,12 +1311,19 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 	struct elfhdr elf;
 	off_t offset = 0, dataoff;
 	unsigned long limit = current->rlim[RLIMIT_CORE].rlim_cur;
-	int numnote = 4;
-	struct memelfnote notes[4];
+	int numnote = 5;
+	struct memelfnote notes[5];
 	struct elf_prstatus prstatus;	/* NT_PRSTATUS */
-	elf_fpregset_t fpu;		/* NT_PRFPREG */
 	struct elf_prpsinfo psinfo;	/* NT_PRPSINFO */
-
+ 	struct task_struct *g, *p;
+ 	LIST_HEAD(thread_list);
+ 	struct list_head *t;
+	elf_fpregset_t fpu;
+#ifdef ELF_CORE_COPY_XFPREGS
+	elf_fpxregset_t xfpu;
+#endif
+	int thread_status_size = 0;
+	
 	/* first copy the parameters from user space */
 	memset(&psinfo, 0, sizeof(psinfo));
 	{
@@ -1204,108 +1358,102 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 		*(struct pt_regs *)&prstatus.pr_reg = *regs;
 #endif
 
-	/* now stop all vm operations */
-	down_write(&current->mm->mmap_sem);
-	segs = current->mm->map_count;
+	 /* capture the status of all other threads */
+	if (signr) {
+		read_lock(&tasklist_lock);
+		do_each_thread(g, p)
+			if (current->mm == p->mm && current != p) {
+				int sz = elf_dump_thread_status(signr, p, &thread_list);
+				if (!sz) {
+					read_unlock(&tasklist_lock);
+					goto cleanup;
+				} else
+					thread_status_size += sz;
+			}
+		while_each_thread(g, p);
+		read_unlock(&tasklist_lock);
+	}
+	
+	memset(&prstatus, 0, sizeof(prstatus));
+	fill_prstatus(&prstatus, current, signr);
+	elf_core_copy_regs(&prstatus.pr_reg, regs);
+	
+	/* We no longer stop all vm operations */
+  
+	/* This because those proceses that could possibly 
+	 * change map_count or the mmap / vma pages are now suspended.
+	 *
+	 * Only ptrace can touch these memory address, but it cannot change
+	 * the map_count or the pages.  So no possibility of crashing exists while dumping
+	 * the mm->vm_next areas to the core file.
+	 *
+	 * Grabbing mmap_sem in this function is risky WRT the use of suspend_threads.
+	 * Although no locks ups have been induced, if one of the suspended threads was 
+	 * in line for the current->mmap_sem and if gets it while on the Phantom runque,
+	 * then we would dead lock in this function if we continue to attempt to down_write
+	 * in this function.
+	 */
+  	segs = current->mm->map_count;
+#ifdef ELF_CORE_EXTRA_PHDRS
+	segs += ELF_CORE_EXTRA_PHDRS;
+#endif
 
 #ifdef DEBUG
 	printk("elf_core_dump: %d segs %lu limit\n", segs, limit);
 #endif
 
 	/* Set up header */
-	memcpy(elf.e_ident, ELFMAG, SELFMAG);
-	elf.e_ident[EI_CLASS] = ELF_CLASS;
-	elf.e_ident[EI_DATA] = ELF_DATA;
-	elf.e_ident[EI_VERSION] = EV_CURRENT;
-	memset(elf.e_ident+EI_PAD, 0, EI_NIDENT-EI_PAD);
-
-	elf.e_type = ET_CORE;
-	elf.e_machine = ELF_ARCH;
-	elf.e_version = EV_CURRENT;
-	elf.e_entry = 0;
-	elf.e_phoff = sizeof(elf);
-	elf.e_shoff = 0;
-	elf.e_flags = 0;
-	elf.e_ehsize = sizeof(elf);
-	elf.e_phentsize = sizeof(struct elf_phdr);
-	elf.e_phnum = segs+1;		/* Include notes */
-	elf.e_shentsize = 0;
-	elf.e_shnum = 0;
-	elf.e_shstrndx = 0;
-
-	fs = get_fs();
-	set_fs(KERNEL_DS);
+	fill_elf_header(&elf, segs+1); /* including notes section*/
 
 	has_dumped = 1;
 	current->flags |= PF_DUMPCORE;
-
-	DUMP_WRITE(&elf, sizeof(elf));
-	offset += sizeof(elf);				/* Elf header */
-	offset += (segs+1) * sizeof(struct elf_phdr);	/* Program headers */
 
 	/*
 	 * Set up the notes in similar form to SVR4 core dumps made
 	 * with info from their /proc.
 	 */
 
-	notes[0].name = "CORE";
-	notes[0].type = NT_PRSTATUS;
-	notes[0].datasz = sizeof(prstatus);
-	notes[0].data = &prstatus;
-	prstatus.pr_info.si_signo = prstatus.pr_cursig = signr;
-	prstatus.pr_sigpend = current->pending.signal.sig[0];
-	prstatus.pr_sighold = current->blocked.sig[0];
-	psinfo.pr_pid = prstatus.pr_pid = current->pid;
-	psinfo.pr_ppid = prstatus.pr_ppid = current->p_pptr->pid;
-	psinfo.pr_pgrp = prstatus.pr_pgrp = current->pgrp;
-	psinfo.pr_sid = prstatus.pr_sid = current->session;
-	prstatus.pr_utime.tv_sec = CT_TO_SECS(current->times.tms_utime);
-	prstatus.pr_utime.tv_usec = CT_TO_USECS(current->times.tms_utime);
-	prstatus.pr_stime.tv_sec = CT_TO_SECS(current->times.tms_stime);
-	prstatus.pr_stime.tv_usec = CT_TO_USECS(current->times.tms_stime);
-	prstatus.pr_cutime.tv_sec = CT_TO_SECS(current->times.tms_cutime);
-	prstatus.pr_cutime.tv_usec = CT_TO_USECS(current->times.tms_cutime);
-	prstatus.pr_cstime.tv_sec = CT_TO_SECS(current->times.tms_cstime);
-	prstatus.pr_cstime.tv_usec = CT_TO_USECS(current->times.tms_cstime);
-
 #ifdef DEBUG
 	dump_regs("Passed in regs", (elf_greg_t *)regs);
 	dump_regs("prstatus regs", (elf_greg_t *)&prstatus.pr_reg);
 #endif
 
-	notes[1].name = "CORE";
-	notes[1].type = NT_PRPSINFO;
-	notes[1].datasz = sizeof(psinfo);
-	notes[1].data = &psinfo;
-	i = current->state ? ffz(~current->state) + 1 : 0;
-	psinfo.pr_state = i;
-	psinfo.pr_sname = (i < 0 || i > 5) ? '.' : "RSDZTD"[i];
-	psinfo.pr_zomb = psinfo.pr_sname == 'Z';
-	psinfo.pr_nice = current->nice;
-	psinfo.pr_flag = current->flags;
-	psinfo.pr_uid = NEW_TO_OLD_UID(current->uid);
-	psinfo.pr_gid = NEW_TO_OLD_GID(current->gid);
-	strncpy(psinfo.pr_fname, current->comm, sizeof(psinfo.pr_fname));
-
-	notes[2].name = "CORE";
-	notes[2].type = NT_TASKSTRUCT;
-	notes[2].datasz = sizeof(*current);
-	notes[2].data = current;
-
-	/* Try to dump the FPU. */
-	prstatus.pr_fpvalid = dump_fpu (regs, &fpu);
-	if (!prstatus.pr_fpvalid)
-	{
-		numnote--;
-	}
-	else
-	{
-		notes[3].name = "CORE";
-		notes[3].type = NT_PRFPREG;
-		notes[3].datasz = sizeof(fpu);
-		notes[3].data = &fpu;
-	}
+	fill_note(&notes[0], "CORE", NT_PRSTATUS, sizeof(prstatus), &prstatus);
 	
+	/*
+	 * NT_PRPSINFO describes the process as a whole,
+	 * ie. the group leader:
+	 */
+	fill_psinfo(&psinfo, current->group_leader);
+	fill_note(&notes[1], "CORE", NT_PRPSINFO, sizeof(psinfo), &psinfo);
+	
+	fill_note(&notes[2], "CORE", NT_TASKSTRUCT, sizeof(*current), current);
+  
+#ifndef __x86_64__
+  	/* Try to dump the FPU. */
+	if ((prstatus.pr_fpvalid = elf_core_copy_task_fpregs(current, &fpu))) {
+		fill_note(&notes[3], "CORE", NT_PRFPREG, sizeof(fpu), &fpu);
+	} else {
+		--numnote;
+ 	}
+#endif 	
+#ifdef ELF_CORE_COPY_XFPREGS
+	if (elf_core_copy_task_xfpregs(current, &xfpu)) {
+		fill_note(&notes[4], "LINUX", NT_PRXFPREG, sizeof(xfpu), &xfpu);
+	} else {
+		--numnote;
+	}
+#else
+	numnote --;
+#endif	
+  
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+
+	DUMP_WRITE(&elf, sizeof(elf));
+	offset += sizeof(elf);				/* Elf header */
+	offset += (segs+1) * sizeof(struct elf_phdr);	/* Program headers */
+
 	/* Write notes phdr entry */
 	{
 		struct elf_phdr phdr;
@@ -1313,17 +1461,11 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 
 		for(i = 0; i < numnote; i++)
 			sz += notesize(&notes[i]);
+		
+		sz += thread_status_size;
 
-		phdr.p_type = PT_NOTE;
-		phdr.p_offset = offset;
-		phdr.p_vaddr = 0;
-		phdr.p_paddr = 0;
-		phdr.p_filesz = sz;
-		phdr.p_memsz = 0;
-		phdr.p_flags = 0;
-		phdr.p_align = 0;
-
-		offset += phdr.p_filesz;
+		fill_elf_note_phdr(&phdr, sz, offset);
+		offset += sz;
 		DUMP_WRITE(&phdr, sizeof(phdr));
 	}
 
@@ -1352,10 +1494,19 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 		DUMP_WRITE(&phdr, sizeof(phdr));
 	}
 
+ 	/* write out the notes section */
 	for(i = 0; i < numnote; i++)
 		if (!writenote(&notes[i], file))
 			goto end_coredump;
 
+	/* write out the thread status notes section */
+	list_for_each(t, &thread_list) {
+		struct elf_thread_status *tmp = list_entry(t, struct elf_thread_status, list);
+		for (i = 0; i < tmp->num_notes; i++)
+			if (!writenote(&tmp->notes[i], file))
+				goto end_coredump;
+	}
+ 
 	DUMP_SEEK(dataoff);
 
 	for(vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
@@ -1393,17 +1544,29 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 		}
 	}
 
+#ifdef ELF_CORE_WRITE_EXTRA_DATA
+	ELF_CORE_WRITE_EXTRA_DATA;
+#endif
+
 	if ((off_t) file->f_pos != offset) {
 		/* Sanity check */
 		printk("elf_core_dump: file->f_pos (%ld) != offset (%ld)\n",
 		       (off_t) file->f_pos, offset);
 	}
 
- end_coredump:
+end_coredump:
 	set_fs(fs);
-	up_write(&current->mm->mmap_sem);
+
+cleanup:
+	while(!list_empty(&thread_list)) {
+		struct list_head *tmp = thread_list.next;
+		list_del(tmp);
+		kfree(list_entry(tmp, struct elf_thread_status, list));
+	}
+
 	return has_dumped;
 }
+
 #endif		/* USE_ELF_CORE_DUMP */
 
 static int __init init_elf_binfmt(void)
@@ -1419,4 +1582,3 @@ static void __exit exit_elf_binfmt(void)
 
 module_init(init_elf_binfmt)
 module_exit(exit_elf_binfmt)
-MODULE_LICENSE("GPL");

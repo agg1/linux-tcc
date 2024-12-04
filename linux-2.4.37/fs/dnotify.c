@@ -105,7 +105,7 @@ int fcntl_dirnotify(int fd, struct file *filp, unsigned long arg)
 		goto out;
 	}
 
-	filp->f_owner.pid = current->pid;
+	filp->f_owner.pid = current->tgid;
 	filp->f_owner.uid = current->uid;
 	filp->f_owner.euid = current->euid;
 	dn->dn_mask = arg;

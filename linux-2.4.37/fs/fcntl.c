@@ -438,24 +438,29 @@ static void send_sigio_to_task(struct task_struct *p,
 
 void send_sigio(struct fown_struct *fown, int fd, int band)
 {
-	struct task_struct * p;
-	int   pid	= fown->pid;
+	struct task_struct *p;
+	int pid;
+	
+	pid = fown->pid;
+	if (!pid)
+		goto out_unlock_fown;
 	
 	read_lock(&tasklist_lock);
-	if ( (pid > 0) && (p = find_task_by_pid(pid)) ) {
-		send_sigio_to_task(p, fown, fd, band);
-		goto out;
+	if (pid > 0) {
+		p = find_task_by_pid(pid);
+		if (p) {
+			send_sigio_to_task(p, fown, fd, band);
+		}
+	} else {
+		struct list_head *l;
+		struct pid *pidptr;
+		for_each_task_pid(-pid, PIDTYPE_PGID, p, l, pidptr) {
+			send_sigio_to_task(p, fown, fd, band);
+		}
 	}
-	for_each_task(p) {
-		int match = p->pid;
-		if (pid < 0)
-			match = -p->pgrp;
-		if (pid != match)
-			continue;
-		send_sigio_to_task(p, fown, fd, band);
-	}
-out:
 	read_unlock(&tasklist_lock);
+ out_unlock_fown:
+	;
 }
 
 static rwlock_t fasync_lock = RW_LOCK_UNLOCKED;
@@ -518,7 +523,7 @@ void __kill_fasync(struct fasync_struct *fa, int sig, int band)
 		/* Don't send SIGURG to processes which have not set a
 		   queued signum: SIGURG has its own default signalling
 		   mechanism. */
-		if (fown->pid && !(sig == SIGURG && fown->signum == 0))
+		if (!(sig == SIGURG && fown->signum == 0))
 			send_sigio(fown, fa->fa_fd, band);
 		fa = fa->fa_next;
 	}

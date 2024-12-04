@@ -86,7 +86,7 @@ static int badness(struct task_struct *p)
 	 * Niced processes are most likely less important, so double
 	 * their badness points.
 	 */
-	if (p->nice > 0)
+	if (task_nice(p) > 0)
 		points *= 2;
 
 	/*
@@ -121,10 +121,10 @@ static int badness(struct task_struct *p)
 static struct task_struct * select_bad_process(void)
 {
 	int maxpoints = 0;
-	struct task_struct *p = NULL;
+	struct task_struct *g, *p;
 	struct task_struct *chosen = NULL;
 
-	for_each_task(p) {
+	do_each_thread(g, p)
 		if (p->pid) {
 			int points = badness(p);
 			if (points > maxpoints) {
@@ -132,7 +132,7 @@ static struct task_struct * select_bad_process(void)
 				maxpoints = points;
 			}
 		}
-	}
+	while_each_thread(g, p);
 	return chosen;
 }
 
@@ -150,7 +150,7 @@ static void __oom_kill_task(struct task_struct *p)
 	 * all the memory it needs. That way it should be able to
 	 * exit() and clear out its resources quickly...
 	 */
-	p->counter = 5 * HZ;
+	p->time_slice = HZ;
 	p->flags |= PF_MEMALLOC | PF_MEMDIE;
 
 	/* This process has hardware access, be more careful. */
@@ -191,8 +191,9 @@ static struct mm_struct *oom_kill_task(struct task_struct *p)
  */
 static void oom_kill(void)
 {
-	struct task_struct *p, *q;
+	struct task_struct *g, *p, *q;
 	struct mm_struct *mm;
+
 
 retry:
 	read_lock(&tasklist_lock);
@@ -206,11 +207,16 @@ retry:
 		read_unlock(&tasklist_lock);
 		goto retry;
 	}
-	/* kill all processes that share the ->mm (i.e. all threads) */
-	for_each_task(q) {
-		if (q->mm == mm)
+
+	/*
+	 * kill all processes that share the ->mm (i.e. all threads),
+	 * but are in a different thread group
+	 */
+	do_each_thread(g, q)
+		if (q->mm == p->mm && q->tgid != p->tgid)
 			__oom_kill_task(q);
-	}
+	while_each_thread(g, q);
+
 	read_unlock(&tasklist_lock);
 	mmput(mm);
 	/*

@@ -487,10 +487,10 @@ int mtdblock_thread(void *dummy)
 	/* we might get involved when memory gets low, so use PF_MEMALLOC */
 	tsk->flags |= PF_MEMALLOC;
 	strcpy(tsk->comm, "mtdblockd");
-	spin_lock_irq(&tsk->sigmask_lock);
+	spin_lock_irq(&tsk->sighand->siglock);
 	sigfillset(&tsk->blocked);
-	recalc_sigpending(tsk);
-	spin_unlock_irq(&tsk->sigmask_lock);
+	recalc_sigpending_tsk(tsk);
+	spin_unlock_irq(&tsk->sighand->siglock);
 	daemonize();
 
 	while (!leaving) {

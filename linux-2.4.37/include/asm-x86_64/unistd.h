@@ -499,8 +499,10 @@ __SYSCALL(__NR_getdents64, sys_getdents64)
 __SYSCALL(__NR_restart_syscall, sys_ni_syscall)
 #define __NR_semtimedop		220
 __SYSCALL(__NR_semtimedop, sys_semtimedop)
+#define __NR_exit_group 231
+__SYSCALL(__NR_exit_group, sys_exit_group)
 
-#define __NR_syscall_max __NR_semtimedop
+#define __NR_syscall_max __NR_exit_group
 
 #ifndef __NO_STUBS
 

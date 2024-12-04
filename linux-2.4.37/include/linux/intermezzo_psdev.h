@@ -31,8 +31,8 @@ struct upc_channel {
 };
 
 #define ISLENTO(minor) (current->pid == izo_channels[minor].uc_pid \
-                || current->p_pptr->pid == izo_channels[minor].uc_pid \
-                || current->p_pptr->p_pptr->pid == izo_channels[minor].uc_pid)
+                || current->parent->pid == izo_channels[minor].uc_pid \
+                || current->parent->parent->pid == izo_channels[minor].uc_pid)
 
 extern struct upc_channel izo_channels[MAX_CHANNEL];
 

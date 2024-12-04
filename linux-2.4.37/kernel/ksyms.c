@@ -462,7 +462,6 @@ EXPORT_SYMBOL(iomem_resource);
 /* process management */
 EXPORT_SYMBOL(complete_and_exit);
 EXPORT_SYMBOL(__wake_up);
-EXPORT_SYMBOL(__wake_up_sync);
 EXPORT_SYMBOL(wake_up_process);
 EXPORT_SYMBOL(sleep_on);
 EXPORT_SYMBOL(sleep_on_timeout);
@@ -475,6 +474,11 @@ EXPORT_SYMBOL(set_cpus_allowed);
 #endif
 EXPORT_SYMBOL(yield);
 EXPORT_SYMBOL(__cond_resched);
+EXPORT_SYMBOL(set_user_nice);
+#ifdef CONFIG_SMP
+EXPORT_SYMBOL_GPL(set_cpus_allowed);
+#endif
+EXPORT_SYMBOL(nr_context_switches);
 EXPORT_SYMBOL(jiffies);
 EXPORT_SYMBOL(xtime);
 EXPORT_SYMBOL(do_gettimeofday);
@@ -485,7 +489,6 @@ EXPORT_SYMBOL(loops_per_jiffy);
 #endif
 
 EXPORT_SYMBOL(kstat);
-EXPORT_SYMBOL(nr_running);
 
 /* misc */
 EXPORT_SYMBOL(panic);
@@ -614,10 +617,15 @@ EXPORT_SYMBOL(__tasklet_hi_schedule);
 EXPORT_SYMBOL(init_task_union);
 
 EXPORT_SYMBOL(tasklist_lock);
-EXPORT_SYMBOL(pidhash);
 EXPORT_SYMBOL(unshare_files);
 
+EXPORT_SYMBOL_GPL(next_thread);
+EXPORT_SYMBOL_GPL(find_task_by_pid);
+EXPORT_SYMBOL(sys_wait4);
+EXPORT_SYMBOL_GPL(set_special_pids);
 /* debug */
+extern void check_tasklist_locked(void);
+EXPORT_SYMBOL_GPL(check_tasklist_locked);
 EXPORT_SYMBOL(dump_stack);
 
 /* To match ksyms with System.map */

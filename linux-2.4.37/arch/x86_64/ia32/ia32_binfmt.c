@@ -45,6 +45,7 @@ struct elf_phdr;
 #define _LINUX_ELFCORE_H 1
 typedef unsigned int elf_greg_t;
 
+
 #define ELF_NGREG (sizeof (struct user_regs_struct32) / sizeof(elf_greg_t))
 typedef elf_greg_t elf_gregset_t[ELF_NGREG];
 
@@ -94,6 +95,27 @@ struct elf_prpsinfo
 	char	pr_fname[16];	/* filename of executable */
 	char	pr_psargs[ELF_PRARGSZ];	/* initial part of arg list */
 };
+
+static inline void elf_core_copy_regs(elf_gregset_t *elfregs, struct pt_regs *regs)
+{
+#ifdef ELF_CORE_COPY_REGS
+       ELF_CORE_COPY_REGS((*elfregs), regs)
+#else
+       BUG_ON(sizeof(*elfregs) != sizeof(*regs));
+       *(struct pt_regs *)elfregs = *regs;
+#endif
+}
+
+static inline int elf_core_copy_task_regs(struct task_struct *t, elf_gregset_t* elfregs)
+{
+#ifdef ELF_CORE_COPY_TASK_REGS
+
+       return ELF_CORE_COPY_TASK_REGS(t, elfregs);
+#endif
+       return 0;
+}
+
+
 
 #define __STR(x) #x
 #define STR(x) __STR(x)

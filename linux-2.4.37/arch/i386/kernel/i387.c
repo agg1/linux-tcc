@@ -75,8 +75,12 @@ static inline void __save_init_fpu( struct task_struct *tsk )
 			      : "=m" (tsk->thread.i387.fxsave) );
 		if (tsk->thread.i387.fxsave.swd & (1<<7))
 			asm volatile("fnclex");
+#if __GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 2
+		//
+#else
 		/* AMD CPUs leak F?P. Clear it here */
-		asm volatile("ffree %%st(7) ; fildl %0" :: "m" (kstat.context_swtch));
+		asm volatile("ffree %%st(7) ; fildl %0" :: "m" (nr_context_switches()));
+#endif
 	} else {
 		asm volatile( "fnsave %0 ; fwait"
 			      : "=m" (tsk->thread.i387.fsave) );
@@ -550,3 +554,44 @@ int dump_extended_fpu( struct pt_regs *regs, struct user_fxsr_struct *fpu )
 
 	return fpvalid;
 }
+
+int dump_task_fpu( struct task_struct *tsk, struct user_i387_struct *fpu )
+{
+	int fpvalid;
+
+	fpvalid = tsk->used_math;
+	if ( fpvalid ) {
+		if (tsk == current) unlazy_fpu( tsk );
+		if ( cpu_has_fxsr ) {
+			copy_fpu_fxsave( tsk, fpu );
+		} else {
+			copy_fpu_fsave( tsk, fpu );
+		}
+	}
+
+	return fpvalid;
+}
+
+int dump_task_extended_fpu( struct task_struct *tsk, struct user_fxsr_struct *fpu )
+{
+	int fpvalid;
+	
+	fpvalid = tsk->used_math && cpu_has_fxsr;
+	if ( fpvalid ) {
+		if (tsk == current) unlazy_fpu( tsk );
+		memcpy( fpu, &tsk->thread.i387.fxsave,
+		sizeof(struct user_fxsr_struct) );
+	}
+	
+	return fpvalid;
+}
+
+
+#ifdef CONFIG_SMP
+void dump_smp_unlazy_fpu(void)
+{
+	unlazy_fpu(current);
+	return;
+}
+#endif
+

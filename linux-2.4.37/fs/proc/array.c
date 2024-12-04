@@ -127,9 +127,9 @@ static const char *task_state_array[] = {
 	"R (running)",		/*  0 */
 	"S (sleeping)",		/*  1 */
 	"D (disk sleep)",	/*  2 */
-	"Z (zombie)",		/*  4 */
-	"T (stopped)",		/*  8 */
-	"W (paging)"		/* 16 */
+	"T (stopped)",		/*  4 */
+	"Z (zombie)",		/*  8 */
+	"X (dead)"		/* 16 */
 };
 
 static inline const char * get_task_state(struct task_struct *tsk)
@@ -162,7 +162,7 @@ static inline char * task_state(struct task_struct *p, char *buffer)
 		"Uid:\t%d\t%d\t%d\t%d\n"
 		"Gid:\t%d\t%d\t%d\t%d\n",
 		get_task_state(p), p->tgid,
-		p->pid, p->pid ? p->p_opptr->pid : 0, 0,
+		p->pid, p->pid ? p->real_parent->pid : 0, 0,
 		p->uid, p->euid, p->suid, p->fsuid,
 		p->gid, p->egid, p->sgid, p->fsgid);
 	read_unlock(&tasklist_lock);	
@@ -230,18 +230,19 @@ static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
 	sigemptyset(ign);
 	sigemptyset(catch);
 
-	spin_lock_irq(&p->sigmask_lock);
-
-	if (p->sig) {
-		k = p->sig->action;
+	read_lock(&tasklist_lock);
+	if (p->sighand) {
+		spin_lock_irq(&p->sighand->siglock);
+		k = p->sighand->action;
 		for (i = 1; i <= _NSIG; ++i, ++k) {
 			if (k->sa.sa_handler == SIG_IGN)
 				sigaddset(ign, i);
 			else if (k->sa.sa_handler != SIG_DFL)
 				sigaddset(catch, i);
 		}
+		spin_unlock_irq(&p->sighand->siglock);
 	}
-	spin_unlock_irq(&p->sigmask_lock);
+	read_unlock(&tasklist_lock);
 }
 
 static inline char * task_sig(struct task_struct *p, char *buffer)
@@ -251,6 +252,16 @@ static inline char * task_sig(struct task_struct *p, char *buffer)
 	buffer += sprintf(buffer, "SigPnd:\t");
 	buffer = render_sigset_t(&p->pending.signal, buffer);
 	*buffer++ = '\n';
+	read_lock(&tasklist_lock);
+	if (p->sighand) {
+		spin_lock_irq(&p->sighand->siglock);
+		buffer += sprintf(buffer, "ShdPnd:\t");
+		buffer = render_sigset_t(&p->signal->shared_pending.signal, buffer);
+		*buffer++ = '\n';
+		spin_unlock_irq(&p->sighand->siglock);
+	}
+	read_unlock(&tasklist_lock);
+
 	buffer += sprintf(buffer, "SigBlk:\t");
 	buffer = render_sigset_t(&p->blocked, buffer);
 	*buffer++ = '\n';
@@ -353,16 +364,16 @@ int proc_pid_stat(struct task_struct *task, char * buffer)
 
 	/* scale priority and nice values from timeslices to -20..20 */
 	/* to make it look like a "normal" Unix priority/nice value  */
-	priority = task->counter;
-	priority = 20 - (priority * 10 + DEF_COUNTER / 2) / DEF_COUNTER;
-	nice = task->nice;
+	priority = task_prio(task);
+	nice = task_nice(task);
 
 	read_lock(&tasklist_lock);
-	ppid = task->pid ? task->p_opptr->pid : 0;
+	ppid = task->pid ? task->real_parent->pid : 0;
 	read_unlock(&tasklist_lock);
 	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %lu %lu \
 %lu %lu %lu %lu %lu %ld %ld %ld %ld %ld %ld %lu %lu %ld %lu %lu %lu %lu %lu \
-%lu %lu %lu %lu %lu %lu %lu %lu %d %d\n",
+%lu %lu %lu %lu %lu %lu %lu %lu %d %d %ld %ld %ld %ld %ld %ld\n"
+		,
 		task->pid,
 		tcomm,
 		state,
@@ -405,7 +416,14 @@ int proc_pid_stat(struct task_struct *task, char * buffer)
 		task->nswap,
 		task->cnswap,
 		task->exit_signal,
-		task->processor);
+		task->cpu,
+		task->rt_priority,
+		task->policy,
+		task->group_times.tms_utime,
+		task->group_times.tms_stime,
+		task->group_times.tms_cutime,
+		task->group_times.tms_cstime
+		);
 	if(mm)
 		mmput(mm);
 	return res;

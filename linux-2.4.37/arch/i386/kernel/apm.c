@@ -214,6 +214,7 @@
 #include <linux/sched.h>
 #include <linux/pm.h>
 #include <linux/kernel.h>
+#include <linux/smp.h>
 #include <linux/smp_lock.h>
 
 #include <asm/system.h>
@@ -418,6 +419,7 @@ static int			broken_psr;
 static DECLARE_WAIT_QUEUE_HEAD(apm_waitqueue);
 static DECLARE_WAIT_QUEUE_HEAD(apm_suspend_waitqueue);
 static struct apm_user *	user_list;
+static struct desc_struct	bad_bios_desc = { 0, 0x00409200 };
 
 static char			driver_version[] = "1.16";	/* no spaces */
 
@@ -603,6 +605,7 @@ static u8 apm_bios_call(u32 func, u32 ebx_in, u32 ecx_in,
 	APM_DECL_SEGS
 	unsigned long	flags;
 	unsigned long cpus = apm_save_cpus();
+	struct desc_struct	save_desc_40;
 	
 	__save_flags(flags);
 	APM_DO_CLI;
@@ -628,6 +631,8 @@ static u8 apm_bios_call(u32 func, u32 ebx_in, u32 ecx_in,
 	
 	apm_restore_cpus(cpus);
 	
+	cpu_gdt_table[smp_processor_id()][0x40 / 8] = save_desc_40;
+	
 	return *eax & 0xff;
 }
 
@@ -649,9 +654,13 @@ static u8 apm_bios_call_simple(u32 func, u32 ebx_in, u32 ecx_in, u32 *eax)
 {
 	u8		error;
 	APM_DECL_SEGS
-	unsigned long	flags;
-
+	unsigned long		flags;
+	int			cpu = smp_processor_id();
+	struct desc_struct	save_desc_40;
 	unsigned long cpus = apm_save_cpus();
+
+	save_desc_40 = cpu_gdt_table[cpu][0x40 / 8];
+	cpu_gdt_table[cpu][0x40 / 8] = bad_bios_desc;
 	
 	__save_flags(flags);
 	APM_DO_CLI;
@@ -680,6 +689,8 @@ static u8 apm_bios_call_simple(u32 func, u32 ebx_in, u32 ecx_in, u32 *eax)
 	__restore_flags(flags);
 
 	apm_restore_cpus(cpus);
+	
+	cpu_gdt_table[smp_processor_id()][0x40 / 8] = save_desc_40;
 	
 	return error;
 }
@@ -1187,6 +1198,11 @@ static void queue_event(apm_event_t event, struct apm_user *sender)
 static void set_time(void)
 {
 	unsigned long	flags;
+	int			cpu = smp_processor_id();
+	struct desc_struct	save_desc_40;
+
+	save_desc_40 = cpu_gdt_table[cpu][0x40 / 8];
+	cpu_gdt_table[cpu][0x40 / 8] = bad_bios_desc;
 
 	if (got_clock_diff) {	/* Must know time zone in order to set clock */
 		save_flags(flags);
@@ -1910,6 +1926,8 @@ static struct miscdevice apm_device = {
  */
 static int __init apm_init(void)
 {
+	int i;
+
 	struct proc_dir_entry *apm_proc;
 
 	if (apm_info.bios.version == 0) {
@@ -1981,37 +1999,39 @@ static int __init apm_init(void)
 	 * This is for buggy BIOS's that refer to (real mode) segment 0x40
 	 * even though they are called in protected mode.
 	 */
-	set_base(gdt[APM_40 >> 3],
-		 __va((unsigned long)0x40 << 4));
-	_set_limit((char *)&gdt[APM_40 >> 3], 4095 - (0x40 << 4));
+	set_base(bad_bios_desc, __va((unsigned long)0x40 << 4));
+	_set_limit((char *)&bad_bios_desc, 4095 - (0x40 << 4));
 
 	apm_bios_entry.offset = apm_info.bios.offset;
 	apm_bios_entry.segment = APM_CS;
-	set_base(gdt[APM_CS >> 3],
-		 __va((unsigned long)apm_info.bios.cseg << 4));
-	set_base(gdt[APM_CS_16 >> 3],
-		 __va((unsigned long)apm_info.bios.cseg_16 << 4));
-	set_base(gdt[APM_DS >> 3],
-		 __va((unsigned long)apm_info.bios.dseg << 4));
+
+	for (i = 0; i < NR_CPUS; i++) {
+		set_base(cpu_gdt_table[i][APM_CS >> 3],
+			 __va((unsigned long)apm_info.bios.cseg << 4));
+		set_base(cpu_gdt_table[i][APM_CS_16 >> 3],
+			 __va((unsigned long)apm_info.bios.cseg_16 << 4));
+		set_base(cpu_gdt_table[i][APM_DS >> 3],
+			 __va((unsigned long)apm_info.bios.dseg << 4));
 #ifndef APM_RELAX_SEGMENTS
-	if (apm_info.bios.version == 0x100) {
+		if (apm_info.bios.version == 0x100) {
 #endif
-		/* For ASUS motherboard, Award BIOS rev 110 (and others?) */
-		_set_limit((char *)&gdt[APM_CS >> 3], 64 * 1024 - 1);
-		/* For some unknown machine. */
-		_set_limit((char *)&gdt[APM_CS_16 >> 3], 64 * 1024 - 1);
-		/* For the DEC Hinote Ultra CT475 (and others?) */
-		_set_limit((char *)&gdt[APM_DS >> 3], 64 * 1024 - 1);
+			/* For ASUS motherboard, Award BIOS rev 110 (and others?) */
+			_set_limit((char *)&cpu_gdt_table[i][APM_CS >> 3], 64 * 1024 - 1);
+			/* For some unknown machine. */
+			_set_limit((char *)&cpu_gdt_table[i][APM_CS_16 >> 3], 64 * 1024 - 1);
+			/* For the DEC Hinote Ultra CT475 (and others?) */
+			_set_limit((char *)&cpu_gdt_table[i][APM_DS >> 3], 64 * 1024 - 1);
 #ifndef APM_RELAX_SEGMENTS
-	} else {
-		_set_limit((char *)&gdt[APM_CS >> 3],
-			(apm_info.bios.cseg_len - 1) & 0xffff);
-		_set_limit((char *)&gdt[APM_CS_16 >> 3],
-			(apm_info.bios.cseg_16_len - 1) & 0xffff);
-		_set_limit((char *)&gdt[APM_DS >> 3],
-			(apm_info.bios.dseg_len - 1) & 0xffff);
+		} else {
+			_set_limit((char *)&cpu_gdt_table[i][APM_CS >> 3],
+				(apm_info.bios.cseg_len - 1) & 0xffff);
+			_set_limit((char *)&cpu_gdt_table[i][APM_CS_16 >> 3],
+				(apm_info.bios.cseg_16_len - 1) & 0xffff);
+			_set_limit((char *)&cpu_gdt_table[i][APM_DS >> 3],
+				(apm_info.bios.dseg_len - 1) & 0xffff);
+		}
+#endif
 	}
-#endif
 
 	apm_proc = create_proc_info_entry("apm", 0, NULL, apm_get_info);
 	if (apm_proc)

@@ -65,7 +65,8 @@ static inline struct rw_semaphore *__rwsem_do_wake(struct rw_semaphore *sem)
 	mb();
 	waiter->task = NULL;
 	wake_up_process(tsk);
-	free_task_struct(tsk);
+//	free_task_struct(tsk);
+	put_task_struct(tsk);
 	goto out;
 
 	/* grant an infinite number of read locks to the readers at the front of the queue
@@ -97,7 +98,8 @@ static inline struct rw_semaphore *__rwsem_do_wake(struct rw_semaphore *sem)
 		mb();
 		waiter->task = NULL;
 		wake_up_process(tsk);
-		free_task_struct(tsk);
+		put_task_struct(tsk);
+//		free_task_struct(tsk);
 	}
 
 	sem->wait_list.next = next;

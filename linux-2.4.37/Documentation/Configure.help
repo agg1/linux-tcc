@@ -4770,6 +4770,38 @@ CONFIG_BINFMT_MISC
   you have use for it; the module is called binfmt_misc.o. If you
   don't know what to answer at this point, say Y.
 
+Maximum User Real-Time Priority
+CONFIG_MAX_USER_RT_PRIO
+  The maximum user real-time priority. Tasks with priorities from
+  zero through one less than this value are scheduled as real-time.
+  To the application, a higher priority value implies a higher
+  priority task.
+
+  The minimum allowed value is 100 and the maximum allowed value
+  is (arbitrary) 1000. Values specified outside this range will
+  be rounded accordingly during compile-time. The default is 100.
+  Setting this higher than 100 is safe but will result in slightly
+  more processing overhead in the scheduler. 
+
+  Unless you are doing specialized real-time computing and require
+  a much larger range than usual, the default is fine.
+
+Maximum Kernel Real-Time Priority
+CONFIG_MAX_RT_PRIO
+  The difference between the maximum real-time priority and the
+  maximum user real-time priority.  Usually this value is zero,
+  which sets the maximum real-time priority to the same as the
+  maximum user real-time priority.  Setting this higher,
+  however, will allow kernel threads to set their priority to a
+  value higher than any user task. This is safe, but will result
+  in slightly more processing overhead in the scheduler.
+
+  This value can be at most 200.  The default is zero, i.e. the
+  maximum priority and maximum user priority are the same.
+
+  Unless you are doing specialized real-time programming with
+  kernel threads, the default is fine.
+
 Kernel support for JAVA binaries
 CONFIG_BINFMT_JAVA
   If you say Y here, the kernel will load and execute Java J-code

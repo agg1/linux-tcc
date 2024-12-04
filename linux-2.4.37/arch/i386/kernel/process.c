@@ -18,6 +18,7 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
+#include <linux/elf.h>
 #include <linux/smp.h>
 #include <linux/smp_lock.h>
 #include <linux/stddef.h>
@@ -33,6 +34,7 @@
 #include <linux/reboot.h>
 #include <linux/init.h>
 #include <linux/mc146818rtc.h>
+#include <linux/elfcore.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
@@ -84,7 +86,7 @@ void default_idle(void)
 {
 	if (current_cpu_data.hlt_works_ok && !hlt_counter) {
 		__cli();
-		if (!current->need_resched)
+		if (!need_resched())
 			safe_halt();
 		else
 			__sti();
@@ -126,14 +128,17 @@ static void poll_idle (void)
 void cpu_idle (void)
 {
 	/* endless idle loop with no priority at all */
-	init_idle();
-	current->nice = 20;
-	current->counter = -100;
 
 	while (1) {
 		void (*idle)(void) = pm_idle;
 		if (!idle)
 			idle = default_idle;
+		/*
+		 * We use the last_run timestamp to measure the idleness
+		 * of a CPU.
+		 */
+		current->last_run = jiffies;
+
 		while (!current->need_resched)
 			idle();
 		schedule();
@@ -448,8 +453,13 @@ void show_regs(struct pt_regs * regs)
 {
 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L;
 
+	unsigned int fs = 0, gs = 0;
+
+	savesegment(fs, fs);
+	savesegment(gs, gs);
+
 	printk("\n");
-	printk("Pid: %d, comm: %20s\n", current->pid, current->comm);
+	printk("Pid/TGid: %d/%d, comm: %20s\n", current->pid, current->tgid, current->comm);
 	printk("EIP: %04x:[<%08lx>] CPU: %d",0xffff & regs->xcs,regs->eip, smp_processor_id());
 	if (regs->xcs & 3)
 		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
@@ -458,8 +468,8 @@ void show_regs(struct pt_regs * regs)
 		regs->eax,regs->ebx,regs->ecx,regs->edx);
 	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
 		regs->esi, regs->edi, regs->ebp);
-	printk(" DS: %04x ES: %04x\n",
-		0xffff & regs->xds,0xffff & regs->xes);
+	printk(" DS: %04x ES: %04x FS: %04x GS: %04x\n",
+		0xffff & regs->xds,0xffff & regs->xes, fs, gs);
 
 	__asm__("movl %%cr0, %0": "=r" (cr0));
 	__asm__("movl %%cr2, %0": "=r" (cr2));
@@ -476,33 +486,42 @@ void show_regs(struct pt_regs * regs)
 }
 
 /*
+ * This gets run with %ebx containing the
+ * function to call, and %edx containing
+ * the "args".
+ */
+extern void kernel_thread_helper(void);
+__asm__(".align 4\n"
+	"kernel_thread_helper:\n\t"
+	"movl %edx,%eax\n\t"
+	"pushl %edx\n\t"
+	"call *%ebx\n\t"
+	"pushl %eax\n\t"
+	"call do_exit");
+
+/*
  * Create a kernel thread
  */
 int arch_kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 {
-	long retval, d0;
+	struct task_struct *p;
+	struct pt_regs regs;
 
-	__asm__ __volatile__(
-		"movl %%esp,%%esi\n\t"
-		"int $0x80\n\t"		/* Linux/i386 system call */
-		"cmpl %%esp,%%esi\n\t"	/* child or parent? */
-		"je 1f\n\t"		/* parent - jump */
-		/* Load the argument into eax, and push it.  That way, it does
-		 * not matter whether the called function is compiled with
-		 * -mregparm or not.  */
-		"movl %4,%%eax\n\t"
-		"pushl %%eax\n\t"		
-		"call *%5\n\t"		/* call fn */
-		"movl %3,%0\n\t"	/* exit */
-		"int $0x80\n"
-		"1:\t"
-		:"=&a" (retval), "=&S" (d0)
-		:"0" (__NR_clone), "i" (__NR_exit),
-		 "r" (arg), "r" (fn),
-		 "b" (flags | CLONE_VM)
-		: "memory");
+	memset(&regs, 0, sizeof(regs));
 
-	return retval;
+	regs.ebx = (unsigned long) fn;
+	regs.edx = (unsigned long) arg;
+
+	regs.xds = __KERNEL_DS;
+	regs.xes = __KERNEL_DS;
+	regs.orig_eax = -1;
+	regs.eip = (unsigned long) kernel_thread_helper;
+	regs.xcs = __KERNEL_CS;
+	regs.eflags = 0x286;
+
+	/* Ok, create the new process.. */
+	p = do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
+	return IS_ERR(p) ? PTR_ERR(p) : p->pid;
 }
 
 /*
@@ -518,6 +537,7 @@ void flush_thread(void)
 	struct task_struct *tsk = current;
 
 	memset(tsk->thread.debugreg, 0, sizeof(unsigned long)*8);
+	memset(tsk->thread.tls_array, 0, sizeof(tsk->thread.tls_array));	
 	/*
 	 * Forget coprocessor state..
 	 */
@@ -537,25 +557,24 @@ void release_thread(struct task_struct *dead_task)
 			BUG();
 		}
 	}
-	release_x86_irqs(dead_task);
 }
 
 /*
  * Save a segment.
  */
-#define savesegment(seg,value) \
-	asm volatile("movw %%" #seg ",%0":"=m" (value))
 
 int copy_thread(int nr, unsigned long clone_flags, unsigned long esp,
 	unsigned long unused,
 	struct task_struct * p, struct pt_regs * regs)
 {
 	struct pt_regs * childregs;
+	struct task_struct *tsk;
 
 	childregs = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p)) - 1;
 	struct_cpy(childregs, regs);
 	childregs->eax = 0;
 	childregs->esp = esp;
+	p->set_child_tid = p->clear_child_tid = NULL;
 
 	p->thread.esp = (unsigned long) childregs;
 	p->thread.esp0 = (unsigned long) (childregs+1);
@@ -565,9 +584,31 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long esp,
 	savesegment(fs,p->thread.fs);
 	savesegment(gs,p->thread.gs);
 
-	unlazy_fpu(current);
-	struct_cpy(&p->thread.i387, &current->thread.i387);
+	tsk = current;
+	unlazy_fpu(tsk);
+	struct_cpy(&p->thread.i387, &tsk->thread.i387);
 
+	/*
+	 * Set a new TLS for the child thread?
+	 */
+	if (clone_flags & CLONE_SETTLS) {
+		struct desc_struct *desc;
+		struct user_desc info;
+		int idx;
+
+		if (copy_from_user(&info, (void *)childregs->esi, sizeof(info)))
+			return -EFAULT;
+		if (LDT_empty(&info))
+			return -EINVAL;
+
+		idx = info.entry_number;
+		if (idx < GDT_ENTRY_TLS_MIN || idx > GDT_ENTRY_TLS_MAX)
+			return -EINVAL;
+
+		desc = p->thread.tls_array + idx - GDT_ENTRY_TLS_MIN;
+		desc->a = LDT_entry_a(&info);
+		desc->b = LDT_entry_b(&info);
+	}
 	return 0;
 }
 
@@ -613,6 +654,25 @@ void dump_thread(struct pt_regs * regs, struct user * dump)
 	dump->u_fpvalid = dump_fpu (regs, &dump->i387);
 }
 
+/* 
+ * Capture the user space registers if the task is not running (in user space)
+ */
+int dump_task_regs(struct task_struct *tsk, elf_gregset_t *regs)
+{
+	struct pt_regs ptregs;
+	
+	ptregs = *(struct pt_regs *)((unsigned long)tsk + THREAD_SIZE - sizeof(struct pt_regs));
+
+	ptregs.xcs &= 0xffff;
+	ptregs.xds &= 0xffff;
+	ptregs.xes &= 0xffff;
+	ptregs.xss &= 0xffff;
+
+	elf_core_copy_regs(regs, &ptregs);
+
+	return 1;
+}
+
 /*
  * This special macro can be used to load a debugging register
  */
@@ -648,7 +708,10 @@ void fastcall __switch_to(struct task_struct *prev_p, struct task_struct *next_p
 {
 	struct thread_struct *prev = &prev_p->thread,
 				 *next = &next_p->thread;
-	struct tss_struct *tss = init_tss + smp_processor_id();
+	int cpu = smp_processor_id();
+	struct tss_struct *tss = init_tss + cpu;
+
+	/* never put a printk in __switch_to... printk() calls wake_up*() indirectly */
 
 	unlazy_fpu(prev_p);
 
@@ -656,6 +719,11 @@ void fastcall __switch_to(struct task_struct *prev_p, struct task_struct *next_p
 	 * Reload esp0, LDT and the page table pointer:
 	 */
 	tss->esp0 = next->esp0;
+
+	/*
+	 * Load the per-thread Thread-Local Storage descriptor.
+	 */
+	load_TLS(next, cpu);
 
 	/*
 	 * Save away %fs and %gs. No need to save %es and %ds, as
@@ -709,19 +777,27 @@ void fastcall __switch_to(struct task_struct *prev_p, struct task_struct *next_p
 
 asmlinkage int sys_fork(struct pt_regs regs)
 {
-	return do_fork(SIGCHLD, regs.esp, &regs, 0);
+	struct task_struct *p;
+
+	p = do_fork(SIGCHLD, regs.esp, &regs, 0, NULL, NULL);
+	return IS_ERR(p) ? PTR_ERR(p) : p->pid;
 }
 
 asmlinkage int sys_clone(struct pt_regs regs)
 {
+	struct task_struct *p;
 	unsigned long clone_flags;
 	unsigned long newsp;
+	int *parent_tidptr, *child_tidptr;
 
 	clone_flags = regs.ebx;
 	newsp = regs.ecx;
+	parent_tidptr = (int *)regs.edx;
+	child_tidptr = (int *)regs.edi;
 	if (!newsp)
 		newsp = regs.esp;
-	return do_fork(clone_flags, newsp, &regs, 0);
+	p = do_fork(clone_flags & ~CLONE_IDLETASK, newsp, &regs, 0, parent_tidptr, child_tidptr);
+	return IS_ERR(p) ? PTR_ERR(p) : p->pid;
 }
 
 /*
@@ -736,7 +812,10 @@ asmlinkage int sys_clone(struct pt_regs regs)
  */
 asmlinkage int sys_vfork(struct pt_regs regs)
 {
-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.esp, &regs, 0);
+	struct task_struct *p;
+
+	p = do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.esp, &regs, 0, NULL, NULL);
+	return IS_ERR(p) ? PTR_ERR(p) : p->pid;
 }
 
 /*
@@ -792,3 +871,112 @@ unsigned long get_wchan(struct task_struct *p)
 }
 #undef last_sched
 #undef first_sched
+
+/*
+ * sys_alloc_thread_area: get a yet unused TLS descriptor index.
+ */
+static int get_free_idx(void)
+{
+	struct thread_struct *t = &current->thread;
+	int idx;
+
+	for (idx = 0; idx < GDT_ENTRY_TLS_ENTRIES; idx++)
+		if (desc_empty(t->tls_array + idx))
+			return idx + GDT_ENTRY_TLS_MIN;
+	return -ESRCH;
+}
+
+/*
+ * Set a given TLS descriptor:
+ */
+asmlinkage int sys_set_thread_area(struct user_desc *u_info)
+{
+	struct thread_struct *t = &current->thread;
+	struct user_desc info;
+	struct desc_struct *desc;
+	int cpu, idx;
+
+	if (copy_from_user(&info, u_info, sizeof(info)))
+		return -EFAULT;
+	idx = info.entry_number;
+
+	/*
+	 * index -1 means the kernel should try to find and
+	 * allocate an empty descriptor:
+	 */
+	if (idx == -1) {
+		idx = get_free_idx();
+		if (idx < 0)
+			return idx;
+		if (put_user(idx, &u_info->entry_number))
+			return -EFAULT;
+	}
+
+	if (idx < GDT_ENTRY_TLS_MIN || idx > GDT_ENTRY_TLS_MAX)
+		return -EINVAL;
+
+	desc = t->tls_array + idx - GDT_ENTRY_TLS_MIN;
+
+	cpu = smp_processor_id();
+
+	if (LDT_empty(&info)) {
+		desc->a = 0;
+		desc->b = 0;
+	} else {
+		desc->a = LDT_entry_a(&info);
+		desc->b = LDT_entry_b(&info);
+	}
+	load_TLS(t, cpu);
+
+
+	return 0;
+}
+
+/*
+ * Get the current Thread-Local Storage area:
+ */
+
+#define GET_BASE(desc) ( \
+	(((desc)->a >> 16) & 0x0000ffff) | \
+	(((desc)->b << 16) & 0x00ff0000) | \
+	( (desc)->b        & 0xff000000)   )
+
+#define GET_LIMIT(desc) ( \
+	((desc)->a & 0x0ffff) | \
+	 ((desc)->b & 0xf0000) )
+	
+#define GET_32BIT(desc)		(((desc)->b >> 23) & 1)
+#define GET_CONTENTS(desc)	(((desc)->b >> 10) & 3)
+#define GET_WRITABLE(desc)	(((desc)->b >>  9) & 1)
+#define GET_LIMIT_PAGES(desc)	(((desc)->b >> 23) & 1)
+#define GET_PRESENT(desc)	(((desc)->b >> 15) & 1)
+#define GET_USEABLE(desc)	(((desc)->b >> 20) & 1)
+
+asmlinkage int sys_get_thread_area(struct user_desc *u_info)
+{
+	struct user_desc info;
+	struct desc_struct *desc;
+	int idx;
+
+	if (get_user(idx, &u_info->entry_number))
+		return -EFAULT;
+	if (idx < GDT_ENTRY_TLS_MIN || idx > GDT_ENTRY_TLS_MAX)
+		return -EINVAL;
+
+	desc = current->thread.tls_array + idx - GDT_ENTRY_TLS_MIN;
+
+	info.entry_number = idx;
+	info.base_addr = GET_BASE(desc);
+	info.limit = GET_LIMIT(desc);
+	info.seg_32bit = GET_32BIT(desc);
+	info.contents = GET_CONTENTS(desc);
+	info.read_exec_only = !GET_WRITABLE(desc);
+	info.limit_in_pages = GET_LIMIT_PAGES(desc);
+	info.seg_not_present = !GET_PRESENT(desc);
+	info.useable = GET_USEABLE(desc);
+
+	if (copy_to_user(u_info, &info, sizeof(info)))
+		return -EFAULT;
+	return 0;
+}
+

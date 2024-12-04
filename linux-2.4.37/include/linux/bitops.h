@@ -1,6 +1,7 @@
 #ifndef _LINUX_BITOPS_H
 #define _LINUX_BITOPS_H
 
+#define fls(x) generic_fls(x)
 
 /*
  * ffs: find first bit set. This is defined the same way as

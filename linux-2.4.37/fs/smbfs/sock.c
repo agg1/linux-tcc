@@ -704,12 +704,12 @@ smb_request(struct smb_sb_info *server)
 	len = smb_len(buffer) + 4;
 	DEBUG1("len = %d cmd = 0x%X\n", len, buffer[8]);
 
-	spin_lock_irqsave(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
 	sigpipe = sigismember(&current->pending.signal, SIGPIPE);
 	old_set = current->blocked;
 	siginitsetinv(&current->blocked, sigmask(SIGKILL)|sigmask(SIGSTOP));
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 
 	fs = get_fs();
 	set_fs(get_ds());
@@ -721,12 +721,12 @@ smb_request(struct smb_sb_info *server)
 	}
 
 	/* read/write errors are handled by errno */
-	spin_lock_irqsave(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
 	if (result == -EPIPE && !sigpipe)
 		sigdelset(&current->pending.signal, SIGPIPE);
 	current->blocked = old_set;
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 
 	set_fs(fs);
 
@@ -895,12 +895,12 @@ smb_trans2_request(struct smb_sb_info *server, __u16 trans2_command,
 	if ((result = smb_dont_catch_keepalive(server)) != 0)
 		goto bad_conn;
 
-	spin_lock_irqsave(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
 	sigpipe = sigismember(&current->pending.signal, SIGPIPE);
 	old_set = current->blocked;
 	siginitsetinv(&current->blocked, sigmask(SIGKILL)|sigmask(SIGSTOP));
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 
 	fs = get_fs();
 	set_fs(get_ds());
@@ -914,12 +914,12 @@ smb_trans2_request(struct smb_sb_info *server, __u16 trans2_command,
 	}
 
 	/* read/write errors are handled by errno */
-	spin_lock_irqsave(&current->sigmask_lock, flags);
+	spin_lock_irqsave(&current->sighand->siglock, flags);
 	if (result == -EPIPE && !sigpipe)
 		sigdelset(&current->pending.signal, SIGPIPE);
 	current->blocked = old_set;
-	recalc_sigpending(current);
-	spin_unlock_irqrestore(&current->sigmask_lock, flags);
+	recalc_sigpending();
+	spin_unlock_irqrestore(&current->sighand->siglock, flags);
 
 	set_fs(fs);
 

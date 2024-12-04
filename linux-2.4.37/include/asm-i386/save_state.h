@@ -112,10 +112,10 @@ static void fix_processor_context(void)
 	struct tss_struct * t = &init_tss[nr];
 
 	set_tss_desc(nr,t);	/* This just modifies memory; should not be neccessary. But... This is neccessary, because 386 hardware has concept of busy tsc or some similar stupidity. */
-        gdt_table[__TSS(nr)].b &= 0xfffffdff;
+	cpu_gdt_table[nr][GDT_ENTRY_TSS].b &= 0xfffffdff;
 
-	load_TR(nr);		/* This does ltr */
-	__load_LDT(nr);		/* This does lldt */
+	load_TR_desc();		/* This does ltr */
+	load_LDT_desc();	/* This does lldt */
 
 	/*
 	 * Now maybe reload the debug registers

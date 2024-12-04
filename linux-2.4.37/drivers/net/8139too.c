@@ -1595,10 +1595,10 @@ static int rtl8139_thread (void *data)
 
 	daemonize ();
 	reparent_to_init();
-	spin_lock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
 	sigemptyset(&current->blocked);
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	strncpy (current->comm, dev->name, sizeof(current->comm) - 1);
 	current->comm[sizeof(current->comm) - 1] = '\0';
@@ -1610,9 +1610,9 @@ static int rtl8139_thread (void *data)
 		} while (!signal_pending (current) && (timeout > 0));
 
 		if (signal_pending (current)) {
-			spin_lock_irq(&current->sigmask_lock);
+			spin_lock_irq(&current->sighand->siglock);
 			flush_signals(current);
-			spin_unlock_irq(&current->sigmask_lock);
+			spin_unlock_irq(&current->sighand->siglock);
 		}
 
 		if (tp->time_to_die)

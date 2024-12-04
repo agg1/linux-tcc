@@ -379,11 +379,10 @@ extern unsigned long get_wchan(struct task_struct *p);
 
 /* Note: most of the infrastructure to separate stack and task_struct
    are already there. When you run out of stack try this first. */
-#define alloc_task_struct() \
-	((struct task_struct *) __get_free_pages(GFP_KERNEL,THREAD_ORDER))
-#define free_task_struct(p) free_pages((unsigned long) (p), 1)
-#define get_task_struct(tsk)      atomic_inc(&virt_to_page(tsk)->count)
 
+#define __alloc_task_struct() ((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
+#define  __free_task_struct(p) free_pages((unsigned long) (p), 1)
+  
 #define init_task	(init_task_union.task)
 #define init_stack	(init_task_union.stack)
 

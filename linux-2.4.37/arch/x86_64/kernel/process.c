@@ -705,14 +705,14 @@ void set_personality_64bit(void)
 
 asmlinkage long sys_fork(struct pt_regs regs)
 {
-	return do_fork(SIGCHLD, regs.rsp, &regs, 0);
+	return do_fork(SIGCHLD, regs.rsp, &regs, 0, NULL);
 }
 
 asmlinkage long sys_clone(unsigned long clone_flags, unsigned long newsp, struct pt_regs regs)
 {
 	if (!newsp)
 		newsp = regs.rsp;
-	return do_fork(clone_flags, newsp, &regs, 0);
+	return do_fork(clone_flags, newsp, &regs, 0, NULL);
 }
 
 /*
@@ -727,7 +727,7 @@ asmlinkage long sys_clone(unsigned long clone_flags, unsigned long newsp, struct
  */
 asmlinkage long sys_vfork(struct pt_regs regs)
 {
-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.rsp, &regs, 0);
+	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.rsp, &regs, 0, NULL);
 }
 
 /*

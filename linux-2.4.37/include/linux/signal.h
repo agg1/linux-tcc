@@ -220,6 +220,14 @@ static inline void init_sigpending(struct sigpending *sig)
 
 extern long do_sigpending(void *, unsigned long);
 
+#ifndef HAVE_ARCH_GET_SIGNAL_TO_DELIVER
+struct pt_regs;
+extern int get_signal_to_deliver(siginfo_t *info, struct pt_regs *regs);
+#endif
+
+struct task_struct;
+extern int group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p);
+
 #endif /* __KERNEL__ */
 
 #endif /* _LINUX_SIGNAL_H */

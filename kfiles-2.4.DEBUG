@@ -62,12 +62,14 @@ usr/src/linux/kernel/context.c
 usr/src/linux/kernel/dma.c
 usr/src/linux/kernel/exec_domain.c
 usr/src/linux/kernel/exit.c
+usr/src/linux/kernel/futex.c
 usr/src/linux/kernel/fork.c
 usr/src/linux/kernel/info.c
 usr/src/linux/kernel/itimer.c
 usr/src/linux/kernel/kmod.c
 usr/src/linux/kernel/module.c
 usr/src/linux/kernel/panic.c
+usr/src/linux/kernel/pid.c
 usr/src/linux/kernel/printk.c
 usr/src/linux/kernel/ptrace.c
 usr/src/linux/kernel/resource.c
@@ -107,6 +109,7 @@ usr/src/linux/mm/slab.c
 usr/src/linux/mm/swap.c
 usr/src/linux/mm/swap_state.c
 usr/src/linux/mm/swapfile.c
+usr/src/linux/mm/vcache.c
 usr/src/linux/mm/vmalloc.c
 usr/src/linux/mm/vmscan.c
 usr/src/linux/fs/attr.c

@@ -166,8 +166,7 @@ void cpqfcTSWorkerThread(void *host)
 	 */
 	exit_mm(current);
 
-	current->session = 1;
-	current->pgrp = 1;
+	set_special_pids(1, 1);
 
 	/* Become as one with the init task */
 

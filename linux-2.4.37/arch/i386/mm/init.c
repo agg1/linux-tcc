@@ -192,7 +192,7 @@ static void __init fixrange_init (unsigned long start, unsigned long end, pgd_t 
 		for (; (j < PTRS_PER_PMD) && (vaddr != end); pmd++, j++) {
 			if (pmd_none(*pmd)) {
 				pte = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
-				set_pmd(pmd, __pmd(_KERNPG_TABLE + __pa(pte)));
+				set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(pte)));
 				if (pte != pte_offset(pmd, 0))
 					BUG();
 			}

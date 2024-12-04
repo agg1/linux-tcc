@@ -497,9 +497,9 @@ exp_writelock(void)
 	want_lock--;
 
 	/* restore the task's signals */
-	spin_lock_irq(&current->sigmask_lock);
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
+	spin_lock_irq(&current->sighand->siglock);
+	recalc_sigpending();
+	spin_unlock_irq(&current->sighand->siglock);
 
 	if (!hash_count && !hash_lock)
 		goto lock_it;
