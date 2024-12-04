@@ -231,8 +231,14 @@ struct sec_size {
 
 extern struct sec_size * blk_sec[MAX_BLKDEV];
 extern struct blk_dev_struct blk_dev[MAX_BLKDEV];
+#ifdef __GENKSYMS__ /* preserve KMI/ABI ksyms compatibility for mod linkage */
 extern void grok_partitions(struct gendisk *dev, int drive, unsigned minors, long size);
 extern void register_disk(struct gendisk *dev, kdev_t first, unsigned minors, struct block_device_operations *ops, long size);
+#else
+extern void grok_partitions(struct gendisk *dev, int drive, unsigned minors, unsigned long size);
+extern void register_disk(struct gendisk *dev, kdev_t first, unsigned minors, struct block_device_operations *ops, unsigned long size);
+#endif /* __GENKSYMS__ */
+
 extern void generic_make_request(int rw, struct buffer_head * bh);
 extern request_queue_t *blk_get_queue(kdev_t dev);
 extern void blkdev_release_request(struct request *);

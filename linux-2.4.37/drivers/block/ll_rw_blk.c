@@ -1238,7 +1238,7 @@ void generic_make_request (int rw, struct buffer_head * bh)
 			   when mounting a device. */
 			printk(KERN_INFO
 			       "attempt to access beyond end of device\n");
-			printk(KERN_INFO "%s: rw=%d, want=%ld, limit=%d\n",
+			printk(KERN_INFO "%s: rw=%d, want=%lu, limit=%u\n",
 			       kdevname(bh->b_rdev), rw,
 			       (sector + count)>>1, minorsize);
 
@@ -1260,7 +1260,7 @@ void generic_make_request (int rw, struct buffer_head * bh)
 		if (!q) {
 			printk(KERN_ERR
 			       "generic_make_request: Trying to access "
-			       "nonexistent block-device %s (%ld)\n",
+			       "nonexistent block-device %s (%lu)\n",
 			       kdevname(bh->b_rdev), bh->b_rsector);
 			buffer_IO_error(bh);
 			break;
