@@ -1219,9 +1219,10 @@ int __init APIC_init_uniprocessor (void)
 	if (nmi_watchdog == NMI_LOCAL_APIC)
 		check_nmi_watchdog();
 #ifdef CONFIG_X86_IO_APIC
-	if (smp_found_config)
-		if (!skip_ioapic_setup && nr_ioapics)
-			setup_IO_APIC();
+	if (smp_found_config && !skip_ioapic_setup && nr_ioapics) {
+		setup_IO_APIC();
+	} else
+		nr_ioapics = 0;
 #endif
 	setup_APIC_clocks();
 

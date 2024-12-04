@@ -1194,8 +1194,10 @@ void __init smp_boot_cpus(void)
 	 * Here we can be sure that there is an IO-APIC in the system. Let's
 	 * go and set it up:
 	 */
-	if (!skip_ioapic_setup && nr_ioapics)
+	if (!skip_ioapic_setup && nr_ioapics) {
 		setup_IO_APIC();
+	} else
+		nr_ioapics = 0;
 #endif
 
 	/*
