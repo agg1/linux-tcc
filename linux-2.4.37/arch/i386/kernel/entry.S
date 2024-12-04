@@ -673,8 +673,8 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 265 sys_clock_gettime */
 	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_clock_getres */
 	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_clock_nanosleep */
-	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_statfs64 */
-	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_fstatfs64 */
+	.long SYMBOL_NAME(sys_statfs64)		/* sys_statfs64 */
+	.long SYMBOL_NAME(sys_statfs64)		/* sys_fstatfs64 */
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 270 */
 
 	.rept NR_syscalls-(.-sys_call_table)/4

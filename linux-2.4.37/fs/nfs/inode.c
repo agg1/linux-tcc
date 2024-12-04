@@ -52,6 +52,9 @@ static void nfs_put_super(struct super_block *);
 static void nfs_clear_inode(struct inode *);
 static void nfs_umount_begin(struct super_block *);
 static int  nfs_statfs(struct super_block *, struct statfs *);
+#ifdef __ARCH_HAS_STATFS64
+static int  nfs_statfs64(struct super_block *, struct statfs64 *);
+#endif
 static int  nfs_show_options(struct seq_file *, struct vfsmount *);
 
 static struct super_operations nfs_sops = { 
@@ -63,6 +66,9 @@ static struct super_operations nfs_sops = {
 	clear_inode:	nfs_clear_inode,
 	umount_begin:	nfs_umount_begin,
 	show_options:	nfs_show_options,
+#ifdef __ARCH_HAS_STATFS64
+	statfs64:	nfs_statfs64,
+#endif
 };
 
 /*
@@ -298,6 +304,9 @@ nfs_read_super(struct super_block *sb, void *raw_data, int silent)
 
 	sb->s_magic      = NFS_SUPER_MAGIC;
 	sb->s_op         = &nfs_sops;
+#ifdef __ARCH_HAS_STATFS64
+	sb->s_flags     |= MS_HAS_STATFS64;
+#endif
 	sb->s_blocksize_bits = 0;
 	sb->s_blocksize  = nfs_block_size(data->bsize, &sb->s_blocksize_bits);
 	server           = &sb->u.nfs_sb.s_server;
@@ -552,6 +561,41 @@ nfs_statfs(struct super_block *sb, struct statfs *buf)
 	buf->f_bsize = buf->f_blocks = buf->f_bfree = buf->f_bavail = -1;
 	return 0;
 }
+
+#ifdef __ARCH_HAS_STATFS64
+static int
+nfs_statfs64(struct super_block *sb, struct statfs64 *buf)
+{
+	struct nfs_server *server = &sb->u.nfs_sb.s_server;
+	unsigned char blockbits;
+	unsigned long blockres;
+	struct nfs_fattr attr;
+	struct nfs_fsstat res = { &attr, };
+	int error;
+
+	error = server->rpc_ops->statfs(server, NFS_FH(sb->s_root->d_inode), &res);
+	buf->f_type = NFS_SUPER_MAGIC;
+	if (error < 0) {
+		printk("nfs_statfs64: statfs error = %d\n", -error);
+		goto out_err;
+	}
+
+	buf->f_bsize = sb->s_blocksize;
+	blockbits = sb->s_blocksize_bits;
+	blockres = (1 << blockbits) - 1;
+	buf->f_namelen = server->namelen;
+	buf->f_blocks = (res.tbytes + blockres) >> blockbits;
+	buf->f_bfree = (res.fbytes + blockres) >> blockbits;
+	buf->f_bavail = (res.abytes + blockres) >> blockbits;
+	buf->f_files = res.tfiles;
+	buf->f_ffree = res.afiles;
+	return 0;
+
+ out_err:
+	buf->f_bsize = buf->f_blocks = buf->f_bfree = buf->f_bavail = -1;
+	return 0;
+}
+#endif
 
 static int nfs_show_options(struct seq_file *m, struct vfsmount *mnt)
 {

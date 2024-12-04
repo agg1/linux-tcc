@@ -111,6 +111,7 @@ extern int leases_enable, dir_notify_enable, lease_break_time;
 #define MS_MOVE		8192
 #define MS_REC		16384
 #define MS_VERBOSE	32768
+#define MS_HAS_STATFS64	(1<<28)
 #define MS_ACTIVE	(1<<30)
 #define MS_NOUSER	(1<<31)
 
@@ -967,6 +968,11 @@ struct super_operations {
 	struct dentry * (*fh_to_dentry)(struct super_block *sb, __u32 *fh, int len, int fhtype, int parent);
 	int (*dentry_to_fh)(struct dentry *, __u32 *fh, int *lenp, int need_parent);
 	int (*show_options)(struct seq_file *, struct vfsmount *);
+#ifdef __ARCH_HAS_STATFS64
+#ifndef __GENKSYMS__ /* preserve KMI/ABI ksyms compatibility for mod linkage */
+	int (*statfs64)(struct super_block *, struct statfs64 *);
+#endif
+#endif
 };
 
 /* Inode state bits.. */
