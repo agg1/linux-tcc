@@ -930,6 +930,7 @@ void __init free_area_init_core(int nid, pg_data_t *pgdat, struct page **gmap,
 			 */
 			bitmap_size = (size-1) >> (i+4);
 			bitmap_size = LONG_ALIGN(bitmap_size+1);
+			bitmap_size *= 2;
 			zone->free_area[i].map = 
 			  (unsigned long *) alloc_bootmem_node(pgdat, bitmap_size);
 		}
