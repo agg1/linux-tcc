@@ -1,12 +1,6 @@
 #usr/src/linux/fs/devpts/root.c
 #usr/src/linux/fs/devpts/inode.c
 
-# ahci locks the system during boot within virtualbox
-# maybe it's related to flawed rwlock.h patch which probably cause trouble with smp too
-# keep it disabled and systems should configure their SATA controller to legacy-IDE mode
-# furthermore USB support is available for disk storage and cdrom
-#usr/src/linux/drivers/scsi/ahci.c
-
 # separately pre-processed
 #usr/src/linux/arch/i386/kernel/trampoline.S
 
@@ -48,25 +42,20 @@ usr/src/linux/arch/i386/kernel/sys_i386.c
 usr/src/linux/arch/i386/kernel/time.c
 usr/src/linux/arch/i386/kernel/traps.c
 usr/src/linux/arch/i386/kernel/vm86.c
-
 usr/src/linux/arch/i386/lib/delay.c
 usr/src/linux/arch/i386/lib/memcpy.c
 usr/src/linux/arch/i386/lib/old-checksum.c
 usr/src/linux/arch/i386/lib/strstr.c
 usr/src/linux/arch/i386/lib/usercopy.c
-
 usr/src/linux/arch/i386/mm/extable.c
 usr/src/linux/arch/i386/mm/fault.c
 usr/src/linux/arch/i386/mm/init.c
 usr/src/linux/arch/i386/mm/ioremap.c
 usr/src/linux/arch/i386/mm/pageattr.c
-
 usr/src/linux/init/do_mounts.c
 usr/src/linux/init/main.c
 usr/src/linux/init/version.c
-
 usr/src/linux/ipc/util.c
-
 usr/src/linux/kernel/acct.c
 usr/src/linux/kernel/capability.c
 usr/src/linux/kernel/context.c
@@ -91,7 +80,6 @@ usr/src/linux/kernel/time.c
 usr/src/linux/kernel/timer.c
 usr/src/linux/kernel/uid16.c
 usr/src/linux/kernel/user.c
-
 usr/src/linux/lib/brlock.c
 usr/src/linux/lib/cmdline.c
 usr/src/linux/lib/crc32.c
@@ -102,7 +90,6 @@ usr/src/linux/lib/rbtree.c
 usr/src/linux/lib/rwsem.c
 usr/src/linux/lib/string.c
 usr/src/linux/lib/vsprintf.c
-
 usr/src/linux/mm/bootmem.c
 usr/src/linux/mm/filemap.c
 usr/src/linux/mm/highmem.c
@@ -122,7 +109,6 @@ usr/src/linux/mm/swap_state.c
 usr/src/linux/mm/swapfile.c
 usr/src/linux/mm/vmalloc.c
 usr/src/linux/mm/vmscan.c
-
 usr/src/linux/fs/attr.c
 usr/src/linux/fs/bad_inode.c
 usr/src/linux/fs/binfmt_elf.c
@@ -212,9 +198,7 @@ usr/src/linux/lib/zlib_inflate/infutil.c
 usr/src/linux/lib/zlib_deflate/deflate.c
 usr/src/linux/lib/zlib_deflate/deflate_syms.c
 usr/src/linux/lib/zlib_deflate/deftree.c
-
 usr/src/linux/drivers/acpi/tables.c
-
 usr/src/linux/drivers/block/blkpg.c
 usr/src/linux/drivers/block/elevator.c
 usr/src/linux/drivers/block/floppy.c
@@ -222,16 +206,13 @@ usr/src/linux/drivers/block/genhd.c
 usr/src/linux/drivers/block/ll_rw_blk.c
 usr/src/linux/drivers/block/loop.c
 usr/src/linux/drivers/block/rd.c
-
 usr/src/linux/drivers/block/paride/paride.c
 usr/src/linux/drivers/block/paride/pcd.c
 usr/src/linux/drivers/block/paride/pd.c
 usr/src/linux/drivers/block/paride/pf.c
 usr/src/linux/drivers/block/paride/pg.c
 usr/src/linux/drivers/block/paride/pt.c
-
 usr/src/linux/drivers/cdrom/cdrom.c
-
 usr/src/linux/drivers/char/console.c
 usr/src/linux/drivers/char/consolemap.c
 usr/src/linux/drivers/char/consolemap_deftbl.c
@@ -252,7 +233,6 @@ usr/src/linux/drivers/char/tty_io.c
 usr/src/linux/drivers/char/tty_ioctl.c
 usr/src/linux/drivers/char/vc_screen.c
 usr/src/linux/drivers/char/vt.c
-
 usr/src/linux/drivers/ide/ide-cd.c
 usr/src/linux/drivers/ide/ide-default.c
 usr/src/linux/drivers/ide/ide-disk.c
@@ -269,14 +249,11 @@ usr/src/linux/drivers/ide/ide.c
 usr/src/linux/drivers/ide/setup-pci.c
 usr/src/linux/drivers/ide/ide-floppy.c
 usr/src/linux/drivers/ide/ide-tape.c
-
 usr/src/linux/drivers/input/input.c
 usr/src/linux/drivers/input/joydev.c
 usr/src/linux/drivers/input/keybdev.c
 usr/src/linux/drivers/input/mousedev.c
-
 usr/src/linux/drivers/media/video/videodev.c
-
 usr/src/linux/drivers/net/Space.c
 usr/src/linux/drivers/net/auto_irq.c
 usr/src/linux/drivers/net/bsd_comp.c
@@ -299,13 +276,11 @@ usr/src/linux/drivers/net/slhc.c
 usr/src/linux/drivers/net/slip.c
 usr/src/linux/drivers/net/tun.c
 usr/src/linux/drivers/net/r8169.c
-
 usr/src/linux/drivers/net/e1000/e1000_ethtool.c
 usr/src/linux/drivers/net/e1000/e1000_hw.c
 usr/src/linux/drivers/net/e1000/e1000_main.c
 usr/src/linux/drivers/net/e1000/e1000_param.c
 usr/src/linux/drivers/net/e1000/kcompat.c
-
 usr/src/linux/drivers/net/hamradio/hdlcdrv.c
 usr/src/linux/drivers/net/hamradio/soundmodem/sm.c
 usr/src/linux/drivers/net/hamradio/soundmodem/sm_sbc.c
@@ -316,7 +291,6 @@ usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2666.c
 usr/src/linux/drivers/net/hamradio/soundmodem/sm_fsk9600.c
 usr/src/linux/drivers/net/hamradio/soundmodem/sm_hapn4800.c
 usr/src/linux/drivers/net/hamradio/soundmodem/sm_psk4800.c
-
 usr/src/linux/drivers/parport/daisy.c
 usr/src/linux/drivers/parport/ieee1284.c
 usr/src/linux/drivers/parport/ieee1284_ops.c
@@ -325,14 +299,12 @@ usr/src/linux/drivers/parport/parport_pc.c
 usr/src/linux/drivers/parport/probe.c
 usr/src/linux/drivers/parport/procfs.c
 usr/src/linux/drivers/parport/share.c
-
 usr/src/linux/drivers/pci/compat.c
 usr/src/linux/drivers/pci/names.c
 usr/src/linux/drivers/pci/pci.c
 usr/src/linux/drivers/pci/proc.c
 usr/src/linux/drivers/pci/quirks.c
 usr/src/linux/drivers/pci/setup-res.c
-
 usr/src/linux/drivers/scsi/constants.c
 usr/src/linux/drivers/scsi/hosts.c
 usr/src/linux/drivers/scsi/ide-scsi.c
@@ -355,7 +327,6 @@ usr/src/linux/drivers/scsi/sg.c
 usr/src/linux/drivers/scsi/sr.c
 usr/src/linux/drivers/scsi/sr_ioctl.c
 usr/src/linux/drivers/scsi/sr_vendor.c
-
 usr/src/linux/drivers/usb/usb.c
 usr/src/linux/drivers/usb/hcd.c
 usr/src/linux/drivers/usb/hub.c
@@ -376,16 +347,11 @@ usr/src/linux/drivers/usb/storage/usb.c
 usr/src/linux/drivers/usb/host/ehci-hcd.c
 usr/src/linux/drivers/usb/host/usb-ohci.c
 usr/src/linux/drivers/usb/host/usb-uhci.c
-
-usr/src/linux/drivers/scsi/libata-scsi.c
-usr/src/linux/drivers/scsi/ata_piix.c
-
 usr/src/linux/drivers/bluetooth/hci_bcsp.c
 usr/src/linux/drivers/bluetooth/hci_h4.c
 usr/src/linux/drivers/bluetooth/hci_ldisc.c
 usr/src/linux/drivers/bluetooth/hci_usb.c
 usr/src/linux/drivers/bluetooth/hci_vhci.c
-
 usr/src/linux/drivers/sound/audio.c
 usr/src/linux/drivers/sound/audio_syms.c
 usr/src/linux/drivers/sound/dev_table.c
@@ -400,7 +366,6 @@ usr/src/linux/drivers/sound/sound_syms.c
 usr/src/linux/drivers/sound/sound_timer.c
 usr/src/linux/drivers/sound/soundcard.c
 usr/src/linux/drivers/sound/sys_timer.c
-
 usr/src/linux/drivers/video/dummycon.c
 usr/src/linux/drivers/video/fbcmap.c
 usr/src/linux/drivers/video/fbcon-cfb16.c
@@ -415,10 +380,8 @@ usr/src/linux/drivers/video/fonts.c
 usr/src/linux/drivers/video/modedb.c
 usr/src/linux/drivers/video/vesafb.c
 usr/src/linux/drivers/video/vgacon.c
-
 usr/src/linux/net/socket.c
 usr/src/linux/net/sysctl_net.c
-
 usr/src/linux/net/atm/addr.c
 usr/src/linux/net/atm/atm_misc.c
 usr/src/linux/net/atm/br2684.c
@@ -438,10 +401,8 @@ usr/src/linux/net/atm/signaling.c
 usr/src/linux/net/atm/svc.c
 usr/src/linux/net/sched/sch_atm.c
 usr/src/linux/drivers/atm/atmdev_init.c
-
 usr/src/linux/net/802/p8023.c
 usr/src/linux/net/802/sysctl_net_802.c
-
 usr/src/linux/net/ax25/af_ax25.c
 usr/src/linux/net/ax25/ax25_addr.c
 usr/src/linux/net/ax25/ax25_dev.c
@@ -460,7 +421,6 @@ usr/src/linux/net/ax25/ax25_subr.c
 usr/src/linux/net/ax25/ax25_timer.c
 usr/src/linux/net/ax25/ax25_uid.c
 usr/src/linux/net/ax25/sysctl_net_ax25.c
-
 usr/src/linux/net/bluetooth/af_bluetooth.c
 usr/src/linux/net/bluetooth/bnep/core.c
 usr/src/linux/net/bluetooth/bnep/netdev.c
@@ -477,7 +437,6 @@ usr/src/linux/net/bluetooth/rfcomm/sock.c
 usr/src/linux/net/bluetooth/rfcomm/tty.c
 usr/src/linux/net/bluetooth/sco.c
 usr/src/linux/net/bluetooth/syms.c
-
 usr/src/linux/net/bridge/br.c
 usr/src/linux/net/bridge/br_device.c
 usr/src/linux/net/bridge/br_fdb.c
@@ -493,7 +452,6 @@ usr/src/linux/net/bridge/br_stp_timer.c
 usr/src/linux/net/8021q/vlan.c
 usr/src/linux/net/8021q/vlan_dev.c
 usr/src/linux/net/8021q/vlanproc.c
-
 usr/src/linux/net/core/datagram.c
 usr/src/linux/net/core/dev.c
 usr/src/linux/net/core/dev_mcast.c
@@ -510,10 +468,8 @@ usr/src/linux/net/core/skbuff.c
 usr/src/linux/net/core/sock.c
 usr/src/linux/net/core/sysctl_net_core.c
 usr/src/linux/net/core/utils.c
-
 usr/src/linux/net/ethernet/eth.c
 usr/src/linux/net/ethernet/sysctl_net_ether.c
-
 usr/src/linux/drivers/net/irda/irtty.c
 usr/src/linux/net/irda/af_irda.c
 usr/src/linux/net/irda/crc.c
@@ -555,7 +511,6 @@ usr/src/linux/net/irda/irlan/irlan_provider.c
 usr/src/linux/net/irda/irlan/irlan_provider_event.c
 usr/src/linux/net/irda/irnet/irnet_irda.c
 usr/src/linux/net/irda/irnet/irnet_ppp.c
-
 usr/src/linux/net/ipv4/af_inet.c
 usr/src/linux/net/ipv4/arp.c
 usr/src/linux/net/ipv4/devinet.c
@@ -592,7 +547,6 @@ usr/src/linux/net/ipv4/tcp_output.c
 usr/src/linux/net/ipv4/tcp_timer.c
 usr/src/linux/net/ipv4/udp.c
 usr/src/linux/net/ipv4/utils.c
-
 usr/src/linux/net/ipv4/netfilter/arp_tables.c
 usr/src/linux/net/ipv4/netfilter/arpt_mangle.c
 usr/src/linux/net/ipv4/netfilter/arptable_filter.c
@@ -652,7 +606,6 @@ usr/src/linux/net/ipv4/netfilter/ipt_ttl.c
 usr/src/linux/net/ipv4/netfilter/ipt_unclean.c
 usr/src/linux/net/ipv4/netfilter/iptable_filter.c
 usr/src/linux/net/ipv4/netfilter/iptable_mangle.c
-
 usr/src/linux/net/ipv4/ipvs/ip_vs_app.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_conn.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_core.c 
@@ -671,7 +624,6 @@ usr/src/linux/net/ipv4/ipvs/ip_vs_sh.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_sync.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_wlc.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_wrr.c
-
 usr/src/linux/net/khttpd/accept.c
 usr/src/linux/net/khttpd/datasending.c
 usr/src/linux/net/khttpd/logging.c
@@ -684,9 +636,7 @@ usr/src/linux/net/khttpd/sockets.c
 usr/src/linux/net/khttpd/sysctl.c
 usr/src/linux/net/khttpd/userspace.c
 usr/src/linux/net/khttpd/waitheaders.c
-
 usr/src/linux/net/netlink/af_netlink.c
-
 usr/src/linux/net/netrom/af_netrom.c
 usr/src/linux/net/netrom/nr_dev.c
 usr/src/linux/net/netrom/nr_in.c
@@ -696,7 +646,6 @@ usr/src/linux/net/netrom/nr_route.c
 usr/src/linux/net/netrom/nr_subr.c
 usr/src/linux/net/netrom/nr_timer.c
 usr/src/linux/net/netrom/sysctl_net_netrom.c
-
 usr/src/linux/net/rose/af_rose.c
 usr/src/linux/net/rose/rose_dev.c
 usr/src/linux/net/rose/rose_in.c
@@ -707,7 +656,6 @@ usr/src/linux/net/rose/rose_route.c
 usr/src/linux/net/rose/rose_subr.c
 usr/src/linux/net/rose/rose_timer.c
 usr/src/linux/net/rose/sysctl_net_rose.c
-
 usr/src/linux/net/sched/cls_api.c
 usr/src/linux/net/sched/cls_fw.c
 usr/src/linux/net/sched/cls_route.c
@@ -732,13 +680,10 @@ usr/src/linux/net/sched/sch_red.c
 usr/src/linux/net/sched/sch_sfq.c
 usr/src/linux/net/sched/sch_tbf.c
 usr/src/linux/net/sched/sch_teql.c
-
 usr/src/linux/net/packet/af_packet.c
-
 usr/src/linux/net/unix/af_unix.c
 usr/src/linux/net/unix/garbage.c
 usr/src/linux/net/unix/sysctl_net_unix.c
-
 usr/src/linux/net/lapb/lapb_iface.c
 usr/src/linux/net/lapb/lapb_in.c
 usr/src/linux/net/lapb/lapb_out.c
@@ -756,7 +701,6 @@ usr/src/linux/net/x25/x25_subr.c
 usr/src/linux/net/x25/x25_timer.c
 usr/src/linux/net/wanrouter/wanmain.c
 usr/src/linux/net/wanrouter/wanproc.c
-
 usr/src/linux/arch/i386/lib/dummy_syms.c
 usr/src/linux/tcc/kend.S
 "

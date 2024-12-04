@@ -95,7 +95,7 @@ static DECLARE_WAIT_QUEUE_HEAD(unix_gc_wait);
 atomic_t unix_tot_inflight = ATOMIC_INIT(0);
 
 
-extern inline unix_socket *unix_get_socket(struct file *filp)
+static inline unix_socket *unix_get_socket(struct file *filp)
 {
 	unix_socket * u_sock = NULL;
 	struct inode *inode = filp->f_dentry->d_inode;
@@ -144,19 +144,19 @@ void unix_notinflight(struct file *fp)
  *	Garbage Collector Support Functions
  */
 
-extern inline unix_socket *pop_stack(void)
+static inline unix_socket *pop_stack(void)
 {
 	unix_socket *p=gc_current;
 	gc_current = p->protinfo.af_unix.gc_tree;
 	return p;
 }
 
-extern inline int empty_stack(void)
+static inline int empty_stack(void)
 {
 	return gc_current == GC_HEAD;
 }
 
-extern inline void maybe_unmark_and_push(unix_socket *x)
+static inline void maybe_unmark_and_push(unix_socket *x)
 {
 	if (x->protinfo.af_unix.gc_tree != GC_ORPHAN)
 		return;

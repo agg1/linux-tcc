@@ -361,7 +361,7 @@ void sm_output_status(struct sm_state *sm);
 
 /* --------------------------------------------------------------------- */
 
-extern void inline sm_int_freq(struct sm_state *sm)
+static inline void sm_int_freq(struct sm_state *sm)
 {
 #ifdef SM_DEBUG
 	unsigned long cur_jiffies = jiffies;

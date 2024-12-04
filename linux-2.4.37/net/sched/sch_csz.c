@@ -318,7 +318,7 @@ extern __inline__ void csz_insert_finish(struct csz_head *b,
 }
 #else
 /* Scan backward */
-extern __inline__ void csz_insert_finish(struct csz_head *b,
+static __inline__ void csz_insert_finish(struct csz_head *b,
 					 struct csz_flow *this)
 {
 	struct csz_head *f = b->fprev;
@@ -339,7 +339,7 @@ extern __inline__ void csz_insert_finish(struct csz_head *b,
    flow with greater start number.
  */
 
-extern __inline__ void csz_insert_start(struct csz_head *b,
+static __inline__ void csz_insert_start(struct csz_head *b,
 					struct csz_flow *this)
 {
 	struct csz_head *f = b->snext;

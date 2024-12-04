@@ -768,7 +768,7 @@ static __inline__ int ip_vs_todrop(void)
  */
 #define IP_VS_FWD_METHOD(cp)  (cp->flags & IP_VS_CONN_F_FWD_MASK)
 
-extern __inline__ char ip_vs_fwd_tag(struct ip_vs_conn *cp)
+static __inline__ char ip_vs_fwd_tag(struct ip_vs_conn *cp)
 {
 	char fwd;
 
@@ -793,7 +793,7 @@ extern __inline__ char ip_vs_fwd_tag(struct ip_vs_conn *cp)
 /*
  *	transport layer header checking
  */
-extern inline int ip_vs_header_check(struct sk_buff *skb, int proto, int ihl)
+static inline int ip_vs_header_check(struct sk_buff *skb, int proto, int ihl)
 {
 	int len;
 

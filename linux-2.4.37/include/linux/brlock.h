@@ -51,7 +51,11 @@ struct br_wrlock {
 
 extern struct br_wrlock __br_write_locks[__BR_IDX_MAX];
 
+#if __GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 2
+static void __br_lock_usage_bug (void) {}
+#else
 extern void __br_lock_usage_bug (void);
+#endif
 
 static inline void br_read_lock (enum brlock_indices idx)
 {

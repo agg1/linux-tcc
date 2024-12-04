@@ -6,7 +6,7 @@
 #include <asm/page.h>
 #include <linux/config.h>
 
-extern int printk(const char * fmt, ...)
+asmlinkage extern int printk(const char * fmt, ...)
 	__attribute__ ((format (printf, 1, 2)));
 
 /* It seems that people are forgetting to

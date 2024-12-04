@@ -107,7 +107,12 @@ extern void __set_fixmap (enum fixed_addresses idx,
 
 #define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
 
+
+#if __GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 2
+static void __this_fixmap_does_not_exist(void) {}
+#else
 extern void __this_fixmap_does_not_exist(void);
+#endif
 
 /*
  * 'index to address' translation. If anyone tries to use the idx

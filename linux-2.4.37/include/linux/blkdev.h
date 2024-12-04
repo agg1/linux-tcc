@@ -163,7 +163,7 @@ struct request_queue
 #define blk_fs_request(rq)	((rq)->cmd == READ || (rq)->cmd == WRITE)
 #define blk_queue_empty(q)	list_empty(&(q)->queue_head)
 
-extern inline int rq_data_dir(struct request *rq)
+static inline int rq_data_dir(struct request *rq)
 {
 	if (rq->cmd == READ)
 		return READ;
@@ -184,7 +184,7 @@ extern void blk_queue_bounce_limit(request_queue_t *, u64);
 
 #ifdef CONFIG_HIGHMEM
 extern struct buffer_head *create_bounce(int, struct buffer_head *);
-extern inline struct buffer_head *blk_queue_bounce(request_queue_t *q, int rw,
+static inline struct buffer_head *blk_queue_bounce(request_queue_t *q, int rw,
 						   struct buffer_head *bh)
 {
 	struct page *page = bh->b_page;

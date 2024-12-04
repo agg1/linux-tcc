@@ -373,7 +373,7 @@ out:
 	return fd;
 }
 
-extern __inline__ struct socket *socki_lookup(struct inode *inode)
+static __inline__ struct socket *socki_lookup(struct inode *inode)
 {
 	return &inode->u.socket_i;
 }
@@ -418,7 +418,7 @@ struct socket *sockfd_lookup(int fd, int *err)
 	return sock;
 }
 
-extern __inline__ void sockfd_put(struct socket *sock)
+static __inline__ void sockfd_put(struct socket *sock)
 {
 	fput(sock->file);
 }

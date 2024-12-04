@@ -699,7 +699,7 @@ void dev_load(const char *name)
 
 #else
 
-extern inline void dev_load(const char *unused){;}
+static inline void dev_load(const char *unused){;}
 
 #endif
 

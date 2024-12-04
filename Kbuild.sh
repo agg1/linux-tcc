@@ -78,7 +78,7 @@ compile_kernel() {
 		*)
 			$CC -c \
 			-o temp/$i.o \
-			-fno-common -fgnu89-inline -nostdinc -nostdlib \
+			-fno-common -nostdinc -nostdlib \
 			-I$KDIR/include \
 			-D__KERNEL__ -D__OPTIMIZE__ \
 			$i 2>&1 | tee -a LOG
@@ -89,8 +89,8 @@ compile_kernel() {
 	done
 }
 
-link_kernel_tcc() {
-	echo "### link_kernel_tcc" | tee -a LOG
+link_kernel() {
+	echo "### link_kernel" | tee -a LOG
 
 	$LD \
 	-o btmp/vmlinux \
@@ -99,45 +99,30 @@ link_kernel_tcc() {
 	$CCLIB 2>&1 | tee -a LOG
 }
 
-compilelink_kernel_tcc() {
-	echo "### compilelink_kernel_tcc" | tee -a LOG
+compilelink_kernel() {
+	echo "### compilelink_kernel" | tee -a LOG
 	rm -f vmlinux
 
 	$CC \
 	-o btmp/vmlinux \
-	-fno-common -fgnu89-inline -nostdinc -nostdlib -static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary  \
+	-fno-common -nostdinc -nostdlib -static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary  \
 	-I$KDIR/include \
 	-D__KERNEL__ -D__OPTIMIZE__ \
 	$FILE_LIST \
 	$CCLIB 2>&1 | tee -a LOG
 }
 
-#link_kernel_gcc() {
-#	echo "### link_kernel_gcc" | tee -a LOG
-#
-#	$LD \
-#	-o btmp/vmlinux \
-#	-nostdlib -nodefaultlibs -nostartfiles \
-#	-static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary \
-#	-e startup_32 -Tstandalone/vmlinux.lds \
-#	$FILE_LIST_o \
-#	$CCLIB 2>&1 | tee -a LOG
-#}
-#
-#compilelink_kernel_gcc() {
-#	echo "### compilelink_kernel_gcc" | tee -a LOG
-#	rm -f vmlinux
-#
-#	$CC \
-#	-o btmp/vmlinux \
-#	-fno-common -fgnu89-inline -nostdinc -nostdlib -nodefaultlibs -nostartfiles \
-#	-static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary  \
-#	-e startup_32 -Tstandalone/vmlinux.lds \
-#	-I$KDIR/include \
-#	-D__KERNEL__ -D__OPTIMIZE__ \
-#	$FILE_LIST \
-#	$CCLIB 2>&1 | tee -a LOG
-#}
+link_kernel_gcc() {
+	echo "### link_kernel_gcc" | tee -a LOG
+
+	$LD \
+	-o btmp/vmlinux \
+	-nostdlib -nodefaultlibs -nostartfiles \
+	-static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary \
+	-e startup_32 -Tusr/src/linux/arch/i386/vmlinux.lds \
+	$FILE_LIST_o \
+	$CCLIB 2>&1 | tee -a LOG
+}
 
 
 create_iso() {
@@ -151,15 +136,15 @@ prompt 1
 
 label linux-smp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd.ext2 root=/dev/ram ramdisk_size=32768
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE}
 
 label linux-nosmp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd.ext2 root=/dev/ram ramdisk_size=32768 nosmp
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE} nosmp
 
 label linux-debug
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd.ext2 root=/dev/ram ramdisk_size=32768 console=ttyS0,9600 console=tty0 nosmp debug
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE} console=ttyS0,9600 console=tty0 nosmp debug
 " > isoroot/isolinux/isolinux.cfg
 
 #label tccboot
@@ -168,7 +153,7 @@ label linux-debug
 
 
 	cp /usr/share/syslinux/isolinux.bin isoroot/isolinux/
-	cp ../initrd.ext2 isoroot/boot
+	cp ${INITRD} isoroot/boot/initrd
 
 	cd $CWD/btmp
 	#./build -b ./bootsect ./setup vmlinux CURRENT >../isoroot/boot/linux
@@ -194,60 +179,67 @@ FILE_LIST_o=""
 # just create a symlink to appropriate kernel sources and leave it as is
 KDIR="usr/src/linux"
 
+
+### keep tcc for prepare_loader
 ## ? -fasynchronous-unwind-tables
 ## ? -D__STRICT_ANSI__ see in types.h
 HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
+#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline "
 CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 #REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 # 16bit x86 real-mode assembler support
 REALAS="i486-gentoo-linux-musl-as"
-## quickly bisecting tcc versions
-#CC="/media/CACHE/TCC/tinycc-master.git/tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#LD="/media/CACHE/TCC/tinycc-master.git/tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#AS="/media/CACHE/TCC/tinycc-master.git/tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
+
+
 
 ### OK; tiny config does not have ext2fs, use romfs then
 #KCONF=kconfig-i486-2.4.37.11.TINY
 #. ./kfiles-2.4.TINY
-#
+
 ### OK; small config from original bellard tccboot.iso
 #KCONF=kconfig-i486-2.4.37.11.SMALL
 #. ./kfiles-2.4.SMALL
 
 ### partial, with broken math-emu softfloat, needs additional patchset, tested and booting
-#KCONF=kconfig-i486-2.4.37.11.ALL
-#. ./kfiles-2.4.ALL
+##KCONF=kconfig-i486-2.4.37.11.ALL
+##. ./kfiles-2.4.ALL
 
 ### reasonably complete configuration including ioapic,usb,smp,squashfs with sufficient test coverage
 KCONF=kconfig-i486-2.4.37.11.DEBUG
 . ./kfiles-2.4.DEBUG
 
+
+# ext2, romfs, squashfs v1/v2 rootfs
+INITRD="/media/CACHE/TCC/initrd-test.ext2"
+INITRD_SIZE=$(du -B1024 ${INITRD} | cut -d'/' -f1)
+
+
 #
 prepare_config
 prepare_loader
 
+
+### tcc
 # ensure tcc does not include nor link anything unknown into; tcc needs patches
 export TCC_LIBRARY_PATH="/dev/null"
 export TCC_CPATH="/dev/null"
 ## some missing functions from libtcc can be added to dummy_syms.c
 ## Freeing initrd memory PANIC -> libtcc1 linked against kernel needed for unknown reason
-##CCLIB=""
-CCLIB="/usr/lib/tcc/i386-libtcc1.a"
+CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
 
-##compile_kernel ; link_kernel_tcc
-compilelink_kernel_tcc
 
-### gcc-4.7 needs additional kernel patches which might conflict with side-effects against tcc test cases; tested and booted
+### gcc-4.4.7
 #CCLIB=""
-#CC="i486-gentoo-linux-musl-gcc -march=i486 -fno-common -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2"
+#CC="i486-gentoo-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2"
 #LD="i486-gentoo-linux-musl-gcc"
 #AS="i486-gentoo-linux-musl-as"
-###
-###compile_kernel ; link_kernel_gcc
-#compilelink_kernel_gcc
+### gcc nees vmlinux.lds linker script to apply appropriate section layout
+#compile_kernel ; link_kernel_gcc
 
+
+###
 create_iso
 
 echo 'sg lanout -c "ncftpput 172.16.2.3 / tccboot.iso"'

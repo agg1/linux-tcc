@@ -2975,14 +2975,14 @@ static __inline__ int tcp_fast_parse_options(struct sk_buff *skb, struct tcphdr 
 	return 1;
 }
 
-extern __inline__ void
+static __inline__ void
 tcp_store_ts_recent(struct tcp_opt *tp)
 {
 	tp->ts_recent = tp->rcv_tsval;
 	tp->ts_recent_stamp = xtime.tv_sec;
 }
 
-extern __inline__ void
+static __inline__ void
 tcp_replace_ts_recent(struct tcp_opt *tp, u32 seq)
 {
 	if (tp->saw_tstamp && !after(seq, tp->rcv_wup)) {
@@ -3041,7 +3041,7 @@ static int tcp_disordered_ack(struct tcp_opt *tp, struct sk_buff *skb)
 		(s32)(tp->ts_recent - tp->rcv_tsval) <= (tp->rto*1024)/HZ);
 }
 
-extern __inline__ int tcp_paws_discard(struct tcp_opt *tp, struct sk_buff *skb)
+static __inline__ int tcp_paws_discard(struct tcp_opt *tp, struct sk_buff *skb)
 {
 	return ((s32)(tp->ts_recent - tp->rcv_tsval) > TCP_PAWS_WINDOW &&
 		xtime.tv_sec < tp->ts_recent_stamp + TCP_PAWS_24DAYS &&

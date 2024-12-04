@@ -421,7 +421,7 @@ static void exit_notify(void)
 	write_unlock_irq(&tasklist_lock);
 }
 
-NORET_TYPE void do_exit(long code)
+asmlinkage NORET_TYPE void do_exit(long code)
 {
 	struct task_struct *tsk = current;
 
