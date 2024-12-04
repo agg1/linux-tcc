@@ -343,7 +343,7 @@ static struct dentry * real_lookup(struct dentry * parent, struct qstr * name, i
 static inline int do_follow_link(struct dentry *dentry, struct nameidata *nd)
 {
 	int err;
-	if (current->link_count >= 5)
+	if (current->link_count >= 8)
 		goto loop;
 	if (current->total_link_count >= 40)
 		goto loop;
