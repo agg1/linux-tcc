@@ -833,7 +833,7 @@ int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			err = get_user(pid, (int *) arg);
 			if (err)
 				return err; 
-			if (current->pid != pid && current->pgrp != -pid && 
+			if (current->tgid != pid && current->pgrp != -pid &&
 			    !capable(CAP_NET_ADMIN))
 				return -EPERM;
 			sk->proc = pid;

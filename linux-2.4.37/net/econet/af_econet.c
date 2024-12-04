@@ -654,7 +654,7 @@ static int econet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg
 		case SIOCSPGRP:
 			if (get_user(pid, (int *) arg))
 				return -EFAULT; 
-			if (current->pid != pid && current->pgrp != -pid && !capable(CAP_NET_ADMIN))
+			if (current->tgid != pid && current->pgrp != -pid && !capable(CAP_NET_ADMIN))
 				return -EPERM;
 			sk->proc = pid;
 			return(0);
