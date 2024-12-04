@@ -465,6 +465,9 @@ if [ "$CONFIG_VT" = "y" ]; then
    comment 'Console drivers'
    bool 'VGA text console' CONFIG_VGA_CONSOLE
    bool 'Video mode selection support' CONFIG_VIDEO_SELECT
+   if [ "$CONFIG_VIDEO_SELECT" = "y" ]; then
+      bool 'Ignore bad video mode selections' CONFIG_VIDEO_IGNORE_BAD_MODE
+   fi
    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
       tristate 'MDA text console (dual-headed) (EXPERIMENTAL)' CONFIG_MDA_CONSOLE
       source drivers/video/Config.in
