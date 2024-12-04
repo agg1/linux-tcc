@@ -1099,16 +1099,28 @@ static int notesize(struct memelfnote *en)
 static void dump_regs(const char *str, elf_gregset_t *r)
 {
 	int i;
+#ifdef __x86_64__
+	static const char *regs[] = { "r15", "r14", "r13", "r12", "rbp", "rbx",
+				      "r11", "r10", "r9", "r8", "rax", "rcx",
+				      "rdx", "rsi", "rdi", "orig_rax",
+				      "rip", "cs", "eflags", "rsp", "ss",
+				      "fs.b", "gs.b", "ds", "es", "fs", "gs" };
+#else
 	static const char *regs[] = { "ebx", "ecx", "edx", "esi", "edi", "ebp",
 					      "eax", "ds", "es", "fs", "gs",
 					      "orig_eax", "eip", "cs",
 					      "efl", "uesp", "ss"};
+#endif
 	printk("Registers: %s\n", str);
 
 	for(i = 0; i < ELF_NGREG; i++)
 	{
 		unsigned long val = r[i];
+#ifdef __x86_64__
+		printk("   %-2d %-5s=0x%016lx %lu\n", i, regs[i], val, val);
+#else
 		printk("   %-2d %-5s=%08lx %lu\n", i, regs[i], val, val);
+#endif
 	}
 }
 #endif
@@ -1436,6 +1448,8 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 	} else {
 		--numnote;
  	}
+#else
+	numnote --;
 #endif 	
 #ifdef ELF_CORE_COPY_XFPREGS
 	if (elf_core_copy_task_xfpregs(current, &xfpu)) {
