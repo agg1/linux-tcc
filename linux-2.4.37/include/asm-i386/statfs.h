@@ -22,7 +22,6 @@ struct statfs {
 	long f_namelen;
 	long f_spare[6];
 };
-#endif
 
 struct statfs64 {
 	__u32 f_type;
@@ -51,5 +50,7 @@ struct compat_statfs64 {
 };
 
 #define __ARCH_HAS_STATFS64
+
+#endif
 
 #endif
