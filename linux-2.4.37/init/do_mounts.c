@@ -868,6 +868,7 @@ static void __init handle_initrd(void)
 	close(root_fd);
 
 	if (real_root_dev == ram0) {
+		printk(KERN_NOTICE "RETURNING with ROOT_DEV ram0 ... ");
 		sys_chdir("/old");
 		return;
 	}
