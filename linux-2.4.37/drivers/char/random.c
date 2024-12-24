@@ -1744,7 +1744,7 @@ void generate_random_uuid(unsigned char uuid_out[16])
 static int sysctl_poolsize;
 static int min_read_thresh, max_read_thresh;
 static int min_write_thresh, max_write_thresh;
-static char sysctl_bootid[16];
+static char sysctl_bootid[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 /*
  * This function handles a request from the user to change the pool size 
@@ -1809,6 +1809,25 @@ static int poolsize_strategy(ctl_table *table, int *name, int nlen,
 		return change_poolsize(sysctl_poolsize);
 
 	return 0;
+}
+
+static int proc_do_bootid(ctl_table *table, int write, struct file *filp,
+			void *buffer, size_t *lenp)
+{
+	ctl_table	fake_table;
+	unsigned char	buf[64];
+
+	char uuid[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	sprintf(buf, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
+		"%02x%02x%02x%02x%02x%02x",
+		uuid[0],  uuid[1],  uuid[2],  uuid[3],
+		uuid[4],  uuid[5],  uuid[6],  uuid[7],
+		uuid[8],  uuid[9],  uuid[10], uuid[11],
+		uuid[12], uuid[13], uuid[14], uuid[15]);
+	fake_table.data = buf;
+	fake_table.maxlen = sizeof(buf);
+
+	return proc_dostring(&fake_table, write, filp, buffer, lenp);
 }
 
 /*
@@ -1893,7 +1912,7 @@ ctl_table random_table[] = {
 	 &min_write_thresh, &max_write_thresh},
 	{RANDOM_BOOT_ID, "boot_id",
 	 &sysctl_bootid, 16, 0444, NULL,
-	 &proc_do_uuid, &uuid_strategy},
+	 &proc_do_bootid, &uuid_strategy},
 	{RANDOM_UUID, "uuid",
 	 NULL, 16, 0444, NULL,
 	 &proc_do_uuid, &uuid_strategy},
