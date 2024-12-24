@@ -56,7 +56,7 @@ void __sysrq_unlock_table (void);
 struct sysrq_key_op *__sysrq_get_key_op (int key);
 void __sysrq_put_key_op (int key, struct sysrq_key_op *op_p);
 
-extern __inline__ int
+static __inline__ int
 __sysrq_swap_key_ops_nolock(int key, struct sysrq_key_op *insert_op_p,
 				struct sysrq_key_op *remove_op_p)
 {
@@ -70,7 +70,7 @@ __sysrq_swap_key_ops_nolock(int key, struct sysrq_key_op *insert_op_p,
 	return retval;
 }
 
-extern __inline__ int
+static __inline__ int
 __sysrq_swap_key_ops(int key, struct sysrq_key_op *insert_op_p,
 				struct sysrq_key_op *remove_op_p) {
 	int retval;
