@@ -1830,6 +1830,7 @@ static void do_con_trol(struct tty_struct *tty, unsigned int currcons, int c)
 	}
 }
 
+// https://lkml.iu.edu/hypermail/linux/kernel/0602.2/1024.html
 /* This is a temporary buffer used to prepare a tty console write
  * so that we can easily avoid touching user space while holding the
  * console spinlock.  It is allocated in con_init and is shared by
@@ -1914,21 +1915,28 @@ again:
 
 	while (!tty->stopped && count) {
 		c = *buf;
+		int orig = *buf;
 		buf++;
 		n++;
 		count--;
 
-		if (utf) {
-		    /* Combine UTF-8 into Unicode */
-		    /* Incomplete characters silently ignored */
+		if (utf && !disp_ctrl) {
+		/* Combine UTF-8 into Unicode */
+		/* Incomplete characters silently ignored */
+		/* Malformed sequence represented as replacement glyphs */
+rescan_last_byte:
 		    if(c > 0x7f) {
-			if (utf_count > 0 && (c & 0xc0) == 0x80) {
-				utf_char = (utf_char << 6) | (c & 0x3f);
-				utf_count--;
-				if (utf_count == 0)
-				    tc = c = utf_char;
-				else continue;
+			if (utf_count) {
+				if ((c & 0xc0) == 0x80) {
+					utf_char = (utf_char << 6) | (c & 0x3f);						if (--utf_count) {
+						npar++;
+						continue;
+					}
+					tc = c = utf_char;
+				} else
+					goto insert_replacement_glyph;
 			} else {
+				npar = 0;
 				if ((c & 0xe0) == 0xc0) {
 				    utf_count = 1;
 				    utf_char = (c & 0x1f);
@@ -1945,12 +1953,15 @@ again:
 				    utf_count = 5;
 				    utf_char = (c & 0x01);
 				} else
-				    utf_count = 0;
+					goto insert_replacement_glyph;
+
 				continue;
-			      }
+			}
 		    } else {
+			if (utf_count)
+				goto insert_replacement_glyph;
+
 		      tc = c;
-		      utf_count = 0;
 		    }
 		} else {	/* no utf */
 		  tc = translate[toggle_meta ? (c|0x80) : c];
@@ -1967,31 +1978,41 @@ again:
                  * direct-to-font zone in UTF-8 mode.
                  */
                 ok = tc && (c >= 32 ||
-                            (!utf && !(((disp_ctrl ? CTRL_ALWAYS
-                                         : CTRL_ACTION) >> c) & 1)))
+			!(disp_ctrl ? (CTRL_ALWAYS >> c) & 1 :
+			utf || ((CTRL_ACTION >> c) & 1)))
                         && (c != 127 || disp_ctrl)
 			&& (c != 128+27);
 
 		if (vc_state == ESnormal && ok) {
 			/* Now try to find out how to display it */
 			tc = conv_uni_to_pc(vc_cons[currcons].d, tc);
-			if ( tc == -4 ) {
+			if ( tc & ~charmask ) {
+				if ( tc == -4 ) {
                                 /* If we got -4 (not found) then see if we have
                                    defined a replacement character (U+FFFD) */
-                                tc = conv_uni_to_pc(vc_cons[currcons].d, 0xfffd);
+insert_replacement_glyph:
+	                                tc = conv_uni_to_pc(vc_cons[currcons].d, 0xfffd);
 
 				/* One reason for the -4 can be that we just
 				   did a clear_unimap();
 				   try at least to show something. */
-				if (tc == -4)
-				     tc = c;
-                        } else if ( tc == -3 ) {
+					if (tc & ~charmask) {
+						if (c & ~charmask)
+							tc = '?';
+						else
+							tc = c;
+					}
+				} else if ( tc == -3 ) {
                                 /* Bad hash table -- hope for the best */
-                                tc = c;
-                        }
-			if (tc & ~charmask)
-                                continue; /* Conversion failed */
-
+					if (c & ~charmask)
+						tc = '?';
+					else
+						tc = c;
+				} else
+					continue; /* Conversion failed */
+			}
+//		}
+repeat_replacement_glyph:
 			if (need_wrap || decim)
 				FLUSH
 			if (need_wrap) {
@@ -2014,6 +2035,16 @@ again:
 			} else {
 				x++;
 				draw_to = (pos+=2);
+			}
+
+			if (utf_count) {
+				if (npar) {
+					npar--;
+					goto repeat_replacement_glyph;
+				}
+				utf_count = 0;
+				c = orig;
+				goto rescan_last_byte;
 			}
 			continue;
 		}
