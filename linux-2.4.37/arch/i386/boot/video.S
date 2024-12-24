@@ -1818,10 +1818,10 @@ getkey:	xorb	%ah, %ah
 	int	$0x16
 	ret
 
-# Read a key with a timeout of 05 seconds.
+# Read a key with a timeout of 03 seconds.
 # The hardware clock is used to get the time.
 getkt:	call	gettime
-	addb	$05, %al			# Wait 05 seconds
+	addb	$03, %al			# Wait 03 seconds
 	cmpb	$60, %al
 	jl	lminute
 
@@ -1899,7 +1899,7 @@ graphic_mode:	.byte	0	# Graphic mode with a linear frame buffer
 
 # Status messages
 keymsg:		.ascii	"Press <RETURN> to see video modes available, "
-		.ascii	"<SPACE> to continue or wait 05 secs"
+		.ascii	"<SPACE> to continue or wait 03 secs"
 		.byte	0x0d, 0x0a, 0
 
 listhdr:	.byte	0x0d, 0x0a

@@ -4,6 +4,12 @@
 # separately pre-processed
 #usr/src/linux/arch/i386/kernel/trampoline.S
 
+# ipt_conntrack must be linked in order before ip_nat_standalone.c
+# otherwise nat table initial data fails sanity check in ip_tables.c
+
+# CONFIG_INPUT_IFORCE_USB deadlocks kernel boot
+#usr/src/linux/drivers/char/joystick/iforce.c
+
 FILE_LIST="
 usr/src/linux/tcc/kstart.S
 usr/src/linux/arch/i386/kernel/head.S
@@ -133,6 +139,7 @@ usr/src/linux/fs/iobuf.c
 usr/src/linux/fs/ioctl.c
 usr/src/linux/fs/isofs/dir.c
 usr/src/linux/fs/isofs/inode.c
+usr/src/linux/fs/isofs/joliet.c
 usr/src/linux/fs/isofs/namei.c
 usr/src/linux/fs/isofs/rock.c
 usr/src/linux/fs/isofs/util.c
@@ -232,6 +239,7 @@ usr/src/linux/drivers/char/raw.c
 usr/src/linux/drivers/char/rtc.c
 usr/src/linux/drivers/char/selection.c
 usr/src/linux/drivers/char/serial.c
+usr/src/linux/drivers/char/sysrq.c
 usr/src/linux/drivers/char/tty_io.c
 usr/src/linux/drivers/char/tty_ioctl.c
 usr/src/linux/drivers/char/vc_screen.c
@@ -330,6 +338,7 @@ usr/src/linux/drivers/scsi/sg.c
 usr/src/linux/drivers/scsi/sr.c
 usr/src/linux/drivers/scsi/sr_ioctl.c
 usr/src/linux/drivers/scsi/sr_vendor.c
+usr/src/linux/drivers/scsi/st.c
 usr/src/linux/drivers/usb/usb.c
 usr/src/linux/drivers/usb/hcd.c
 usr/src/linux/drivers/usb/hub.c
@@ -381,8 +390,12 @@ usr/src/linux/drivers/video/font_8x16.c
 usr/src/linux/drivers/video/font_8x8.c
 usr/src/linux/drivers/video/fonts.c
 usr/src/linux/drivers/video/modedb.c
+usr/src/linux/drivers/video/radeonfb.c
 usr/src/linux/drivers/video/vesafb.c
 usr/src/linux/drivers/video/vgacon.c
+usr/src/linux/drivers/video/intel/builtinmodes.c
+usr/src/linux/drivers/video/intel/intelfbdrv.c
+usr/src/linux/drivers/video/intel/intelfbhw.c
 usr/src/linux/net/socket.c
 usr/src/linux/net/sysctl_net.c
 usr/src/linux/net/atm/addr.c
@@ -553,29 +566,8 @@ usr/src/linux/net/ipv4/utils.c
 usr/src/linux/net/ipv4/netfilter/arp_tables.c
 usr/src/linux/net/ipv4/netfilter/arpt_mangle.c
 usr/src/linux/net/ipv4/netfilter/arptable_filter.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_core.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_ftp.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_irc.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_generic.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_standalone.c
-usr/src/linux/net/ipv4/netfilter/ip_conntrack_tftp.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_core.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_ftp.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_helper.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_irc.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_proto_icmp.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_proto_tcp.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_proto_udp.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_proto_unknown.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_rule.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_snmp_basic.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_standalone.c
-usr/src/linux/net/ipv4/netfilter/ip_nat_tftp.c
-usr/src/linux/net/ipv4/netfilter/ip_queue.c
 usr/src/linux/net/ipv4/netfilter/ip_tables.c
+usr/src/linux/net/ipv4/netfilter/ip_queue.c
 usr/src/linux/net/ipv4/netfilter/ipt_CLASSIFY.c
 usr/src/linux/net/ipv4/netfilter/ipt_DSCP.c
 usr/src/linux/net/ipv4/netfilter/ipt_ECN.c
@@ -589,7 +581,6 @@ usr/src/linux/net/ipv4/netfilter/ipt_TCPMSS.c
 usr/src/linux/net/ipv4/netfilter/ipt_TOS.c
 usr/src/linux/net/ipv4/netfilter/ipt_ULOG.c
 usr/src/linux/net/ipv4/netfilter/ipt_ah.c
-usr/src/linux/net/ipv4/netfilter/ipt_conntrack.c
 usr/src/linux/net/ipv4/netfilter/ipt_dscp.c
 usr/src/linux/net/ipv4/netfilter/ipt_ecn.c
 usr/src/linux/net/ipv4/netfilter/ipt_esp.c
@@ -607,6 +598,27 @@ usr/src/linux/net/ipv4/netfilter/ipt_tcpmss.c
 usr/src/linux/net/ipv4/netfilter/ipt_tos.c
 usr/src/linux/net/ipv4/netfilter/ipt_ttl.c
 usr/src/linux/net/ipv4/netfilter/ipt_unclean.c
+usr/src/linux/net/ipv4/netfilter/ipt_conntrack.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_core.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_ftp.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_irc.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_generic.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_proto_udp.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_standalone.c
+usr/src/linux/net/ipv4/netfilter/ip_conntrack_tftp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_ftp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_helper.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_irc.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_proto_icmp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_proto_tcp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_proto_udp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_proto_unknown.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_standalone.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_rule.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_tftp.c
+usr/src/linux/net/ipv4/netfilter/ip_nat_core.c
 usr/src/linux/net/ipv4/netfilter/iptable_filter.c
 usr/src/linux/net/ipv4/netfilter/iptable_mangle.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_app.c

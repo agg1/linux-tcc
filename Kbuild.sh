@@ -136,15 +136,15 @@ prompt 1
 
 label linux-smp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE}
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0
 
 label linux-nosmp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE} nosmp
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 nosmp
 
 label linux-debug
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd root=/dev/ram ramdisk_size=${INITRD_SIZE} console=ttyS0,9600 console=tty0 nosmp debug
+	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 nosmp
 " > isoroot/isolinux/isolinux.cfg
 
 #label tccboot
