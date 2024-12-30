@@ -535,7 +535,7 @@ static inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
 	return tcp_v4_lookup_listener(daddr, hnum, dif);
 }
 
-inline struct sock *tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif)
+struct sock *tcp_v4_lookup(u32 saddr, u16 sport, u32 daddr, u16 dport, int dif)
 {
 	struct sock *sk;
 

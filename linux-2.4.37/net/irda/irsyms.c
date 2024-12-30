@@ -211,7 +211,9 @@ void __exit irda_cleanup(void)
 	irda_proc_unregister();
 #endif
 	/* Remove higher layers */
+#ifdef MODULE
 	irttp_cleanup();
+#endif
 	iriap_cleanup();
 
 	/* Remove lower layers */
