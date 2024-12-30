@@ -570,7 +570,8 @@ nfs_statfs64(struct super_block *sb, struct statfs64 *buf)
 	unsigned char blockbits;
 	unsigned long blockres;
 	struct nfs_fattr attr;
-	struct nfs_fsstat res = { &attr, };
+	//struct nfs_fsstat res = { &attr, };
+	struct nfs_fsinfo res;
 	int error;
 
 	error = server->rpc_ops->statfs(server, NFS_FH(sb->s_root->d_inode), &res);
