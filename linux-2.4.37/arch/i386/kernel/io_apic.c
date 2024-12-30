@@ -1171,6 +1171,15 @@ static void __init setup_ioapic_ids_from_mpc (void)
 	}
 }
 
+int no_timer_check __initdata;
+
+static int __init notimercheck(char *s)
+{
+	no_timer_check = 1;
+	return 1;
+}
+__setup("no_timer_check", notimercheck);
+
 /*
  * There is a nasty bug in some older SMP boards, their mptable lies
  * about the timer IRQ. We do the following to work around the situation:
@@ -1182,6 +1191,9 @@ static void __init setup_ioapic_ids_from_mpc (void)
 static int __init timer_irq_works(void)
 {
 	unsigned int t1 = jiffies;
+
+	if (no_timer_check)
+		return 1;
 
 	sti();
 	/* Let ten ticks pass... */
