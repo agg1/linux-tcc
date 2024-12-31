@@ -136,15 +136,15 @@ prompt 1
 
 label linux-smp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check
 
 label linux-nosmp
 	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 nosmp
+	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi nosmp
 
 label linux-debug
 	kernel /boot/linux
-	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 nosmp
+	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check
 " > isoroot/isolinux/isolinux.cfg
 
 #label tccboot
@@ -212,7 +212,7 @@ KCONF=kconfig-i486-2.4.37.11.DEBUG
 
 
 # ext2, romfs, squashfs v1/v2 rootfs
-INITRD="/media/CACHE/TCC/initrd-test.ext2"
+INITRD="/media/CACHE/TCC/initrd.ext2"
 INITRD_SIZE=$(du -B1024 ${INITRD} | cut -d'/' -f1)
 
 
@@ -232,10 +232,10 @@ CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
 
 ### gcc-4.4.7
 #CCLIB=""
-#CC="i486-gentoo-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2"
-#LD="i486-gentoo-linux-musl-gcc"
+#CC="i486-gentoo-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
+#LD="i486-gentoo-linux-musl-gcc -ffreestanding -O"
 #AS="i486-gentoo-linux-musl-as"
-### gcc nees vmlinux.lds linker script to apply appropriate section layout
+### gcc needs vmlinux.lds linker script to apply appropriate section layout
 #compile_kernel ; link_kernel_gcc
 
 
