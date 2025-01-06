@@ -224,5 +224,5 @@ static void __init check_bugs(void)
 	check_fpu();
 	check_hlt();
 	check_popad();
-	system_utsname.machine[1] = '0' + (boot_cpu_data.x86 > 6 ? 6 : boot_cpu_data.x86);
+	system_utsname.machine[1] = '4'; // report generic i486
 }
