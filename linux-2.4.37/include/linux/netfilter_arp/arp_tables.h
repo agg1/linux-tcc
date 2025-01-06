@@ -37,16 +37,16 @@ struct arpt_arp {
 	struct in_addr smsk, tmsk;
 
 	/* Device hw address length, src+target device addresses */
-	u_int8_t arhln, arhln_mask;
+	__u8 arhln, arhln_mask;
 	struct arpt_devaddr_info src_devaddr;
 	struct arpt_devaddr_info tgt_devaddr;
 
 	/* ARP operation code. */
-	u_int16_t arpop, arpop_mask;
+	__u16 arpop, arpop_mask;
 
 	/* ARP hardware address and protocol address format. */
-	u_int16_t arhrd, arhrd_mask;
-	u_int16_t arpro, arpro_mask;
+	__u16 arhrd, arhrd_mask;
+	__u16 arpro, arpro_mask;
 
 	/* The protocol address length is only accepted if it is 4
 	 * so there is no use in offering a way to do filtering on it.
@@ -56,29 +56,29 @@ struct arpt_arp {
 	unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
 
 	/* Flags word */
-	u_int8_t flags;
+	__u8 flags;
 	/* Inverse flags */
-	u_int16_t invflags;
+	__u16 invflags;
 };
 
 struct arpt_entry_target
 {
 	union {
 		struct {
-			u_int16_t target_size;
+			__u16 target_size;
 
 			/* Used by userspace */
 			char name[ARPT_FUNCTION_MAXNAMELEN];
 		} user;
 		struct {
-			u_int16_t target_size;
+			__u16 target_size;
 
 			/* Used inside the kernel */
 			struct arpt_target *target;
 		} kernel;
 
 		/* Total length */
-		u_int16_t target_size;
+		__u16 target_size;
 	} u;
 
 	unsigned char data[0];
@@ -92,7 +92,7 @@ struct arpt_standard_target
 
 struct arpt_counters
 {
-	u_int64_t pcnt, bcnt;			/* Packet and byte counters */
+	__u64 pcnt, bcnt;			/* Packet and byte counters */
 };
 
 /* Values for "flag" field in struct arpt_ip (general arp structure).
@@ -121,9 +121,9 @@ struct arpt_entry
 	struct arpt_arp arp;
 
 	/* Size of arpt_entry + matches */
-	u_int16_t target_offset;
+	__u16 target_offset;
 	/* Size of arpt_entry + matches + target */
-	u_int16_t next_offset;
+	__u16 next_offset;
 
 	/* Back pointer */
 	unsigned int comefrom;
