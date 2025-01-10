@@ -3772,8 +3772,7 @@ __setup("st=", st_setup);
 #endif
 
 
-static struct file_operations st_fops =
-{
+static const struct file_operations st_fops = {
 	owner:		THIS_MODULE,
 	read:		st_read,
 	write:		st_write,

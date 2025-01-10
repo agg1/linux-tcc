@@ -2538,7 +2538,7 @@ static struct hpsb_highlevel raw1394_highlevel = {
         .fcp_request = fcp_request,
 };
 
-static struct file_operations file_ops = {
+static const struct file_operations file_ops = {
 	.owner =	THIS_MODULE,
         .read =		raw1394_read, 
         .write =	raw1394_write,

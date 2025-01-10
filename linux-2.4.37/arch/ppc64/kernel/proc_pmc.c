@@ -100,7 +100,7 @@ static loff_t  nacamap_seek( struct file *file, loff_t off, int whence);
 static ssize_t nacamap_read( struct file *file, char *buf, size_t nbytes, loff_t *ppos);
 static int     nacamap_mmap( struct file *file, struct vm_area_struct *vma );
 
-static struct file_operations nacamap_fops = {
+static const struct file_operations nacamap_fops = {
 	llseek:	nacamap_seek,
 	read:	nacamap_read,
 	mmap:	nacamap_mmap
@@ -116,17 +116,17 @@ static ssize_t read_timeslice(struct file *file, char *buf, size_t count, loff_t
 static ssize_t write_timeslice(struct file * file, const char * buf,
 			     size_t count, loff_t *ppos);
 
-static struct file_operations proc_profile_operations = {
+static const struct file_operations proc_profile_operations = {
 	read:		read_profile,
 	write:		write_profile,
 };
 
-static struct file_operations proc_trace_operations = {
+static const struct file_operations proc_trace_operations = {
 	read:		read_trace,
 	write:		write_trace,
 };
 
-static struct file_operations proc_timeslice_operations = {
+static const struct file_operations proc_timeslice_operations = {
 	read:		read_timeslice,
 	write:		write_timeslice,
 };

@@ -199,7 +199,7 @@ static int wafwdt_notify_sys(struct notifier_block *this, unsigned long code, vo
  *	Kernel Interfaces
  */
 
-static struct file_operations wafwdt_fops = {
+static const struct file_operations wafwdt_fops = {
 	owner:THIS_MODULE,
 	write:wafwdt_write,
 	ioctl:wafwdt_ioctl,

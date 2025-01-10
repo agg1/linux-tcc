@@ -211,7 +211,7 @@ static void dump_allocations(struct list_head * dalp);
 #endif
 
 /* file operations for each type of node */
-static struct file_operations rom_fops = {
+static const struct file_operations rom_fops = {
 	owner:		THIS_MODULE,
 	mmap:		rom_mmap,
 	open:		generic_open,
@@ -219,20 +219,20 @@ static struct file_operations rom_fops = {
 };
  
 
-static struct file_operations base_fops = {
+static const struct file_operations base_fops = {
 	owner:		THIS_MODULE,
 	mmap:		base_mmap,
 	open:		generic_open
 };
 
 
-static struct file_operations config_fops = {
+static const struct file_operations config_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		config_ioctl,
 	open:		generic_open
 };	
 
-static struct file_operations dma_fops = {
+static const struct file_operations dma_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		dma_ioctl,
 	mmap:		dma_mmap,

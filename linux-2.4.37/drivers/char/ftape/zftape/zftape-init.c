@@ -94,8 +94,7 @@ static ssize_t zft_read (struct file *fp, char *buff,
 static ssize_t zft_write(struct file *fp, const char *buff,
 			 size_t req_len, loff_t *ppos);
 
-static struct file_operations zft_cdev =
-{
+static const struct file_operations zft_cdev = {
 	owner:		THIS_MODULE,
 	read:		zft_read,
 	write:		zft_write,
@@ -205,7 +204,7 @@ static int  zft_mmap(struct file *filep, struct vm_area_struct *vma)
 	lock_kernel();
 	if ((result = ftape_mmap(vma)) >= 0) {
 #ifndef MSYNC_BUG_WAS_FIXED
-		static struct vm_operations_struct dummy = { NULL, };
+		static const struct vm_operations_struct dummy = { NULL, };
 		vma->vm_ops = &dummy;
 #endif
 	}

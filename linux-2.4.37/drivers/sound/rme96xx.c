@@ -254,8 +254,8 @@ static const char invalid_magic[] = KERN_CRIT RME_MESS" invalid magic value\n";
 /* --------------------------------------------------------------------- */
 
 
-static struct file_operations rme96xx_audio_fops;
-static struct file_operations rme96xx_mixer_fops;
+static const struct file_operations rme96xx_audio_fops;
+static const struct file_operations rme96xx_mixer_fops;
 static int numcards;
 
 typedef int32_t raw_sample_t;
@@ -1736,7 +1736,7 @@ static unsigned int rme96xx_poll(struct file *file, struct poll_table_struct *wa
 }
 
 
-static struct file_operations rme96xx_audio_fops = {
+static const struct file_operations rme96xx_audio_fops = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,0)
 	owner: THIS_MODULE,
 #endif

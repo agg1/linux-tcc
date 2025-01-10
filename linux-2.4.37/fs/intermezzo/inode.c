@@ -172,14 +172,14 @@ exit:
         return ;
 }
 
-struct super_operations presto_super_ops = {
+const struct super_operations presto_super_ops = {
         .read_inode    = presto_read_inode,
         .put_super     = presto_put_super,
 };
 
 
 /* symlinks can be chowned */
-struct inode_operations presto_sym_iops = {
+const struct inode_operations presto_sym_iops = {
         .setattr       = presto_setattr
 };
 

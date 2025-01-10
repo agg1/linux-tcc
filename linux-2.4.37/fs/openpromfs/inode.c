@@ -594,28 +594,28 @@ int property_release (struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static struct file_operations openpromfs_prop_ops = {
+static const struct file_operations openpromfs_prop_ops = {
 	read:		property_read,
 	write:		property_write,
 	release:	property_release,
 };
 
-static struct file_operations openpromfs_nodenum_ops = {
+static const struct file_operations openpromfs_nodenum_ops = {
 	read:		nodenum_read,
 };
 
-static struct file_operations openprom_operations = {
+static const struct file_operations openprom_operations = {
 	read:		generic_read_dir,
 	readdir:	openpromfs_readdir,
 };
 
-static struct inode_operations openprom_alias_inode_operations = {
+static const struct inode_operations openprom_alias_inode_operations = {
 	create:		openpromfs_create,
 	lookup:		openpromfs_lookup,
 	unlink:		openpromfs_unlink,
 };
 
-static struct inode_operations openprom_inode_operations = {
+static const struct inode_operations openprom_inode_operations = {
 	lookup:		openpromfs_lookup,
 };
 
@@ -1032,7 +1032,7 @@ static int openprom_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
-static struct super_operations openprom_sops = { 
+static const struct super_operations openprom_sops = { 
 	read_inode:	openprom_read_inode,
 	statfs:		openprom_statfs,
 };

@@ -131,6 +131,10 @@ enum
 	KERN_EXCEPTION_TRACE=58, /* boolean: exception trace */
  	KERN_CORE_SETUID=59,	/* int: set to allow core dumps of setuid apps */
 	KERN_SPARC_SCONS_PWROFF=64, /* int: serial console power-off halt */
+//	KERN_GRSECURITY=68,	/* grsecurity */
+//#ifdef CONFIG_PAX_SOFTMODE
+//	KERN_PAX=69,		/* PaX control */
+//#endif
 };
 
 

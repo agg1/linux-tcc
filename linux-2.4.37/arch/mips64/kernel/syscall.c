@@ -80,6 +80,11 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
 	do_color_align = 0;
 	if (filp || (flags & MAP_SHARED))
 		do_color_align = 1;
+
+#ifdef CONFIG_PAX_RANDMMAP
+//	if (!(current->mm->pax_flags & MF_PAX_RANDMMAP) || !filp)
+	if (!filp)
+#endif
 	if (addr) {
 		if (do_color_align)
 			addr = COLOUR_ALIGN(addr, pgoff);
@@ -90,7 +95,15 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
 		    (!vmm || addr + len <= vmm->vm_start))
 			return addr;
 	}
-	addr = TASK_UNMAPPED_BASE;
+
+#ifdef CONFIG_PAX_RANDMMAP
+//	if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+	if (!addr || filp)
+		addr = TASK_UNMAPPED_BASE + current->mm->delta_mmap;
+	else
+#endif
+		addr = TASK_UNMAPPED_BASE;
+
 	if (do_color_align)
 		addr = COLOUR_ALIGN(addr, pgoff);
 	else

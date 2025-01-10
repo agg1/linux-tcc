@@ -2825,7 +2825,7 @@ static int pmu_ioctl(struct inode * inode, struct file *filp,
 	return -EINVAL;
 }
 
-static struct file_operations pmu_device_fops = {
+static const struct file_operations pmu_device_fops = {
 	read:		pmu_read,
 	write:		pmu_write,
 	poll:		pmu_fpoll,

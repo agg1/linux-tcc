@@ -29,10 +29,10 @@
 #define CRAMFS_SB_FILES u.cramfs_sb.files
 #define CRAMFS_SB_FLAGS u.cramfs_sb.flags
 
-static struct super_operations cramfs_ops;
-static struct inode_operations cramfs_dir_inode_operations;
-static struct file_operations cramfs_directory_operations;
-static struct address_space_operations cramfs_aops;
+static const struct super_operations cramfs_ops;
+static const struct inode_operations cramfs_dir_inode_operations;
+static const struct file_operations cramfs_directory_operations;
+static const struct address_space_operations cramfs_aops;
 
 static DECLARE_MUTEX(read_mutex);
 
@@ -424,7 +424,7 @@ static int cramfs_readpage(struct file *file, struct page * page)
 	return 0;
 }
 
-static struct address_space_operations cramfs_aops = {
+static const struct address_space_operations cramfs_aops = {
 	readpage: cramfs_readpage
 };
 
@@ -435,16 +435,16 @@ static struct address_space_operations cramfs_aops = {
 /*
  * A directory can only readdir
  */
-static struct file_operations cramfs_directory_operations = {
+static const struct file_operations cramfs_directory_operations = {
 	read:		generic_read_dir,
 	readdir:	cramfs_readdir,
 };
 
-static struct inode_operations cramfs_dir_inode_operations = {
+static const struct inode_operations cramfs_dir_inode_operations = {
 	lookup:		cramfs_lookup,
 };
 
-static struct super_operations cramfs_ops = {
+static const struct super_operations cramfs_ops = {
 	statfs:		cramfs_statfs,
 };
 

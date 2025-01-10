@@ -24,7 +24,7 @@ static long    htlbpagemem;
 int     htlbpage_max;
 static long    htlbzone_pages;
 
-struct vm_operations_struct hugetlb_vm_ops;
+const struct vm_operations_struct hugetlb_vm_ops;
 static LIST_HEAD(htlbpage_freelist);
 static spinlock_t htlbpage_lock = SPIN_LOCK_UNLOCKED;
 
@@ -512,6 +512,6 @@ static struct page *hugetlb_nopage(struct vm_area_struct * area, unsigned long a
 	return NULL;
 }
 
-struct vm_operations_struct hugetlb_vm_ops = {
+const struct vm_operations_struct hugetlb_vm_ops = {
 	.nopage =	hugetlb_nopage,
 };

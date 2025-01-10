@@ -15,6 +15,7 @@
 #include <linux/quotaops.h>
 #include <linux/acct.h>
 #include <linux/module.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 
@@ -241,7 +242,7 @@ static int show_vfsmnt(struct seq_file *m, void *v)
 	return err;
 }
 
-struct seq_operations mounts_op = {
+const struct seq_operations mounts_op = {
 	start:	m_start,
 	next:	m_next,
 	stop:	m_stop,
@@ -325,6 +326,8 @@ static int do_umount(struct vfsmount *mnt, int flags)
 			lock_kernel();
 			retval = do_remount_sb(sb, MS_RDONLY, 0);
 			unlock_kernel();
+
+			gr_log_remount(mnt->mnt_devname, retval);
 		}
 		up_write(&sb->s_umount);
 		return retval;
@@ -350,6 +353,9 @@ static int do_umount(struct vfsmount *mnt, int flags)
 	}
 	spin_unlock(&dcache_lock);
 	up_write(&current->namespace->sem);
+
+	gr_log_unmount(mnt->mnt_devname, retval);
+
 	return retval;
 }
 
@@ -732,6 +738,12 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 	if (retval)
 		return retval;
 
+	if (gr_handle_chroot_mount(nd.dentry, nd.mnt, dev_name)) {
+		retval = -EPERM;
+		path_release(&nd);
+		return retval;
+	}
+
 	if (flags & MS_REMOUNT)
 		retval = do_remount(&nd, flags & ~MS_REMOUNT, mnt_flags,
 				    data_page);
@@ -743,6 +755,9 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 		retval = do_add_mount(&nd, type_page, flags, mnt_flags,
 				      dev_name, data_page);
 	path_release(&nd);
+
+	gr_log_mount(dev_name, dir_name, retval);
+
 	return retval;
 }
 
@@ -910,6 +925,9 @@ asmlinkage long sys_pivot_root(const char *new_root, const char *put_old)
 	int error;
 
 	if (!capable(CAP_SYS_ADMIN))
+		return -EPERM;
+
+	if (gr_handle_chroot_pivot())
 		return -EPERM;
 
 	lock_kernel();

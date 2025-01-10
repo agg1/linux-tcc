@@ -113,7 +113,7 @@ static loff_t usb_driver_lseek(struct file * file, loff_t offset, int orig)
 	}
 }
 
-struct file_operations usbdevfs_drivers_fops = {
+const struct file_operations usbdevfs_drivers_fops = {
 	llseek:		usb_driver_lseek,
 	read:		usb_driver_read,
 };

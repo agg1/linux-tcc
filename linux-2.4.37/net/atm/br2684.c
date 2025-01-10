@@ -773,7 +773,7 @@ static ssize_t br2684_proc_read(struct file *file, char *buf, size_t count,
 	return len;
 }
 
-static struct file_operations br2684_proc_operations = {
+static const struct file_operations br2684_proc_operations = {
 	read: br2684_proc_read,
 };
 

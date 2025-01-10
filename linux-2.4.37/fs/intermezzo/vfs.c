@@ -79,7 +79,7 @@
 # endif
 #endif
 
-extern struct inode_operations presto_sym_iops;
+extern const struct inode_operations presto_sym_iops;
 
 /* Write the last_rcvd values to the last_rcvd file.  We don't know what the
  * UUID or last_ctime values are, so we have to read from the file first
@@ -228,7 +228,7 @@ int presto_settime(struct presto_file_set *fset,
         int error = 0;
         struct dentry *dentry;
         struct inode *inode;
-        struct inode_operations *iops;
+        const struct inode_operations *iops;
         struct iattr iattr;
 
         ENTRY;
@@ -363,7 +363,7 @@ int presto_do_setattr(struct presto_file_set *fset, struct dentry *dentry,
 {
         struct rec_info rec;
         struct inode *inode = dentry->d_inode;
-        struct inode_operations *iops;
+        const struct inode_operations *iops;
         int error;
         struct presto_version old_ver, new_ver;
         struct izo_rollback_data rb;

@@ -113,7 +113,7 @@ static signed char linuxb_to_isib[] = {
  *
  */
 
-static struct file_operations ISILoad_fops = {
+static const struct file_operations ISILoad_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		ISILoad_ioctl,
 };

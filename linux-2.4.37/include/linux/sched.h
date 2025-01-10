@@ -272,6 +272,12 @@ struct mm_struct {
 	/* Architecture-specific MM context */
 	mm_context_t context;
 
+#ifdef CONFIG_PAX_ASLR
+	unsigned long delta_mmap;		/* randomized offset */
+	unsigned long delta_exec;		/* randomized offset */
+	unsigned long delta_stack;		/* randomized offset */
+#endif
+
 	/* coredumping support */
 	int core_waiters;
 	struct completion *core_startup_done, core_done;
@@ -505,6 +511,24 @@ struct task_struct {
 	siginfo_t *last_siginfo; /* For ptrace use.  */
 // ?
 	struct list_head *scm_work_list;
+
+#ifdef CONFIG_GRKERNSEC
+//	/* added by grsecurity's ACL system */
+//	struct acl_subject_label *acl;
+//	struct acl_role_label *role;
+	struct file *exec_file;
+	u32 curr_ip;
+	u32 gr_saddr;
+	u32 gr_daddr;
+	u16 gr_sport;
+	u16 gr_dport;
+//	u16 acl_role_id;
+//	u8 acl_sp_role:1;
+	u8 used_accept:1;
+//	u8 is_writable:1;
+//	u8 brute:1;
+#endif
+
 };
 
 /*

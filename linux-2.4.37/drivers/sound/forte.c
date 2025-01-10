@@ -365,7 +365,7 @@ forte_mixer_ioctl (struct inode *inode, struct file *file,
 }
 
 
-static struct file_operations forte_mixer_fops = {
+static const struct file_operations forte_mixer_fops = {
 	.owner			= THIS_MODULE,
 	.llseek			= no_llseek,
 	.ioctl			= forte_mixer_ioctl,
@@ -1667,7 +1667,7 @@ forte_dsp_read (struct file *file, char *buffer, size_t bytes,
 }
 
 
-static struct file_operations forte_dsp_fops = {
+static const struct file_operations forte_dsp_fops = {
 	.owner			= THIS_MODULE,
 	.llseek			= &no_llseek,
 	.read			= &forte_dsp_read,

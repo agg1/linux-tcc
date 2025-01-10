@@ -835,7 +835,7 @@ out:
 	return ret;
 }
 
-static struct file_operations adb_fops = {
+static const struct file_operations adb_fops = {
 	llseek:		no_llseek,
 	read:		adb_read,
 	write:		adb_write,

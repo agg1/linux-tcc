@@ -423,7 +423,7 @@ static int ipmi_ioctl(struct inode  *inode,
 }
 
 
-static struct file_operations ipmi_fops = {
+static const struct file_operations ipmi_fops = {
 	owner:   THIS_MODULE,
 	ioctl:   ipmi_ioctl,
 	open:    ipmi_open,

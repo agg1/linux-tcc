@@ -31,7 +31,7 @@ static int swap_writepage(struct page *page)
 	return 0;
 }
 
-static struct address_space_operations swap_aops = {
+static const struct address_space_operations swap_aops = {
 	writepage: swap_writepage,
 	sync_page: block_sync_page,
 };

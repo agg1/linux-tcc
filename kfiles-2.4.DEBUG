@@ -102,6 +102,11 @@
 #usr/src/linux/net/sunrpc/stats.c
 #usr/src/linux/net/sunrpc/sysctl.c
 
+#usr/src/linux/ipc/msg.c
+#usr/src/linux/ipc/sem.c
+#usr/src/linux/ipc/shm.c
+#usr/src/linux/grsecurity/grsec_ipc.c
+
 FILE_LIST="
 usr/src/linux/tcc/kstart.S
 usr/src/linux/arch/i386/kernel/head.S
@@ -819,6 +824,17 @@ usr/src/linux/net/x25/x25_subr.c
 usr/src/linux/net/x25/x25_timer.c
 usr/src/linux/net/wanrouter/wanmain.c
 usr/src/linux/net/wanrouter/wanproc.c
+usr/src/linux/grsecurity/gracl.c
+usr/src/linux/grsecurity/grsec_chroot.c
+usr/src/linux/grsecurity/grsec_fifo.c
+usr/src/linux/grsecurity/grsec_init.c
+usr/src/linux/grsecurity/grsec_link.c
+usr/src/linux/grsecurity/grsec_log.c
+usr/src/linux/grsecurity/grsec_mem.c
+usr/src/linux/grsecurity/grsec_mount.c
+usr/src/linux/grsecurity/grsec_sock.c
+usr/src/linux/grsecurity/grsec_time.c
+usr/src/linux/grsecurity/grsec_disabled.c
 usr/src/linux/arch/i386/lib/dummy_syms.c
 usr/src/linux/tcc/kend.S
 "

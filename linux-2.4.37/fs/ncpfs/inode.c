@@ -36,17 +36,16 @@ static void ncp_delete_inode(struct inode *);
 static void ncp_put_super(struct super_block *);
 static int  ncp_statfs(struct super_block *, struct statfs *);
 
-static struct super_operations ncp_sops =
-{
+static const struct super_operations ncp_sops = {
 	put_inode:	force_delete,
 	delete_inode:	ncp_delete_inode,
 	put_super:	ncp_put_super,
 	statfs:		ncp_statfs,
 };
 
-extern struct dentry_operations ncp_root_dentry_operations;
+extern const struct dentry_operations ncp_root_dentry_operations;
 #ifdef CONFIG_NCPFS_EXTRAS
-extern struct address_space_operations ncp_symlink_aops;
+extern const struct address_space_operations ncp_symlink_aops;
 extern int ncp_symlink(struct inode*, struct dentry*, const char*);
 #endif
 
@@ -195,7 +194,7 @@ static void ncp_set_attr(struct inode *inode, struct ncp_entry_info *nwinfo)
 	ncp_update_inode(inode, nwinfo);
 }
 
-static struct inode_operations ncp_symlink_inode_operations = {
+static const struct inode_operations ncp_symlink_inode_operations = {
 	readlink:	page_readlink,
 	follow_link:	page_follow_link,
 	setattr:	ncp_notify_change,

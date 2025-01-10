@@ -287,7 +287,7 @@ bad_area:
 	if (boot_cpu_data.f00f_bug) {
 		unsigned long nr;
 		
-		nr = (address - idt_descr.address) >> 3;
+		nr = (address - (unsigned long)idt_descr.address) >> 3;
 
 		if (nr == 6) {
 			do_invalid_op(regs, 0);
@@ -316,15 +316,25 @@ no_context:
 	printk(" at virtual address %08lx\n",address);
 	printk(" printing eip:\n");
 	printk("%08lx\n", regs->eip);
-	asm("movl %%cr3,%0":"=r" (page));
-	page = ((unsigned long *) __va(page))[address >> 22];
-	printk(KERN_ALERT "*pde = %08lx\n", page);
-	if (page & 1) {
-		page &= PAGE_MASK;
-		address &= 0x003ff000;
-		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
-		printk(KERN_ALERT "*pte = %08lx\n", page);
+
+	unsigned long index = pgd_index(address);
+	unsigned long pgd_paddr;
+	pgd_t *pgd;
+	pmd_t *pmd;
+	pte_t *pte;
+
+	asm("movl %%cr3,%0":"=r" (pgd_paddr));
+	pgd = index + (pgd_t *)__va(pgd_paddr);
+	printk(KERN_ALERT "*pgd = %*llx\n", sizeof(*pgd), (unsigned long long)pgd_val(*pgd));
+	if (pgd_present(*pgd)) {
+		pmd = pmd_offset(pgd, address);
+		printk(KERN_ALERT "*pmd = %*llx\n", sizeof(*pmd), (unsigned long long)pmd_val(*pmd));
+		if (pmd_present(*pmd) && !(pmd_val(*pmd) & _PAGE_PSE)) {
+			pte = pte_offset(pmd, address);
+			printk(KERN_ALERT "*pte = %*llx\n", sizeof(*pte), (unsigned long long)pte_val(*pte));
+		}
 	}
+
 	die("Oops", regs, error_code);
 	bust_spinlocks(0);
 	do_exit(SIGKILL);
@@ -363,6 +373,7 @@ do_sigbus:
 	/* Kernel mode? Handle exceptions or die */
 	if (!(error_code & 4))
 		goto no_context;
+
 	return;
 
 vmalloc_fault:
@@ -396,6 +407,7 @@ vmalloc_fault:
 		pte_k = pte_offset(pmd_k, address);
 		if (!pte_present(*pte_k))
 			goto no_context;
+
 		return;
 	}
 }

@@ -35,7 +35,7 @@ MODULE_DESCRIPTION("The Journaled Filesystem (JFS)");
 MODULE_AUTHOR("Steve Best/Dave Kleikamp/Barry Arndt, IBM");
 MODULE_LICENSE("GPL");
 
-static struct super_operations jfs_super_operations;
+static const struct super_operations jfs_super_operations;
 static struct file_system_type jfs_fs_type;
 
 int jfs_stop_threads;
@@ -452,7 +452,7 @@ static int jfs_sync_fs(struct super_block *sb)
 	return 0;
 }
 
-static struct super_operations jfs_super_operations = {
+static const struct super_operations jfs_super_operations = {
 	.read_inode	= jfs_read_inode,
 	.dirty_inode	= jfs_dirty_inode,
 	.write_inode	= jfs_write_inode,

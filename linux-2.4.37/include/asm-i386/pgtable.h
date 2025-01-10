@@ -21,7 +21,6 @@
 #include <asm/bitops.h>
 #endif
 
-extern pgd_t swapper_pg_dir[1024];
 extern void paging_init(void);
 
 /* Caches aren't brain-dead on the intel. */
@@ -104,14 +103,11 @@ extern unsigned long pgkern_mask;
 extern unsigned long empty_zero_page[1024];
 #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
 
-#endif /* !__ASSEMBLY__ */
-
 /*
  * The Linux x86 paging architecture is 'compile-time dual-mode', it
  * implements both the traditional 2-level x86 page tables and the
  * newer 3-level PAE-mode page tables.
  */
-#ifndef __ASSEMBLY__
 #if CONFIG_X86_PAE
 # include <asm/pgtable-3level.h>
 
@@ -129,7 +125,15 @@ extern void pgtable_cache_init(void);
 #define pgtable_cache_init()	do { } while (0)
 
 #endif
+
+#ifdef CONFIG_X86_PAE
+extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+extern pmd_t swapper_pm_dir[PTRS_PER_PGD][PTRS_PER_PMD];
+#else
+extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
 #endif
+
+#endif /* !__ASSEMBLY__ */
 
 #define __beep() asm("movb $0x3,%al; outb %al,$0x61")
 
@@ -144,9 +148,13 @@ extern void pgtable_cache_init(void);
 #define USER_PGD_PTRS (PAGE_OFFSET >> PGDIR_SHIFT)
 #define KERNEL_PGD_PTRS (PTRS_PER_PGD-USER_PGD_PTRS)
 
-#define TWOLEVEL_PGDIR_SHIFT	22
-#define BOOT_USER_PGD_PTRS (__PAGE_OFFSET >> TWOLEVEL_PGDIR_SHIFT)
+#ifdef CONFIG_X86_PAE
+#define BOOT_USER_PMD_PTRS (__PAGE_OFFSET >> 21)
+#define BOOT_KERNEL_PMD_PTRS (2048-BOOT_USER_PMD_PTRS)
+#else
+#define BOOT_USER_PGD_PTRS (__PAGE_OFFSET >> 22)
 #define BOOT_KERNEL_PGD_PTRS (1024-BOOT_USER_PGD_PTRS)
+#endif
 
 
 #ifndef __ASSEMBLY__
@@ -324,7 +332,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
 
 /* to find an entry in a page-table-directory. */
-#define pgd_index(address) ((address >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+#define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
 
 #define __pgd_offset(address) pgd_index(address)
 

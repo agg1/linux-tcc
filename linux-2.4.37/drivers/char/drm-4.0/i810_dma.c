@@ -143,7 +143,7 @@ static int i810_freelist_put(drm_device_t *dev, drm_buf_t *buf)
    	return 0;
 }
 
-static struct file_operations i810_buffer_fops = {
+static const struct file_operations i810_buffer_fops = {
 	open:	 i810_open,
 	flush:	 drm_flush,
 	release: i810_release,

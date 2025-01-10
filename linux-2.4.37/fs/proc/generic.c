@@ -33,7 +33,7 @@ int proc_match(int len, const char *name,struct proc_dir_entry * de)
 	return !memcmp(name, de->name, len);
 }
 
-static struct file_operations proc_file_operations = {
+static const struct file_operations proc_file_operations = {
 	llseek:		proc_file_lseek,
 	read:		proc_file_read,
 	write:		proc_file_write,
@@ -229,7 +229,7 @@ static int proc_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return vfs_follow_link(nd, s);
 }
 
-static struct inode_operations proc_link_inode_operations = {
+static const struct inode_operations proc_link_inode_operations = {
 	readlink:	proc_readlink,
 	follow_link:	proc_follow_link,
 };
@@ -245,8 +245,7 @@ static int proc_delete_dentry(struct dentry * dentry)
 	return 1;
 }
 
-static struct dentry_operations proc_dentry_operations =
-{
+static const struct dentry_operations proc_dentry_operations = {
 	d_delete:	proc_delete_dentry,
 };
 
@@ -351,7 +350,7 @@ int proc_readdir(struct file * filp,
  * use the in-memory "struct proc_dir_entry" tree to parse
  * the /proc directory.
  */
-static struct file_operations proc_dir_operations = {
+static const struct file_operations proc_dir_operations = {
 	read:			generic_read_dir,
 	readdir:		proc_readdir,
 };
@@ -359,7 +358,7 @@ static struct file_operations proc_dir_operations = {
 /*
  * proc directories can do almost nothing..
  */
-static struct inode_operations proc_dir_inode_operations = {
+static const struct inode_operations proc_dir_inode_operations = {
 	lookup:		proc_lookup,
 };
 
@@ -406,7 +405,7 @@ static void proc_kill_inodes(struct proc_dir_entry *de)
 		struct file * filp = list_entry(p, struct file, f_list);
 		struct dentry * dentry = filp->f_dentry;
 		struct inode * inode;
-		struct file_operations *fops;
+		const struct file_operations *fops;
 
 		if (dentry->d_op != &proc_dentry_operations)
 			continue;

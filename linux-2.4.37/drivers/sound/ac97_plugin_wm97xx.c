@@ -789,7 +789,7 @@ static int wm97xx_release(struct inode * inode, struct file * filp)
 	return 0;
 }
 
-static struct file_operations ts_fops = {
+static const struct file_operations ts_fops = {
 	owner:		THIS_MODULE,
 	read:           wm97xx_read,
 	poll:           wm97xx_poll,

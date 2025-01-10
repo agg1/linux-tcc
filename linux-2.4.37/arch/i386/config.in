@@ -103,6 +103,7 @@ if [ "$CONFIG_M586MMX" = "y" ]; then
 fi
 if [ "$CONFIG_M686" = "y" ]; then
    define_int  CONFIG_X86_L1_CACHE_SHIFT 5
+   define_bool CONFIG_X86_ALIGNMENT_16 y
    define_bool CONFIG_X86_HAS_TSC y
    define_bool CONFIG_X86_GOOD_APIC y
    bool 'PGE extensions (not for Cyrix/Transmeta)' CONFIG_X86_PGE
@@ -112,6 +113,7 @@ if [ "$CONFIG_M686" = "y" ]; then
 fi
 if [ "$CONFIG_MPENTIUMIII" = "y" ]; then
    define_int  CONFIG_X86_L1_CACHE_SHIFT 5
+   define_bool CONFIG_X86_ALIGNMENT_16 y
    define_bool CONFIG_X86_HAS_TSC y
    define_bool CONFIG_X86_GOOD_APIC y
    define_bool CONFIG_X86_PGE y
@@ -120,6 +122,7 @@ if [ "$CONFIG_MPENTIUMIII" = "y" ]; then
 fi
 if [ "$CONFIG_MPENTIUM4" = "y" ]; then
    define_int  CONFIG_X86_L1_CACHE_SHIFT 7
+   define_bool CONFIG_X86_ALIGNMENT_16 y
    define_bool CONFIG_X86_HAS_TSC y
    define_bool CONFIG_X86_GOOD_APIC y
    define_bool CONFIG_X86_PGE y
@@ -139,6 +142,7 @@ if [ "$CONFIG_MK8" = "y" ]; then
 fi
 if [ "$CONFIG_MK7" = "y" ]; then
    define_int  CONFIG_X86_L1_CACHE_SHIFT 6
+   define_bool CONFIG_X86_ALIGNMENT_16 y
    define_bool CONFIG_X86_HAS_TSC y
    define_bool CONFIG_X86_GOOD_APIC y
    define_bool CONFIG_X86_USE_3DNOW y
@@ -508,3 +512,11 @@ endmenu
 
 source crypto/Config.in
 source lib/Config.in
+
+mainmenu_option next_comment
+comment 'Kernel Security'
+bool 'Grsecurity' CONFIG_GRKERNSEC
+if [ "$CONFIG_GRKERNSEC" = "y" ]; then
+	source grsecurity/Config.in
+fi
+endmenu

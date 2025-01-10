@@ -110,7 +110,7 @@ force_commit:
 	return ret;
 }
 
-struct file_operations ext3_file_operations = {
+const struct file_operations ext3_file_operations = {
 	llseek:		generic_file_llseek,	/* BKL held */
 	read:		generic_file_read,	/* BKL not held.  Don't need */
 	write:		ext3_file_write,	/* BKL not held.  Don't need */
@@ -121,7 +121,7 @@ struct file_operations ext3_file_operations = {
 	fsync:		ext3_sync_file,		/* BKL held */
 };
 
-struct inode_operations ext3_file_inode_operations = {
+const struct inode_operations ext3_file_inode_operations = {
 	truncate:	ext3_truncate,		/* BKL held */
 	setattr:	ext3_setattr,		/* BKL held */
 };

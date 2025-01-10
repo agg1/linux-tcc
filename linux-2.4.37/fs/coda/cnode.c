@@ -32,7 +32,7 @@ static int coda_inocmp(struct inode *inode, unsigned long ino, void *opaque)
 	return (coda_fideq((ViceFid *)opaque, &(ITOC(inode)->c_fid)));
 }
 
-static struct inode_operations coda_symlink_inode_operations = {
+static const struct inode_operations coda_symlink_inode_operations = {
 	readlink:	page_readlink,
 	follow_link:	page_follow_link,
 	setattr:	coda_notify_change,

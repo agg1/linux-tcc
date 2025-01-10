@@ -24,7 +24,7 @@ static int autofs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return vfs_follow_link(nd, s);
 }
 
-struct inode_operations autofs_symlink_inode_operations = {
+const struct inode_operations autofs_symlink_inode_operations = {
 	readlink:	autofs_readlink,
 	follow_link:	autofs_follow_link
 };

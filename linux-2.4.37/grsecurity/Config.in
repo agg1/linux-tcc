@@ -1,0 +1,62 @@
+bool 'Address Space Layout Randomization' CONFIG_PAX_ASLR
+if [ "$CONFIG_PAX_ASLR" = "y" ]; then
+ if [ "$CONFIG_X86_64" != "y" ]; then
+  bool '  Randomize kernel stack base' CONFIG_PAX_RANDKSTACK
+ fi
+ bool '  Randomize user stack base' CONFIG_PAX_RANDUSTACK
+ bool '  Randomize mmap() base' CONFIG_PAX_RANDMMAP
+fi
+
+bool 'Harden kernel heap management' CONFIG_GRKERNSEC_KHEAP
+bool 'Deny writing to /dev/kmem, /dev/mem, and /dev/port' CONFIG_GRKERNSEC_KMEM
+bool 'Hide kernel symbols' CONFIG_GRKERNSEC_HIDESYM
+
+if [ "$CONFIG_X86" = "y" ]; then
+ bool 'Disable privileged I/O' CONFIG_GRKERNSEC_IO
+ if [ "$CONFIG_GRKERNSEC_IO" = "y" ]; then
+  define_bool CONFIG_RTC y
+ fi
+fi
+
+if [ "$CONFIG_SYSVIPC" = "y" ]; then
+  bool 'Destroy unused shared memory' CONFIG_GRKERNSEC_SHM
+fi
+bool 'Dmesg(8) restriction' CONFIG_GRKERNSEC_DMESG
+
+bool 'Proc restrictions' CONFIG_GRKERNSEC_PROC
+if [ "$CONFIG_GRKERNSEC_PROC" != "n" ]; then
+ bool '   Restrict to user only' CONFIG_GRKERNSEC_PROC_USER
+ bool '   Additional restrictions' CONFIG_GRKERNSEC_PROC_ADD
+fi
+
+bool 'Linking restrictions' CONFIG_GRKERNSEC_LINK
+bool 'FIFO restrictions' CONFIG_GRKERNSEC_FIFO
+bool 'Chroot jail restrictions' CONFIG_GRKERNSEC_CHROOT
+if [ "$CONFIG_GRKERNSEC_CHROOT" != "n" ]; then
+bool '   Deny mounts' CONFIG_GRKERNSEC_CHROOT_MOUNT
+bool '   Deny double-chroots' CONFIG_GRKERNSEC_CHROOT_DOUBLE
+bool '   Deny pivot_root in chroot' CONFIG_GRKERNSEC_CHROOT_PIVOT
+bool '   Enforce chdir("/") on all chroots' CONFIG_GRKERNSEC_CHROOT_CHDIR
+bool '   Deny (f)chmod +s' CONFIG_GRKERNSEC_CHROOT_CHMOD
+bool '   Deny fchdir out of chroot' CONFIG_GRKERNSEC_CHROOT_FCHDIR
+bool '   Deny mknod' CONFIG_GRKERNSEC_CHROOT_MKNOD
+#bool '   Deny shmat() out of chroot' CONFIG_GRKERNSEC_CHROOT_SHMAT
+#bool '   Deny access to abstract AF_UNIX sockets out of chroot' CONFIG_GRKERNSEC_CHROOT_UNIX
+bool '   Protect outside processes' CONFIG_GRKERNSEC_CHROOT_FINDTASK
+#bool '   Restrict priority changes' CONFIG_GRKERNSEC_CHROOT_NICE
+bool '   Deny sysctl writes in chroot' CONFIG_GRKERNSEC_CHROOT_SYSCTL
+bool '   Capability restrictions within chroot' CONFIG_GRKERNSEC_CHROOT_CAPS
+fi
+
+bool 'Larger entropy pools' CONFIG_GRKERNSEC_RANDNET
+bool 'TCP/UDP blackhole' CONFIG_GRKERNSEC_BLACKHOLE
+
+mainmenu_option next_comment
+comment 'Logging options'
+bool '(Un)Mount logging' CONFIG_GRKERNSEC_AUDIT_MOUNT
+bool 'Time change logging' CONFIG_GRKERNSEC_TIME
+bool '/proc/<pid>/ipaddr support' CONFIG_GRKERNSEC_PROC_IPADDR
+int 'Seconds in between log messages (minimum)' CONFIG_GRKERNSEC_FLOODTIME 10
+int 'Number of messages in a burst (maximum)' CONFIG_GRKERNSEC_FLOODBURST 4
+endmenu
+

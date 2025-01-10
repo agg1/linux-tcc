@@ -10,6 +10,7 @@
 #include <linux/stat.h>
 #include <linux/file.h>
 #include <linux/smp_lock.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 
@@ -150,7 +151,7 @@ int dcache_readdir(struct file * filp, void * dirent, filldir_t filldir)
 	return 0;
 }
 
-struct file_operations dcache_dir_ops = {
+const struct file_operations dcache_dir_ops = {
 	open:		dcache_dir_open,
 	release:	dcache_dir_close,
 	llseek:		dcache_dir_lseek,
@@ -181,6 +182,7 @@ struct old_linux_dirent {
 
 struct readdir_callback {
 	struct old_linux_dirent * dirent;
+	struct file * file;
 	int count;
 };
 
@@ -192,6 +194,10 @@ static int fillonedir(void * __buf, const char * name, int namlen, loff_t offset
 
 	if (buf->count)
 		return -EINVAL;
+
+	if (!gr_acl_handle_filldir(buf->file, name, namlen, ino))
+		return 0;
+	    
 	buf->count++;
 	dirent = buf->dirent;
 	put_user(ino, &dirent->d_ino);
@@ -214,6 +220,7 @@ asmlinkage int old_readdir(unsigned int fd, void * dirent, unsigned int count)
 		goto out;
 
 	buf.count = 0;
+	buf.file = file;
 	buf.dirent = dirent;
 
 	error = vfs_readdir(file, fillonedir, &buf);
@@ -241,6 +248,7 @@ struct linux_dirent {
 struct getdents_callback {
 	struct linux_dirent * current_dir;
 	struct linux_dirent * previous;
+	struct file * file;
 	int count;
 	int error;
 };
@@ -255,6 +263,10 @@ static int filldir(void * __buf, const char * name, int namlen, loff_t offset,
 	buf->error = -EINVAL;	/* only used if we fail.. */
 	if (reclen > buf->count)
 		return -EINVAL;
+
+	if (!gr_acl_handle_filldir(buf->file, name, namlen, ino))
+		return 0;
+
 	dirent = buf->previous;
 	if (dirent)
 		put_user(offset, &dirent->d_off);
@@ -284,6 +296,7 @@ asmlinkage long sys_getdents(unsigned int fd, void * dirent, unsigned int count)
 
 	buf.current_dir = (struct linux_dirent *) dirent;
 	buf.previous = NULL;
+	buf.file = file;
 	buf.count = count;
 	buf.error = 0;
 
@@ -319,6 +332,7 @@ struct linux_dirent64 {
 struct getdents_callback64 {
 	struct linux_dirent64 * current_dir;
 	struct linux_dirent64 * previous;
+	struct file * file;
 	int count;
 	int error;
 };
@@ -333,6 +347,10 @@ static int filldir64(void * __buf, const char * name, int namlen, loff_t offset,
 	buf->error = -EINVAL;	/* only used if we fail.. */
 	if (reclen > buf->count)
 		return -EINVAL;
+
+	if (!gr_acl_handle_filldir(buf->file, name, namlen, ino))
+		return 0;
+	
 	dirent = buf->previous;
 	if (dirent) {
 		d.d_off = offset;
@@ -367,6 +385,7 @@ asmlinkage long sys_getdents64(unsigned int fd, void * dirent, unsigned int coun
 
 	buf.current_dir = (struct linux_dirent64 *) dirent;
 	buf.previous = NULL;
+	buf.file = file;
 	buf.count = count;
 	buf.error = 0;
 

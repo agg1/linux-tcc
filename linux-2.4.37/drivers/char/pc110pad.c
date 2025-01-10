@@ -770,7 +770,7 @@ static int pad_ioctl(struct inode *inode, struct file * file,
 }
 
 
-static struct file_operations pad_fops = {
+static const struct file_operations pad_fops = {
 	owner:		THIS_MODULE,
 	read:		read_pad,
 	write:		write_pad,

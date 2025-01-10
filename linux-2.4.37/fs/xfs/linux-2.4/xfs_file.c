@@ -57,7 +57,7 @@
 #include <linux/smp_lock.h>
 #include <linux/mman.h> /* for PROT_WRITE */
 
-static struct vm_operations_struct linvfs_file_vm_ops;
+static const struct vm_operations_struct linvfs_file_vm_ops;
 
 STATIC inline ssize_t
 __linvfs_read(
@@ -409,7 +409,7 @@ linvfs_mprotect(
 #endif /* HAVE_VMOP_MPROTECT */
 
 
-struct file_operations linvfs_file_operations = {
+const struct file_operations linvfs_file_operations = {
 	.llseek		= generic_file_llseek,
 	.read		= linvfs_read,
 	.write		= linvfs_write,
@@ -420,7 +420,7 @@ struct file_operations linvfs_file_operations = {
 	.fsync		= linvfs_fsync,
 };
 
-struct file_operations linvfs_invis_file_operations = {
+const struct file_operations linvfs_invis_file_operations = {
 	.llseek		= generic_file_llseek,
 	.read		= linvfs_read_invis,
 	.write		= linvfs_write_invis,
@@ -432,14 +432,14 @@ struct file_operations linvfs_invis_file_operations = {
 };
 
 
-struct file_operations linvfs_dir_operations = {
+const struct file_operations linvfs_dir_operations = {
 	.read		= generic_read_dir,
 	.readdir	= linvfs_readdir,
 	.ioctl		= linvfs_ioctl,
 	.fsync		= linvfs_fsync,
 };
 
-static struct vm_operations_struct linvfs_file_vm_ops = {
+static const struct vm_operations_struct linvfs_file_vm_ops = {
 	.nopage		= filemap_nopage,
 #ifdef HAVE_VMOP_MPROTECT
 	.mprotect	= linvfs_mprotect,

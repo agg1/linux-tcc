@@ -205,8 +205,7 @@ static unsigned int isapnp_info_entry_poll(struct file *file, poll_table * wait)
 	return POLLIN | POLLRDNORM;
 }
 
-static struct file_operations isapnp_info_entry_operations =
-{
+static const struct file_operations isapnp_info_entry_operations = {
 	llseek:		isapnp_info_entry_lseek,
 	read:		isapnp_info_entry_read,
 	write:		isapnp_info_entry_write,
@@ -269,8 +268,7 @@ static ssize_t isapnp_proc_bus_read(struct file *file, char *buf, size_t nbytes,
 	return nbytes;
 }
 
-static struct file_operations isapnp_proc_bus_file_operations =
-{
+static const struct file_operations isapnp_proc_bus_file_operations = {
 	llseek:		isapnp_proc_bus_lseek,
 	read:		isapnp_proc_bus_read,
 };

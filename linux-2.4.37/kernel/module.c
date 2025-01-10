@@ -55,6 +55,8 @@ struct module kernel_module =
 
 struct module *module_list = &kernel_module;
 
+extern int gr_check_modstop(void);
+
 #endif	/* defined(CONFIG_MODULES) || defined(CONFIG_KALLSYMS) */
 
 /* inter_module functions are always available, even when the kernel is
@@ -296,6 +298,9 @@ sys_create_module(const char *name_user, size_t size)
 	struct module *mod;
 	unsigned long flags;
 
+	if (gr_check_modstop())
+		return -EPERM;
+
 	if (!capable(CAP_SYS_MODULE))
 		return -EPERM;
 	lock_kernel();
@@ -350,6 +355,9 @@ sys_init_module(const char *name_user, struct module *mod_user)
 	long namelen, n_namelen, i, error;
 	unsigned long mod_user_size, flags;
 	struct module_ref *dep;
+
+	if (gr_check_modstop())
+		return -EPERM;
 
 	if (!capable(CAP_SYS_MODULE))
 		return -EPERM;
@@ -611,6 +619,9 @@ sys_delete_module(const char *name_user)
 	char *name;
 	long error;
 	int something_changed;
+
+	if (gr_check_modstop())
+		return -EPERM;
 
 	if (!capable(CAP_SYS_MODULE))
 		return -EPERM;
@@ -900,6 +911,11 @@ sys_query_module(const char *name_user, int which, char *buf, size_t bufsize,
 	struct module *mod;
 	int err;
 
+#ifdef CONFIG_GRKERNSEC_HIDESYM
+	if (!capable(CAP_SYS_MODULE))
+		return -EPERM;
+#endif
+
 	lock_kernel();
 	if (name_user == NULL)
 		mod = &kernel_module;
@@ -968,6 +984,11 @@ sys_get_kernel_syms(struct kernel_sym *table)
 	struct module *mod;
 	int i;
 	struct kernel_sym ksym;
+
+#ifdef CONFIG_GRKERNSEC_HIDESYM
+	if (!capable(CAP_SYS_MODULE))
+		return 0;
+#endif
 
 	lock_kernel();
 	for (mod = module_list, i = 0; mod; mod = mod->next) {
@@ -1241,7 +1262,7 @@ static int s_show(struct seq_file *m, void *p)
 	return 0;
 }
 
-struct seq_operations ksyms_op = {
+const struct seq_operations ksyms_op = {
 	start:	s_start,
 	next:	s_next,
 	stop:	s_stop,

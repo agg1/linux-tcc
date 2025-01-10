@@ -150,8 +150,7 @@ int hpfs_statfs(struct super_block *s, struct statfs *buf)
 
 /* Super operations */
 
-static struct super_operations hpfs_sops =
-{
+static const struct super_operations hpfs_sops = {
         read_inode:	hpfs_read_inode,
 	delete_inode:	hpfs_delete_inode,
 	put_super:	hpfs_put_super,

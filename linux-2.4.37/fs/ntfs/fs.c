@@ -33,8 +33,8 @@
 #include <linux/ntfs_fs.h>
 
 /* Forward declarations. */
-static struct inode_operations ntfs_dir_inode_operations;
-static struct file_operations ntfs_dir_operations;
+static const struct inode_operations ntfs_dir_inode_operations;
+static const struct file_operations ntfs_dir_operations;
 
 #define ITEM_SIZE 2040
 
@@ -557,7 +557,7 @@ err_ret:
 	return ERR_PTR(err);
 }
 
-static struct file_operations ntfs_file_operations = {
+static const struct file_operations ntfs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		ntfs_read,
 #ifdef CONFIG_NTFS_RW
@@ -566,7 +566,7 @@ static struct file_operations ntfs_file_operations = {
 	open:		generic_file_open,
 };
 
-static struct inode_operations ntfs_inode_operations;
+static const struct inode_operations ntfs_inode_operations;
 
 #ifdef CONFIG_NTFS_RW
 static int ntfs_create(struct inode* dir, struct dentry *d, int mode)
@@ -680,12 +680,12 @@ static int _linux_ntfs_mkdir(struct inode *dir, struct dentry* d, int mode)
 }
 #endif
 
-static struct file_operations ntfs_dir_operations = {
+static const struct file_operations ntfs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	ntfs_readdir,
 };
 
-static struct inode_operations ntfs_dir_inode_operations = {
+static const struct inode_operations ntfs_dir_inode_operations = {
 	lookup:		ntfs_lookup,
 #ifdef CONFIG_NTFS_RW
 	create:		ntfs_create,
@@ -915,7 +915,7 @@ static int ntfs_remount_fs(struct super_block *sb, int *flags, char *options)
 }
 
 /* Define the super block operation that are implemented */
-static struct super_operations ntfs_super_operations = {
+static const struct super_operations ntfs_super_operations = {
 	read_inode:	ntfs_read_inode,
 #ifdef CONFIG_NTFS_RW
 	write_inode:	ntfs_write_inode,

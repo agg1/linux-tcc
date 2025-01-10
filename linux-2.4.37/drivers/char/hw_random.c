@@ -106,7 +106,7 @@ struct rng_operations {
 };
 static struct rng_operations *rng_ops;
 
-static struct file_operations rng_chrdev_ops = {
+static const struct file_operations rng_chrdev_ops = {
 	.owner		= THIS_MODULE,
 	.open		= rng_dev_open,
 	.read		= rng_dev_read,

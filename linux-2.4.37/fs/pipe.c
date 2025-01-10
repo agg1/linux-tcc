@@ -388,7 +388,7 @@ pipe_rdwr_open(struct inode *inode, struct file *filp)
  * The file_operations structs are not static because they
  * are also used in linux/fs/fifo.c to do operations on FIFOs.
  */
-struct file_operations read_fifo_fops = {
+const struct file_operations read_fifo_fops = {
 	llseek:		no_llseek,
 	read:		pipe_read,
 	write:		bad_pipe_w,
@@ -398,7 +398,7 @@ struct file_operations read_fifo_fops = {
 	release:	pipe_read_release,
 };
 
-struct file_operations write_fifo_fops = {
+const struct file_operations write_fifo_fops = {
 	llseek:		no_llseek,
 	read:		bad_pipe_r,
 	write:		pipe_write,
@@ -408,7 +408,7 @@ struct file_operations write_fifo_fops = {
 	release:	pipe_write_release,
 };
 
-struct file_operations rdwr_fifo_fops = {
+const struct file_operations rdwr_fifo_fops = {
 	llseek:		no_llseek,
 	read:		pipe_read,
 	write:		pipe_write,
@@ -418,7 +418,7 @@ struct file_operations rdwr_fifo_fops = {
 	release:	pipe_rdwr_release,
 };
 
-struct file_operations read_pipe_fops = {
+const struct file_operations read_pipe_fops = {
 	llseek:		no_llseek,
 	read:		pipe_read,
 	write:		bad_pipe_w,
@@ -428,7 +428,7 @@ struct file_operations read_pipe_fops = {
 	release:	pipe_read_release,
 };
 
-struct file_operations write_pipe_fops = {
+const struct file_operations write_pipe_fops = {
 	llseek:		no_llseek,
 	read:		bad_pipe_r,
 	write:		pipe_write,
@@ -438,7 +438,7 @@ struct file_operations write_pipe_fops = {
 	release:	pipe_write_release,
 };
 
-struct file_operations rdwr_pipe_fops = {
+const struct file_operations rdwr_pipe_fops = {
 	llseek:		no_llseek,
 	read:		pipe_read,
 	write:		pipe_write,
@@ -473,12 +473,12 @@ fail_page:
 	return NULL;
 }
 
-static struct vfsmount *pipe_mnt;
+struct vfsmount *pipe_mnt;
 static int pipefs_delete_dentry(struct dentry *dentry)
 {
 	return 1;
 }
-static struct dentry_operations pipefs_dentry_operations = {
+static const struct dentry_operations pipefs_dentry_operations = {
 	d_delete:	pipefs_delete_dentry,
 };
 
@@ -610,7 +610,7 @@ static int pipefs_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
-static struct super_operations pipefs_ops = {
+static const struct super_operations pipefs_ops = {
 	statfs:		pipefs_statfs,
 };
 

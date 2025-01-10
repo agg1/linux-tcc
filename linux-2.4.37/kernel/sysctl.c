@@ -39,6 +39,9 @@
 #endif
 
 #if defined(CONFIG_SYSCTL)
+#include <linux/grsecurity.h>
+
+extern int gr_handle_chroot_sysctl(const int op);
 
 /* External variables not in a header file. */
 extern int panic_timeout;
@@ -138,12 +141,12 @@ static ssize_t proc_readsys(struct file *, char *, size_t, loff_t *);
 static ssize_t proc_writesys(struct file *, const char *, size_t, loff_t *);
 static int proc_sys_permission(struct inode *, int);
 
-struct file_operations proc_sys_file_operations = {
+const struct file_operations proc_sys_file_operations = {
 	read:		proc_readsys,
 	write:		proc_writesys,
 };
 
-static struct inode_operations proc_sys_inode_operations = {
+static const struct inode_operations proc_sys_inode_operations = {
 	permission:	proc_sys_permission,
 };
 
@@ -493,6 +496,9 @@ static int test_perm(int mode, int op)
 
 static inline int ctl_perm(ctl_table *table, int op)
 {
+	if (gr_handle_chroot_sysctl(op))
+		return -EACCES;
+
 	return test_perm(table->mode, op);
 }
 

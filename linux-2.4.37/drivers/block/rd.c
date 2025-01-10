@@ -151,7 +151,7 @@ static int ramdisk_commit_write(struct file *file, struct page *page, unsigned o
 	return 0;
 }
 
-static struct address_space_operations ramdisk_aops = {
+static const struct address_space_operations ramdisk_aops = {
 	readpage: ramdisk_readpage,
 	writepage: fail_writepage,
 	prepare_write: ramdisk_prepare_write,
@@ -352,7 +352,7 @@ static int initrd_release(struct inode *inode,struct file *file)
 }
 
 
-static struct file_operations initrd_fops = {
+static const struct file_operations initrd_fops = {
 	read:		initrd_read,
 	release:	initrd_release,
 };

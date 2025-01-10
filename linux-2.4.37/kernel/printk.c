@@ -28,6 +28,8 @@
 #include <linux/config.h>
 #include <linux/delay.h>
 
+#include <linux/grsecurity.h>
+
 #include <asm/uaccess.h>
 
 #if !defined(CONFIG_LOG_BUF_SHIFT) || (CONFIG_LOG_BUF_SHIFT == 0)
@@ -300,6 +302,11 @@ out:
 
 asmlinkage long sys_syslog(int type, char * buf, int len)
 {
+#ifdef CONFIG_GRKERNSEC_DMESG
+	if (grsec_enable_dmesg && !capable(CAP_SYS_ADMIN))
+		return -EPERM;
+	else
+#endif
 	if ((type != 3) && !capable(CAP_SYS_ADMIN))
 		return -EPERM;
 	return do_syslog(type, buf, len);

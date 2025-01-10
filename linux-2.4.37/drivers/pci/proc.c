@@ -284,7 +284,7 @@ static int proc_bus_pci_release(struct inode *inode, struct file *file)
 }
 #endif /* HAVE_PCI_MMAP */
 
-static struct file_operations proc_bus_pci_operations = {
+static const struct file_operations proc_bus_pci_operations = {
 	llseek:		proc_bus_pci_lseek,
 	read:		proc_bus_pci_read,
 	write:		proc_bus_pci_write,
@@ -364,7 +364,7 @@ static int show_device(struct seq_file *m, void *v)
 	return 0;
 }
 
-static struct seq_operations proc_bus_pci_devices_op = {
+static const struct seq_operations proc_bus_pci_devices_op = {
 	start:	pci_seq_start,
 	next:	pci_seq_next,
 	stop:	pci_seq_stop,
@@ -524,7 +524,7 @@ static int show_dev_config(struct seq_file *m, void *v)
 	return 0;
 }
 
-static struct seq_operations proc_pci_op = {
+static const struct seq_operations proc_pci_op = {
 	start:	pci_seq_start,
 	next:	pci_seq_next,
 	stop:	pci_seq_stop,
@@ -535,7 +535,7 @@ static int proc_bus_pci_dev_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &proc_bus_pci_devices_op);
 }
-static struct file_operations proc_bus_pci_dev_operations = {
+static const struct file_operations proc_bus_pci_dev_operations = {
 	open:		proc_bus_pci_dev_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -545,7 +545,7 @@ static int proc_pci_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &proc_pci_op);
 }
-static struct file_operations proc_pci_operations = {
+static const struct file_operations proc_pci_operations = {
 	open:		proc_pci_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -564,7 +564,13 @@ static int __init pci_proc_init(void)
 		pci_for_each_dev(dev) {
 			pci_proc_attach_device(dev);
 		}
+#ifdef CONFIG_GRKERNSEC_PROC_ADD
+#ifdef CONFIG_GRKERNSEC_PROC_USER
+		entry = create_proc_entry("pci", S_IRUSR, NULL);
+#endif
+#else
 		entry = create_proc_entry("pci", 0, NULL);
+#endif
 		if (entry)
 			entry->proc_fops = &proc_pci_operations;
 	}

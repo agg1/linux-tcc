@@ -90,8 +90,7 @@ static int bad_follow_link(struct dentry *dent, struct nameidata *nd)
 	return vfs_follow_link(nd, ERR_PTR(-EIO));
 }
 
-static struct file_operations bad_file_ops =
-{
+static const struct file_operations bad_file_ops = {
 	llseek:		bad_file_llseek,
 	read:		bad_file_read,
 	write:		bad_file_write,
@@ -175,8 +174,7 @@ static int bad_inode_revalidate(struct dentry *dentry)
 	return -EIO;
 }
 
-struct inode_operations bad_inode_ops =
-{
+const struct inode_operations bad_inode_ops = {
 	create:		bad_inode_create,
 	lookup:		bad_inode_lookup,
 	link:		bad_inode_link,

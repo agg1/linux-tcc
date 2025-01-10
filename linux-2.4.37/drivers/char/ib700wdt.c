@@ -280,7 +280,7 @@ ibwdt_notify_sys(struct notifier_block *this, unsigned long code,
  *	Kernel Interfaces
  */
 
-static struct file_operations ibwdt_fops = {
+static const struct file_operations ibwdt_fops = {
 	owner:		THIS_MODULE,
 	read:		ibwdt_read,
 	write:		ibwdt_write,

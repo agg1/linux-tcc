@@ -60,85 +60,85 @@ int filter_debug = 0xfffffff;
 static struct filter_fs filter_oppar[FILTER_FS_TYPES];
 
 /* get to the upper methods (intermezzo, snapfs) */
-inline struct super_operations *filter_c2usops(struct filter_fs *cache)
+inline const struct super_operations *filter_c2usops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_sops;
 }
 
-inline struct inode_operations *filter_c2udiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2udiops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_dir_iops;
 }
 
 
-inline struct inode_operations *filter_c2ufiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2ufiops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_file_iops;
 }
 
-inline struct inode_operations *filter_c2usiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2usiops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_sym_iops;
 }
 
 
-inline struct file_operations *filter_c2udfops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2udfops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_dir_fops;
 }
 
-inline struct file_operations *filter_c2uffops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2uffops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_file_fops;
 }
 
-inline struct file_operations *filter_c2usfops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2usfops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_sym_fops;
 }
 
-inline struct dentry_operations *filter_c2udops(struct filter_fs *cache)
+inline const struct dentry_operations *filter_c2udops(struct filter_fs *cache)
 {
         return &cache->o_fops.filter_dentry_ops;
 }
 
 /* get to the cache (lower) methods */
-inline struct super_operations *filter_c2csops(struct filter_fs *cache)
+inline const struct super_operations *filter_c2csops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_sops;
 }
 
-inline struct inode_operations *filter_c2cdiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2cdiops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_dir_iops;
 }
 
-inline struct inode_operations *filter_c2cfiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2cfiops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_file_iops;
 }
 
-inline struct inode_operations *filter_c2csiops(struct filter_fs *cache)
+inline const struct inode_operations *filter_c2csiops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_sym_iops;
 }
 
-inline struct file_operations *filter_c2cdfops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2cdfops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_dir_fops;
 }
 
-inline struct file_operations *filter_c2cffops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2cffops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_file_fops;
 }
 
-inline struct file_operations *filter_c2csfops(struct filter_fs *cache)
+inline const struct file_operations *filter_c2csfops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_sym_fops;
 }
 
-inline struct dentry_operations *filter_c2cdops(struct filter_fs *cache)
+inline const struct dentry_operations *filter_c2cdops(struct filter_fs *cache)
 {
         return cache->o_caops.cache_dentry_ops;
 }
@@ -265,7 +265,7 @@ struct filter_fs *filter_get_filter_fs(const char *cache_type)
  *    and the underlying file system used for the cache.
  */
 
-void filter_setup_super_ops(struct filter_fs *cache, struct super_operations *cache_sops, struct super_operations *filter_sops)
+void filter_setup_super_ops(struct filter_fs *cache, const struct super_operations *cache_sops, const struct super_operations *filter_sops)
 {
         /* Get ptr to the shared struct snapfs_ops structure. */
         struct filter_ops *props = &cache->o_fops;
@@ -307,11 +307,11 @@ void filter_setup_super_ops(struct filter_fs *cache, struct super_operations *ca
 }
 
 
-void filter_setup_dir_ops(struct filter_fs *cache, struct inode *inode, struct inode_operations *filter_iops, struct file_operations *filter_fops)
+void filter_setup_dir_ops(struct filter_fs *cache, struct inode *inode, const struct inode_operations *filter_iops, const struct file_operations *filter_fops)
 {
-        struct inode_operations *cache_filter_iops;
-        struct inode_operations *cache_iops = inode->i_op;
-        struct file_operations *cache_fops = inode->i_fop;
+        const struct inode_operations *cache_filter_iops;
+        const struct inode_operations *cache_iops = inode->i_op;
+        const struct file_operations *cache_fops = inode->i_fop;
         FENTRY;
 
         if ( cache->o_flags & FILTER_DID_DIR_OPS ) {
@@ -382,11 +382,11 @@ void filter_setup_dir_ops(struct filter_fs *cache, struct inode *inode, struct i
 }
 
 
-void filter_setup_file_ops(struct filter_fs *cache, struct inode *inode, struct inode_operations *filter_iops, struct file_operations *filter_fops)
+void filter_setup_file_ops(struct filter_fs *cache, struct inode *inode, const struct inode_operations *filter_iops, const struct file_operations *filter_fops)
 {
-        struct inode_operations *pr_iops;
-        struct inode_operations *cache_iops = inode->i_op;
-        struct file_operations *cache_fops = inode->i_fop;
+        const struct inode_operations *pr_iops;
+        const struct inode_operations *cache_iops = inode->i_op;
+        const struct file_operations *cache_fops = inode->i_fop;
         FENTRY;
 
         if ( cache->o_flags & FILTER_DID_FILE_OPS ) {
@@ -438,11 +438,11 @@ void filter_setup_file_ops(struct filter_fs *cache, struct inode *inode, struct 
 }
 
 /* XXX in 2.3 there are "fast" and "slow" symlink ops for ext2 XXX */
-void filter_setup_symlink_ops(struct filter_fs *cache, struct inode *inode, struct inode_operations *filter_iops, struct file_operations *filter_fops)
+void filter_setup_symlink_ops(struct filter_fs *cache, struct inode *inode, const struct inode_operations *filter_iops, const struct file_operations *filter_fops)
 {
-        struct inode_operations *pr_iops;
-        struct inode_operations *cache_iops = inode->i_op;
-        struct file_operations *cache_fops = inode->i_fop;
+        const struct inode_operations *pr_iops;
+        const struct inode_operations *cache_iops = inode->i_op;
+        const struct file_operations *cache_fops = inode->i_fop;
         FENTRY;
 
         if ( cache->o_flags & FILTER_DID_SYMLINK_OPS ) {
@@ -477,8 +477,8 @@ void filter_setup_symlink_ops(struct filter_fs *cache, struct inode *inode, stru
 }
 
 void filter_setup_dentry_ops(struct filter_fs *cache,
-                             struct dentry_operations *cache_dop,
-                             struct dentry_operations *filter_dop)
+                             const struct dentry_operations *cache_dop,
+                             const struct dentry_operations *filter_dop)
 {
         if ( cache->o_flags & FILTER_DID_DENTRY_OPS ) {
                 FEXIT;

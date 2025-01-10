@@ -47,7 +47,7 @@ static int nfs_rename(struct inode *, struct dentry *,
 		      struct inode *, struct dentry *);
 static int nfs_fsync_dir(struct file *, struct dentry *, int);
 
-struct file_operations nfs_dir_operations = {
+const struct file_operations nfs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	nfs_readdir,
 	open:		nfs_open,
@@ -55,7 +55,7 @@ struct file_operations nfs_dir_operations = {
 	fsync:		nfs_fsync_dir
 };
 
-struct inode_operations nfs_dir_inode_operations = {
+const struct inode_operations nfs_dir_inode_operations = {
 	create:		nfs_create,
 	lookup:		nfs_lookup,
 	link:		nfs_link,
@@ -570,7 +570,7 @@ static void nfs_dentry_iput(struct dentry *dentry, struct inode *inode)
 	iput(inode);
 }
 
-struct dentry_operations nfs_dentry_operations = {
+const struct dentry_operations nfs_dentry_operations = {
 	d_revalidate:	nfs_lookup_revalidate,
 	d_delete:	nfs_dentry_delete,
 	d_iput:		nfs_dentry_iput,

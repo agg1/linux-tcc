@@ -28,10 +28,10 @@
 #include "jfs_xattr.h"
 #include "jfs_debug.h"
 
-extern struct inode_operations jfs_file_inode_operations;
-extern struct inode_operations jfs_symlink_inode_operations;
-extern struct file_operations jfs_file_operations;
-extern struct address_space_operations jfs_aops;
+extern const struct inode_operations jfs_file_inode_operations;
+extern const struct inode_operations jfs_symlink_inode_operations;
+extern const struct file_operations jfs_file_operations;
+extern const struct address_space_operations jfs_aops;
 
 extern int jfs_fsync(struct file *, struct dentry *, int);
 extern void jfs_truncate_nolock(struct inode *, loff_t);
@@ -39,8 +39,8 @@ extern void jfs_truncate_nolock(struct inode *, loff_t);
 /*
  * forward references
  */
-struct inode_operations jfs_dir_inode_operations;
-struct file_operations jfs_dir_operations;
+const const struct inode_operations jfs_dir_inode_operations;
+const const struct file_operations jfs_dir_operations;
 
 static s64 commitZeroLink(tid_t, struct inode *);
 
@@ -1401,7 +1401,7 @@ static struct dentry *jfs_lookup(struct inode *dip, struct dentry *dentry)
 	return ERR_PTR(0);
 }
 
-struct inode_operations jfs_dir_inode_operations = {
+const struct inode_operations jfs_dir_inode_operations = {
 	.create		= jfs_create,
 	.lookup		= jfs_lookup,
 	.link		= jfs_link,
@@ -1417,7 +1417,7 @@ struct inode_operations jfs_dir_inode_operations = {
 	.removexattr	= jfs_removexattr,
 };
 
-struct file_operations jfs_dir_operations = {
+const struct file_operations jfs_dir_operations = {
 	.read		= generic_read_dir,
 	.readdir	= jfs_readdir,
 	.fsync		= jfs_fsync,

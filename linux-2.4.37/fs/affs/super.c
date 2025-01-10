@@ -77,7 +77,7 @@ affs_write_super(struct super_block *sb)
 	pr_debug("AFFS: write_super() at %lu, clean=%d\n", CURRENT_TIME, clean);
 }
 
-static struct super_operations affs_sops = {
+static const struct super_operations affs_sops = {
 	read_inode:	affs_read_inode,
 	write_inode:	affs_write_inode,
 	put_inode:	affs_put_inode,

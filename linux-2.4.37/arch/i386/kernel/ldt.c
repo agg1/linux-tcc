@@ -151,7 +151,7 @@ static int read_default_ldt(void * ptr, unsigned long bytecount)
 {
 	int err;
 	unsigned long size;
-	void *address;
+	const void *address;
 
 	err = 0;
 	address = &default_ldt[0];

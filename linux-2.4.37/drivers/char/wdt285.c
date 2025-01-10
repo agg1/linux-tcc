@@ -161,8 +161,7 @@ static int watchdog_ioctl(struct inode *inode, struct file *file,
 	}
 }
 
-static struct file_operations watchdog_fops=
-{
+static const struct file_operations watchdog_fops = {
 	owner:		THIS_MODULE,
 	write:		watchdog_write,
 	ioctl:		watchdog_ioctl,

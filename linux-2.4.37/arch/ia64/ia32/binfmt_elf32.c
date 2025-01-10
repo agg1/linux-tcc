@@ -53,6 +53,12 @@ static void elf32_set_personality (void);
 #undef SET_PERSONALITY
 #define SET_PERSONALITY(ex, ibcs2)	elf32_set_personality()
 
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	(current->personality == PER_LINUX32 ? 0x08048000UL : 0x4000000000000000UL)
+#define PAX_DELTA_MMAP_LEN	(current->personality == PER_LINUX32 ? 16 : 43 - IA32_PAGE_SHIFT)
+#define PAX_DELTA_STACK_LEN	(current->personality == PER_LINUX32 ? 16 : 43 - IA32_PAGE_SHIFT)
+#endif
+
 /* Ugly but avoids duplication */
 #include "../../../fs/binfmt_elf.c"
 
@@ -68,7 +74,7 @@ ia32_install_shared_page (struct vm_area_struct *vma, unsigned long address, int
 	return pg;
 }
 
-static struct vm_operations_struct ia32_shared_page_vm_ops = {
+static const struct vm_operations_struct ia32_shared_page_vm_ops = {
 	.nopage =ia32_install_shared_page
 };
 
@@ -192,6 +198,9 @@ ia32_setup_arg_pages (struct linux_binprm *bprm)
 		mpnt->vm_end = IA32_STACK_TOP;
 		mpnt->vm_page_prot = PAGE_COPY;
 		mpnt->vm_flags = VM_STACK_FLAGS;
+//
+//		mpnt->vm_page_prot = protection_map[VM_STACK_FLAGS & 0x7];
+
 		mpnt->vm_ops = NULL;
 		mpnt->vm_pgoff = 0;
 		mpnt->vm_file = NULL;

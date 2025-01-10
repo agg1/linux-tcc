@@ -9,6 +9,8 @@
  * return value.
  */
 
+#include <asm/segment.h>
+
 /*
  * __get_user_X
  *
@@ -31,7 +33,11 @@ __get_user_1:
 	andl $0xffffe000,%edx
 	cmpl addr_limit(%edx),%eax
 	jae bad_get_user
+	pushl $(__USER_DS)
+	popl %ds
 1:	movzbl (%eax),%edx
+	pushl %ss
+	pop %ds
 	xorl %eax,%eax
 	ret
 
@@ -44,7 +50,11 @@ __get_user_2:
 	andl $0xffffe000,%edx
 	cmpl addr_limit(%edx),%eax
 	jae bad_get_user
+	pushl $(__USER_DS)
+	popl %ds
 2:	movzwl -1(%eax),%edx
+	pushl %ss
+	pop %ds
 	xorl %eax,%eax
 	ret
 
@@ -57,11 +67,17 @@ __get_user_4:
 	andl $0xffffe000,%edx
 	cmpl addr_limit(%edx),%eax
 	jae bad_get_user
+	pushl $(__USER_DS)
+	popl %ds
 3:	movl -3(%eax),%edx
+	pushl %ss
+	pop %ds
 	xorl %eax,%eax
 	ret
 
 bad_get_user:
+	pushl %ss
+	pop %ds
 	xorl %edx,%edx
 	movl $-14,%eax
 	ret

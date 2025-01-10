@@ -60,8 +60,7 @@ static int jffs2_statfs (struct super_block *, struct statfs *);
 int jffs2_remount_fs (struct super_block *, int *, char *);
 extern void jffs2_clear_inode (struct inode *);
 
-static struct super_operations jffs2_super_operations =
-{
+static const struct super_operations jffs2_super_operations = {
 	read_inode:	jffs2_read_inode,
 //	delete_inode:	jffs2_delete_inode,
 	put_super:	jffs2_put_super,

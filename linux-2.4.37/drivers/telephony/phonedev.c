@@ -49,7 +49,7 @@ static int phone_open(struct inode *inode, struct file *file)
 	unsigned int minor = MINOR(inode->i_rdev);
 	int err = 0;
 	struct phone_device *p;
-	struct file_operations *old_fops, *new_fops = NULL;
+	const struct file_operations *old_fops, *new_fops = NULL;
 
 	if (minor >= PHONE_NUM_DEVICES)
 		return -ENODEV;
@@ -133,8 +133,7 @@ void phone_unregister_device(struct phone_device *pfd)
 }
 
 
-static struct file_operations phone_fops =
-{
+static const struct file_operations phone_fops = {
 	owner:		THIS_MODULE,
 	open:		phone_open,
 };

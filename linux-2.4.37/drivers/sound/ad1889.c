@@ -776,7 +776,7 @@ static int ad1889_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations ad1889_fops = {
+static const struct file_operations ad1889_fops = {
 	llseek:         no_llseek,
 	read:           ad1889_read,
 	write:          ad1889_write,
@@ -811,7 +811,7 @@ static int ad1889_mixer_ioctl(struct inode *inode, struct file *file,
 	return codec->mixer_ioctl(codec, cmd, arg);
 }
 
-static struct file_operations ad1889_mixer_fops = {
+static const struct file_operations ad1889_mixer_fops = {
 	llseek:         no_llseek,
 	ioctl:		ad1889_mixer_ioctl,
 	open:		ad1889_mixer_open,

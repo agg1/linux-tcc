@@ -567,8 +567,7 @@ static int mtdblock_ioctl(struct inode * inode, struct file * file,
 }
 
 #if LINUX_VERSION_CODE < 0x20326
-static struct file_operations mtd_fops =
-{
+static const struct file_operations mtd_fops = {
 	open: mtdblock_open,
 	ioctl: mtdblock_ioctl,
 	release: mtdblock_release,

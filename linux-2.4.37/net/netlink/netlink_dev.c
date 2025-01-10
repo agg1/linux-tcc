@@ -159,7 +159,7 @@ static int netlink_ioctl(struct inode *inode, struct file *file,
 }
 
 
-static struct file_operations netlink_fops = {
+static const struct file_operations netlink_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		netlink_read,

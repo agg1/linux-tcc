@@ -75,7 +75,7 @@ static char term_msg[]   = "***KERNEL:  Out of buffer space!***\n";
  *	Generic /proc/net/vlan/<file> file and inode operations 
  */
 
-static struct file_operations vlan_fops = {
+static const struct file_operations vlan_fops = {
 	read:	vlan_proc_read,
 	ioctl: NULL, /* vlan_proc_ioctl */
 };
@@ -84,7 +84,7 @@ static struct file_operations vlan_fops = {
  *	/proc/net/vlan/<device> file and inode operations
  */
 
-static struct file_operations vlandev_fops = {
+static const struct file_operations vlandev_fops = {
 	read:	vlan_proc_read,
 	ioctl:	NULL, /* vlan_proc_ioctl */
 };

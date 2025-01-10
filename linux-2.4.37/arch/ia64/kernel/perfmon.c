@@ -3261,7 +3261,7 @@ pfm_proc_show(struct seq_file *m, void *v)
 	return 0;
 }
  
-struct seq_operations pfm_seq_ops = {
+const struct seq_operations pfm_seq_ops = {
 	.start =	pfm_proc_start,
  	.next =		pfm_proc_next,
  	.stop =		pfm_proc_stop,
@@ -4500,7 +4500,7 @@ pfm_remove_alternate_syswide_subsystem(pfm_intr_handler_desc_t *hdl)
 	return 0;
 }
 
-static struct file_operations pfm_proc_fops = {
+static const struct file_operations pfm_proc_fops = {
 	.open		= pfm_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

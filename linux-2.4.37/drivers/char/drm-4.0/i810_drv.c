@@ -43,7 +43,7 @@
 static drm_device_t	      i810_device;
 drm_ctx_t		      i810_res_ctx;
 
-static struct file_operations i810_fops = {
+static const struct file_operations i810_fops = {
 #if LINUX_VERSION_CODE >= 0x020400
 				/* This started being used during 2.4.0-test */
 	owner:   THIS_MODULE,

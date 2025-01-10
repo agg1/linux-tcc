@@ -47,7 +47,7 @@ extern int ffb_newctx(struct inode *, struct file *, unsigned int, unsigned long
 extern int ffb_rmctx(struct inode *, struct file *, unsigned int, unsigned long);
 extern int ffb_context_switch(drm_device_t *, int, int);
 
-static struct file_operations ffb_fops = {
+static const struct file_operations ffb_fops = {
 	owner:			THIS_MODULE,
 	open:			ffb_open,
 	flush:			drm_flush,

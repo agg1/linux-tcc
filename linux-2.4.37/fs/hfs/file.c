@@ -31,7 +31,7 @@ static void hfs_file_truncate(struct inode *);
 
 /*================ Global variables ================*/
 
-struct file_operations hfs_file_operations = {
+const struct file_operations hfs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		hfs_file_read,
 	write:		hfs_file_write,
@@ -39,7 +39,7 @@ struct file_operations hfs_file_operations = {
 	fsync:		file_fsync,
 };
 
-struct inode_operations hfs_file_inode_operations = {
+const struct inode_operations hfs_file_inode_operations = {
 	truncate:	hfs_file_truncate,
 	setattr:	hfs_notify_change,
 };

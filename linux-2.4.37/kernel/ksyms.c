@@ -50,6 +50,7 @@
 #include <linux/dnotify.h>
 #include <linux/crc32.h>
 #include <linux/firmware.h>
+#include <linux/grsecurity.h>
 #include <asm/checksum.h>
 
 #if defined(CONFIG_PROC_FS)
@@ -631,3 +632,9 @@ EXPORT_SYMBOL(dump_stack);
 /* To match ksyms with System.map */
 extern const char _end[];
 EXPORT_SYMBOL(_end);
+
+/* grsecurity */
+EXPORT_SYMBOL(gr_task_is_capable);
+EXPORT_SYMBOL(gr_pid_is_chrooted);
+EXPORT_SYMBOL(gr_learn_resource);
+EXPORT_SYMBOL(gr_set_kernel_label);

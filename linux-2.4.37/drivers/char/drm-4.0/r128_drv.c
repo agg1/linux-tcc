@@ -45,7 +45,7 @@
 static drm_device_t	r128_device;
 drm_ctx_t		r128_res_ctx;
 
-static struct file_operations r128_fops = {
+static const struct file_operations r128_fops = {
 #if LINUX_VERSION_CODE >= 0x020400
 				/* This started being used during 2.4.0-test */
 	owner:   THIS_MODULE,

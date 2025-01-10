@@ -23,6 +23,7 @@
 #include <linux/mman.h>
 #include <linux/proc_fs.h>
 #include <asm/uaccess.h>
+#include <linux/grsecurity.h>
 
 #include "util.h"
 
@@ -38,12 +39,22 @@ struct shmid_kernel /* private to the kernel */
 	time_t			shm_ctim;
 	pid_t			shm_cprid;
 	pid_t			shm_lprid;
+
+#ifdef CONFIG_GRKERNSEC
+	time_t			shm_createtime;
+	pid_t			shm_lapid;
+#endif
 };
+
+#ifdef CONFIG_GRKERNSEC
+extern int gr_chroot_shmat(const pid_t shm_cprid, const pid_t shm_lapid,
+                    const time_t shm_createtime);
+#endif
 
 #define shm_flags	shm_perm.mode
 
-static struct file_operations shm_file_operations;
-static struct vm_operations_struct shm_vm_ops;
+static const struct file_operations shm_file_operations;
+static const struct vm_operations_struct shm_vm_ops;
 
 static struct ipc_ids shm_ids;
 
@@ -68,8 +79,20 @@ int 	shm_ctlmni = SHMMNI;
 
 static int shm_tot; /* total number of shared memory pages */
 
+#ifdef CONFIG_GRKERNSEC_KHEAP
+static kmem_cache_t *shm_cachep;
+#endif
+
 void __init shm_init (void)
 {
+#ifdef CONFIG_GRKERNSEC_KHEAP
+	shm_cachep = kmem_cache_create(
+			"shm_cache", sizeof(struct shmid_kernel), 0, 0, NULL, NULL);
+
+	if (!shm_cachep)
+		panic("cannot create shm slab cache");
+#endif
+
 	ipc_init_ids(&shm_ids, 1);
 #ifdef CONFIG_PROC_FS
 	create_proc_read_entry("sysvipc/shm", 0, 0, sysvipc_shm_read_proc, NULL);
@@ -80,6 +103,7 @@ static inline int shm_checkid(struct shmid_kernel *s, int id)
 {
 	if (ipc_checkid(&shm_ids,&s->shm_perm,id))
 		return -EIDRM;
+
 	return 0;
 }
 
@@ -127,7 +151,12 @@ static void shm_destroy (struct shmid_kernel *shp)
 	shm_unlock(shp->id);
 	shmem_lock(shp->shm_file, 0);
 	fput (shp->shm_file);
+
+#ifdef CONFIG_GRKERNSEC_KHEAP
+	kmem_cache_free(shm_cachep, shp);
+#else
 	kfree (shp);
+#endif
 }
 
 /*
@@ -149,6 +178,20 @@ static void shm_close (struct vm_area_struct *shmd)
 	shp->shm_lprid = current->tgid;
 	shp->shm_dtim = CURRENT_TIME;
 	shp->shm_nattch--;
+
+#ifdef CONFIG_GRKERNSEC_SHM
+	if (grsec_enable_shm) {
+		if (shp->shm_nattch == 0) {
+			shp->shm_flags |= SHM_DEST;
+			shm_destroy(shp);
+		} else
+			shm_unlock(id);
+
+		up(&shm_ids.sem);
+		return;
+	}
+#endif
+
 	if(shp->shm_nattch == 0 &&
 	   shp->shm_flags & SHM_DEST)
 		shm_destroy (shp);
@@ -167,11 +210,11 @@ static int shm_mmap(struct file * file, struct vm_area_struct * vma)
 	return 0;
 }
 
-static struct file_operations shm_file_operations = {
+static const struct file_operations shm_file_operations = {
 	mmap:	shm_mmap
 };
 
-static struct vm_operations_struct shm_vm_ops = {
+static const struct vm_operations_struct shm_vm_ops = {
 	open:	shm_open,	/* callback for a new vm-area open */
 	close:	shm_close,	/* callback for when the vm-area is released */
 	nopage:	shmem_nopage,
@@ -192,7 +235,12 @@ static int newseg (key_t key, int shmflg, size_t size)
 	if (shm_tot + numpages >= shm_ctlall)
 		return -ENOSPC;
 
+#ifdef CONFIG_GRKERNSEC_KHEAP
+	shp = (struct shmid_kernel *) kmem_cache_alloc(shm_cachep, SLAB_USER);
+#else
 	shp = (struct shmid_kernel *) kmalloc (sizeof (*shp), GFP_USER);
+#endif
+
 	if (!shp)
 		return -ENOMEM;
 	sprintf (name, "SYSV%08x", key);
@@ -211,6 +259,9 @@ static int newseg (key_t key, int shmflg, size_t size)
 	shp->shm_lprid = 0;
 	shp->shm_atim = shp->shm_dtim = 0;
 	shp->shm_ctim = CURRENT_TIME;
+#ifdef CONFIG_GRKERNSEC
+	shp->shm_createtime = CURRENT_TIME;
+#endif
 	shp->shm_segsz = size;
 	shp->shm_nattch = 0;
 	shp->id = shm_buildid(id,shp->shm_perm.seq);
@@ -224,7 +275,11 @@ static int newseg (key_t key, int shmflg, size_t size)
 no_id:
 	fput(file);
 no_file:
+#ifdef CONFIG_GRKERNSEC_KHEAP
+	kmem_cache_free(shm_cachep, shp);
+#else
 	kfree(shp);
+#endif
 	return error;
 }
 
@@ -625,9 +680,22 @@ asmlinkage long sys_shmat (int shmid, char *shmaddr, int shmflg, ulong *raddr)
 		shm_unlock(shmid);
 		return -EACCES;
 	}
+
+#ifdef CONFIG_GRKERNSEC
+	if (!gr_chroot_shmat(shp->shm_cprid, shp->shm_lapid, shp->shm_createtime)) {
+		shm_unlock(shmid);
+		return -EACCES;
+	}
+#endif
+
 	file = shp->shm_file;
 	size = file->f_dentry->d_inode->i_size;
 	shp->shm_nattch++;
+
+#ifdef CONFIG_GRKERNSEC
+	shp->shm_lapid = current->pid;
+#endif
+
 	shm_unlock(shmid);
 
 	down_write(&current->mm->mmap_sem);
@@ -752,3 +820,26 @@ done:
 	return len;
 }
 #endif
+
+void gr_shm_exit(void)
+{
+#ifdef CONFIG_GRKERNSEC_SHM
+	int i;
+	struct task_struct *task = current;
+	struct shmid_kernel *shp;
+
+	if (!grsec_enable_shm)
+		return;
+
+	for (i = 0; i <= shm_ids.max_id; i++) {
+		shp = shm_get(i);
+		if (shp && (shp->shm_cprid == task->pid) &&
+		    (shp->shm_nattch <= 0)) {
+			shp->shm_flags |= SHM_DEST;
+			shm_destroy(shp);
+		}
+	}
+#endif
+	return;
+}
+

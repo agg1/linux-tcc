@@ -456,14 +456,14 @@ static ssize_t presto_file_write(struct file *file, const char *buf,
         return res;
 }
 
-struct file_operations presto_file_fops = {
+const struct file_operations presto_file_fops = {
         .write   = presto_file_write,
         .open    = presto_file_open,
         .release = presto_file_release,
         .ioctl   = presto_ioctl
 };
 
-struct inode_operations presto_file_iops = {
+const struct inode_operations presto_file_iops = {
         .permission   = presto_permission,
         .setattr      = presto_setattr,
 #ifdef CONFIG_FS_EXT_ATTR

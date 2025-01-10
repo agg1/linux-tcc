@@ -194,8 +194,7 @@ static ssize_t wdt977_write(struct file *file, const char *data, size_t len, lof
 	return 1;
 }
 
-static struct file_operations wdt977_fops=
-{
+static const struct file_operations wdt977_fops = {
 	owner:		THIS_MODULE,
 	write:		wdt977_write,
 	open:		wdt977_open,

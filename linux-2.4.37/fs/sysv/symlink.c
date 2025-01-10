@@ -19,7 +19,7 @@ static int sysv_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return vfs_follow_link(nd, s);
 }
 
-struct inode_operations sysv_fast_symlink_inode_operations = {
+const struct inode_operations sysv_fast_symlink_inode_operations = {
 	readlink:	sysv_readlink,
 	follow_link:	sysv_follow_link,
 };

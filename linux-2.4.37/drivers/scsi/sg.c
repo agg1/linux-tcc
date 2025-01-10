@@ -1149,7 +1149,7 @@ static struct page * sg_vma_nopage(struct vm_area_struct *vma,
     return page;
 }
 
-static struct vm_operations_struct sg_mmap_vm_ops = {
+static const struct vm_operations_struct sg_mmap_vm_ops = {
     nopage : sg_vma_nopage,
 };
 
@@ -1321,7 +1321,7 @@ static void sg_cmd_done_bh(Scsi_Cmnd * SCpnt)
     }
 }
 
-static struct file_operations sg_fops = {
+static const struct file_operations sg_fops = {
 	owner:		THIS_MODULE,
 	read:		sg_read,
 	write:		sg_write,

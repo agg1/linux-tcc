@@ -618,21 +618,21 @@ static inline struct proc_dir_entry * create_flash_pde(const char *filename,
 	return ent;
 }
 
-static struct file_operations rtas_flash_operations = {
+static const struct file_operations rtas_flash_operations = {
 	read:		rtas_flash_read,
 	write:		rtas_flash_write,
 	open:		rtas_excl_open,
 	release:	rtas_flash_release,
 };
 
-static struct file_operations manage_flash_operations = {
+static const struct file_operations manage_flash_operations = {
 	read:		manage_flash_read,
 	write:		manage_flash_write,
 	open:		rtas_excl_open,
 	release:	rtas_excl_release,
 };
 
-static struct file_operations validate_flash_operations = {
+static const struct file_operations validate_flash_operations = {
 	read:		validate_flash_read,
 	write:		validate_flash_write,
 	open:		rtas_excl_open,

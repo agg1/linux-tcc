@@ -916,8 +916,7 @@ static ssize_t mdc800_device_write (struct file *file, const char *buf, size_t l
 ****************************************************************************/
 
 /* File Operations of this drivers */
-static struct file_operations mdc800_device_ops =
-{
+static const struct file_operations mdc800_device_ops = {
 	owner:		THIS_MODULE,
 	read:		mdc800_device_read,
 	write:		mdc800_device_write,

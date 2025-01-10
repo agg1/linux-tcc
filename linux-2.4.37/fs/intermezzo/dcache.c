@@ -112,8 +112,7 @@ static void presto_d_release(struct dentry *dentry)
         }
 }
 
-struct dentry_operations presto_dentry_ops = 
-{
+const struct dentry_operations presto_dentry_ops = {
         .d_revalidate =  presto_d_revalidate,
         .d_release = presto_d_release
 };

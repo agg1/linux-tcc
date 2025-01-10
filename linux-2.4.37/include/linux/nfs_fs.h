@@ -159,9 +159,9 @@ extern int nfs_notify_change(struct dentry *, struct iattr *);
 /*
  * linux/fs/nfs/file.c
  */
-extern struct inode_operations nfs_file_inode_operations;
-extern struct file_operations nfs_file_operations;
-extern struct address_space_operations nfs_file_aops;
+extern const struct inode_operations nfs_file_inode_operations;
+extern const struct file_operations nfs_file_operations;
+extern const struct address_space_operations nfs_file_aops;
 
 static __inline__ struct rpc_cred *
 nfs_file_cred(struct file *file)
@@ -179,14 +179,14 @@ nfs_file_cred(struct file *file)
 /*
  * linux/fs/nfs/dir.c
  */
-extern struct inode_operations nfs_dir_inode_operations;
-extern struct file_operations nfs_dir_operations;
-extern struct dentry_operations nfs_dentry_operations;
+extern const struct inode_operations nfs_dir_inode_operations;
+extern const struct file_operations nfs_dir_operations;
+extern const struct dentry_operations nfs_dentry_operations;
 
 /*
  * linux/fs/nfs/symlink.c
  */
-extern struct inode_operations nfs_symlink_inode_operations;
+extern const struct inode_operations nfs_symlink_inode_operations;
 
 /*
  * linux/fs/nfs/locks.c

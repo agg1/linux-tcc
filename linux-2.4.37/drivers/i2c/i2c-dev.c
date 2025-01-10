@@ -79,7 +79,7 @@ extern
        int __init i2c_dev_init(void);
 static int i2cdev_cleanup(void);
 
-static struct file_operations i2cdev_fops = {
+static const struct file_operations i2cdev_fops = {
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.read		= i2cdev_read,

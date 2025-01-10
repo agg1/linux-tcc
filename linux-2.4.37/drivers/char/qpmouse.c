@@ -288,7 +288,7 @@ repeat:
 	return 0;
 }
 
-struct file_operations qp_fops = {
+const struct file_operations qp_fops = {
 	owner:		THIS_MODULE,
 	read:		read_qp,
 	write:		write_qp,

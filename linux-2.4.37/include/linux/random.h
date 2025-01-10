@@ -73,7 +73,7 @@ extern __u32 secure_tcpv6_sequence_number(__u32 *saddr, __u32 *daddr,
 extern __u32 secure_ipv6_id(__u32 *daddr);
 
 #ifndef MODULE
-extern struct file_operations random_fops, urandom_fops;
+extern const struct file_operations random_fops, urandom_fops;
 #endif
 
 #endif /* __KERNEL___ */

@@ -37,5 +37,5 @@ extern inline struct devpts_sb_info *SBI(struct super_block *sb)
 	return (struct devpts_sb_info *)(sb->u.generic_sbp);
 }
 
-extern struct inode_operations devpts_root_inode_operations;
-extern struct file_operations devpts_root_operations;
+extern const struct inode_operations devpts_root_inode_operations;
+extern const struct file_operations devpts_root_operations;

@@ -620,7 +620,8 @@ next:
 	return current_vector;
 }
 
-extern void (*interrupt[NR_IRQS])(void);
+typedef void (*interrupt_t)(void);
+extern const interrupt_t interrupt[NR_IRQS];
 static struct hw_interrupt_type ioapic_level_irq_type;
 static struct hw_interrupt_type ioapic_edge_irq_type;
 

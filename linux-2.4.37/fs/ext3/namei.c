@@ -1112,7 +1112,7 @@ end_rename:
 /*
  * directories can handle most operations...
  */
-struct inode_operations ext3_dir_inode_operations = {
+const struct inode_operations ext3_dir_inode_operations = {
 	create:		ext3_create,		/* BKL held */
 	lookup:		ext3_lookup,		/* BKL held */
 	link:		ext3_link,		/* BKL held */

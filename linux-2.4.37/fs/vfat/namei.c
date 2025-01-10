@@ -51,7 +51,7 @@ static int vfat_cmpi(struct dentry *dentry, struct qstr *a, struct qstr *b);
 static int vfat_cmp(struct dentry *dentry, struct qstr *a, struct qstr *b);
 static int vfat_revalidate(struct dentry *dentry, int);
 
-static struct dentry_operations vfat_dentry_ops[4] = {
+static const struct dentry_operations vfat_dentry_ops[4] = {
 	{
 		d_hash:		vfat_hashi,
 		d_compare:	vfat_cmpi,
@@ -1251,7 +1251,7 @@ rename_done:
 
 
 /* Public inode operations for the VFAT fs */
-struct inode_operations vfat_dir_inode_operations = {
+const struct inode_operations vfat_dir_inode_operations = {
 	create:		vfat_create,
 	lookup:		vfat_lookup,
 	unlink:		vfat_unlink,

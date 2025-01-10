@@ -52,7 +52,7 @@ static int minix_hash(struct dentry *dentry, struct qstr *qstr)
 	return 0;
 }
 
-struct dentry_operations minix_dentry_operations = {
+const struct dentry_operations minix_dentry_operations = {
 	d_hash:		minix_hash,
 };
 
@@ -302,7 +302,7 @@ out:
 /*
  * directories can handle most operations...
  */
-struct inode_operations minix_dir_inode_operations = {
+const struct inode_operations minix_dir_inode_operations = {
 	create:		minix_create,
 	lookup:		minix_lookup,
 	link:		minix_link,

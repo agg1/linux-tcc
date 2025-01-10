@@ -981,6 +981,9 @@ static ssize_t mtrr_write (struct file *file, const char *buf,
 	char *ptr;
 	char line[LINE_SIZE];
 
+	if (len == 0)
+		return -EINVAL;
+
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
@@ -1208,7 +1211,7 @@ static int mtrr_close (struct inode *ino, struct file *file)
 }
 
 
-static struct file_operations mtrr_fops = {
+static const struct file_operations mtrr_fops = {
 	owner:	THIS_MODULE,
 	read:	mtrr_read,
 	write:	mtrr_write,

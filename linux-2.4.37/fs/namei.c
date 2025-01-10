@@ -22,6 +22,7 @@
 #include <linux/dnotify.h>
 #include <linux/smp_lock.h>
 #include <linux/personality.h>
+#include <linux/grsecurity.h>
 
 #include <asm/namei.h>
 #include <asm/uaccess.h>
@@ -351,6 +352,13 @@ static inline int do_follow_link(struct dentry *dentry, struct nameidata *nd)
 		current->state = TASK_RUNNING;
 		schedule();
 	}
+
+	if (gr_handle_follow_link(dentry->d_parent->d_inode,
+				  dentry->d_inode, dentry, nd->mnt)) {
+		path_release(nd);
+		return -EACCES;
+	}
+
 	current->link_count++;
 	current->total_link_count++;
 	UPDATE_ATIME(dentry->d_inode);
@@ -655,11 +663,18 @@ return_reval:
 			}
 		}
 return_base:
+		if (!gr_acl_handle_hidden_file(nd->dentry, nd->mnt)) {
+			path_release(nd);
+			return -ENOENT;
+		}
 		return 0;
 out_dput:
 		dput(dentry);
 		break;
 	}
+	if (!gr_acl_handle_hidden_file(nd->dentry, nd->mnt))
+		err = -ENOENT;
+
 	path_release(nd);
 return_err:
 	return err;
@@ -1035,7 +1050,19 @@ int open_namei(const char * pathname, int flag, int mode, struct nameidata *nd)
 		error = path_lookup(pathname, lookup_flags(flag), nd);
 		if (error)
 			return error;
+
+		if (gr_handle_rawio(nd->dentry->d_inode)) {
+			error = -EPERM;
+			goto exit;
+		}
+	
+		if (!gr_acl_handle_open(nd->dentry, nd->mnt, flag)) {
+			error = -EACCES;
+			goto exit;
+		}
+
 		dentry = nd->dentry;
+
 		goto ok;
 	}
 
@@ -1068,8 +1095,22 @@ do_last:
 
 	/* Negative dentry, just create the file */
 	if (!dentry->d_inode) {
+		if (gr_handle_chroot_chmod(dentry, nd->mnt, mode)) {
+			error = -EACCES;
+			up(&dir->d_inode->i_sem);
+			goto exit_dput;
+		}
+		if (!gr_acl_handle_creat(dentry, nd->dentry, nd->mnt, flag, mode)) {
+			error = -EACCES;
+			up(&dir->d_inode->i_sem);
+			goto exit_dput;
+		}
+
 		error = vfs_create(dir->d_inode, dentry,
 				   mode & ~current->fs->umask);
+		if (!error)
+			gr_handle_create(dentry, nd->mnt);
+
 		up(&dir->d_inode->i_sem);
 		dput(nd->dentry);
 		nd->dentry = dentry;
@@ -1084,6 +1125,27 @@ do_last:
 	/*
 	 * It already exists.
 	 */
+
+	if (gr_handle_rawio(dentry->d_inode)) {
+		error = -EPERM;
+		up(&dir->d_inode->i_sem);
+		goto exit_dput;
+	}
+
+	if (!gr_acl_handle_open(dentry, nd->mnt, flag)) {
+		error = -EACCES;
+		up(&dir->d_inode->i_sem);
+		goto exit_dput;
+	}
+
+	inode = dentry->d_inode;
+
+	if (gr_handle_fifo(dentry, nd->mnt, dir, flag, acc_mode)) {
+		up(&dir->d_inode->i_sem);
+		error = -EACCES;
+		goto exit_dput;
+	}
+
 	up(&dir->d_inode->i_sem);
 
 	error = -EEXIST;
@@ -1173,7 +1235,7 @@ ok:
 		if (!error) {
 			DQUOT_INIT(inode);
 			
-			error = do_truncate(dentry, 0);
+			error = do_truncate(dentry,0);
 		}
 		put_write_access(inode);
 		if (error)
@@ -1204,6 +1266,13 @@ do_link:
 	 * stored in nd->last.name and we will have to putname() it when we
 	 * are done. Procfs-like symlinks just set LAST_BIND.
 	 */
+
+	if (gr_handle_follow_link(dentry->d_parent->d_inode, dentry->d_inode,
+				  dentry, nd->mnt)) {
+		error = -EACCES;
+		goto exit_dput;
+	}
+
 	UPDATE_ATIME(dentry->d_inode);
 	mnt = mntget(nd->mnt);
 	error = dentry->d_inode->i_op->follow_link(dentry, nd);
@@ -1304,6 +1373,19 @@ asmlinkage long sys_mknod(const char * filename, int mode, dev_t dev)
 
 	mode &= ~current->fs->umask;
 	if (!IS_ERR(dentry)) {
+		if (gr_handle_chroot_mknod(dentry, nd.mnt, mode) ||
+		    gr_handle_chroot_chmod(dentry, nd.mnt, mode)) {
+			error = -EPERM;
+			dput(dentry);
+			goto out_dput;
+		}
+
+		if (!gr_acl_handle_mknod(dentry, nd.dentry, nd.mnt, mode)) {
+			error = -EACCES;
+			dput(dentry);
+			goto out_dput;
+		}
+	
 		switch (mode & S_IFMT) {
 		case 0: case S_IFREG:
 			error = vfs_create(nd.dentry->d_inode,dentry,mode);
@@ -1317,8 +1399,13 @@ asmlinkage long sys_mknod(const char * filename, int mode, dev_t dev)
 		default:
 			error = -EINVAL;
 		}
+
+		if(!error)
+			gr_handle_create(dentry, nd.mnt);
+
 		dput(dentry);
 	}
+out_dput:
 	up(&nd.dentry->d_inode->i_sem);
 	path_release(&nd);
 out:
@@ -1370,8 +1457,17 @@ asmlinkage long sys_mkdir(const char * pathname, int mode)
 		dentry = lookup_create(&nd, 1);
 		error = PTR_ERR(dentry);
 		if (!IS_ERR(dentry)) {
-			error = vfs_mkdir(nd.dentry->d_inode, dentry,
+			error = 0;
+
+			if (!gr_acl_handle_mkdir(dentry, nd.dentry, nd.mnt))
+				error = -EACCES;
+
+			if(!error)
+				error = vfs_mkdir(nd.dentry->d_inode, dentry,
 					  mode & ~current->fs->umask);
+			if(!error)
+				gr_handle_create(dentry, nd.mnt);
+			
 			dput(dentry);
 		}
 		up(&nd.dentry->d_inode->i_sem);
@@ -1455,6 +1551,8 @@ asmlinkage long sys_rmdir(const char * pathname)
 	char * name;
 	struct dentry *dentry;
 	struct nameidata nd;
+	ino_t saved_ino = 0;
+	kdev_t saved_dev = 0;
 
 	name = getname(pathname);
 	if(IS_ERR(name))
@@ -1479,7 +1577,22 @@ asmlinkage long sys_rmdir(const char * pathname)
 	dentry = lookup_hash(&nd.last, nd.dentry);
 	error = PTR_ERR(dentry);
 	if (!IS_ERR(dentry)) {
-		error = vfs_rmdir(nd.dentry->d_inode, dentry);
+		error = 0;
+		if (dentry->d_inode) {
+			if (dentry->d_inode->i_nlink <= 1) {
+				saved_ino = dentry->d_inode->i_ino;
+				saved_dev = dentry->d_inode->i_dev;
+			}
+
+			if (!gr_acl_handle_rmdir(dentry, nd.mnt))
+				error = -EACCES;
+		}
+
+		if (!error)
+			error = vfs_rmdir(nd.dentry->d_inode, dentry);
+		if (!error && (saved_dev || saved_ino))
+			gr_handle_delete(saved_ino,saved_dev);
+
 		dput(dentry);
 	}
 	up(&nd.dentry->d_inode->i_sem);
@@ -1530,6 +1643,8 @@ asmlinkage long sys_unlink(const char * pathname)
 	char * name;
 	struct dentry *dentry;
 	struct nameidata nd;
+	ino_t saved_ino = 0;
+	kdev_t saved_dev = 0;
 
 	name = getname(pathname);
 	if(IS_ERR(name))
@@ -1548,7 +1663,21 @@ asmlinkage long sys_unlink(const char * pathname)
 		/* Why not before? Because we want correct error value */
 		if (nd.last.name[nd.last.len])
 			goto slashes;
-		error = vfs_unlink(nd.dentry->d_inode, dentry);
+		error = 0;
+		if (dentry->d_inode) {
+			if (dentry->d_inode->i_nlink <= 1) {
+				saved_ino = dentry->d_inode->i_ino;
+				saved_dev = dentry->d_inode->i_dev;
+			}
+
+			if (!gr_acl_handle_unlink(dentry, nd.mnt))
+				error = -EACCES;
+		}
+
+		if (!error)
+			error = vfs_unlink(nd.dentry->d_inode, dentry);
+		if (!error && (saved_ino || saved_dev))
+			gr_handle_delete(saved_ino,saved_dev);
 	exit2:
 		dput(dentry);
 	}
@@ -1612,7 +1741,15 @@ asmlinkage long sys_symlink(const char * oldname, const char * newname)
 		dentry = lookup_create(&nd, 0);
 		error = PTR_ERR(dentry);
 		if (!IS_ERR(dentry)) {
-			error = vfs_symlink(nd.dentry->d_inode, dentry, from);
+			error = 0;
+
+			if (!gr_acl_handle_symlink(dentry, nd.dentry, nd.mnt, from))
+				error = -EACCES;
+
+			if(!error)	
+				error = vfs_symlink(nd.dentry->d_inode, dentry, from);
+			if (!error)
+				gr_handle_create(dentry, nd.mnt);
 			dput(dentry);
 		}
 		up(&nd.dentry->d_inode->i_sem);
@@ -1698,7 +1835,27 @@ asmlinkage long sys_link(const char * oldname, const char * newname)
 		new_dentry = lookup_create(&nd, 0);
 		error = PTR_ERR(new_dentry);
 		if (!IS_ERR(new_dentry)) {
-			error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
+			error = 0;
+
+			if (gr_handle_hardlink(old_nd.dentry, old_nd.mnt,
+					       old_nd.dentry->d_inode,
+					       old_nd.dentry->d_inode->i_mode, to)) {
+				error = -EPERM;
+				goto out_error;
+			}
+
+			if (!gr_acl_handle_link(new_dentry, nd.dentry, nd.mnt,
+						 old_nd.dentry, old_nd.mnt, to)) {
+				error = -EACCES;
+				goto out_error;
+			}
+
+			error = vfs_link(old_nd.dentry, 
+					nd.dentry->d_inode, new_dentry);
+
+			if (!error)
+				gr_handle_create(new_dentry, nd.mnt);
+out_error:
 			dput(new_dentry);
 		}
 		up(&nd.dentry->d_inode->i_sem);
@@ -1929,10 +2086,15 @@ static inline int do_rename(const char * oldname, const char * newname)
 	if (IS_ERR(new_dentry))
 		goto exit4;
 
-	lock_kernel();
-	error = vfs_rename(old_dir->d_inode, old_dentry,
+	error = gr_acl_handle_rename(new_dentry, newnd.dentry, newnd.mnt,
+				     old_dentry, old_dir->d_inode, oldnd.mnt, newname);
+
+	if (error == 1) {
+		lock_kernel();
+		error = vfs_rename(old_dir->d_inode, old_dentry,
 				   new_dir->d_inode, new_dentry);
-	unlock_kernel();
+		unlock_kernel();
+	}
 
 	dput(new_dentry);
 exit4:
@@ -2071,7 +2233,7 @@ int page_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return res;
 }
 
-struct inode_operations page_symlink_inode_operations = {
+const struct inode_operations page_symlink_inode_operations = {
 	readlink:	page_readlink,
 	follow_link:	page_follow_link,
 };

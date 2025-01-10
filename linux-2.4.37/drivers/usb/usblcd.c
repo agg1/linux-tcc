@@ -300,8 +300,7 @@ static struct usb_device_id id_table [] = {
 
 MODULE_DEVICE_TABLE (usb, id_table);
 
-static struct
-file_operations usb_lcd_fops = {
+static const struct file_operations usb_lcd_fops = {
 	.owner =	THIS_MODULE,
 	.read =		read_lcd,
 	.write =	write_lcd,

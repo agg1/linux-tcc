@@ -129,7 +129,7 @@ static int reiserfs_setattr(struct dentry *dentry, struct iattr *attr) {
     return error ;
 }
 
-struct file_operations reiserfs_file_operations = {
+const struct file_operations reiserfs_file_operations = {
     read:	generic_file_read,
     write:	generic_file_write,
     ioctl:	reiserfs_ioctl,
@@ -139,7 +139,7 @@ struct file_operations reiserfs_file_operations = {
 };
 
 
-struct  inode_operations reiserfs_file_inode_operations = {
+const struct inode_operations reiserfs_file_inode_operations = {
     truncate:	reiserfs_vfs_truncate_file,
     setattr:    reiserfs_setattr,
 };

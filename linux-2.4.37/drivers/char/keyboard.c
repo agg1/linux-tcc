@@ -545,6 +545,16 @@ static void do_spec(unsigned char value, char up_flag)
 	if ((kbd->kbdmode == VC_RAW || kbd->kbdmode == VC_MEDIUMRAW) &&
 	    !(SPECIALS_ALLOWED_IN_RAW_MODE & (1 << value)))
 		return;
+
+#if defined(CONFIG_GRKERNSEC_PROC)
+	{
+		void *func = spec_fn_table[value];
+		if (func == show_state || func == show_ptregs ||
+		    func == show_mem)
+			return;
+	}
+#endif
+
 	spec_fn_table[value]();
 }
 

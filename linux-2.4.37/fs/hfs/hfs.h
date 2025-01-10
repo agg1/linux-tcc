@@ -546,5 +546,5 @@ static __inline__ void hfs_drop_special(struct dentry *base,
   }
 }
 
-extern struct dentry_operations hfs_dentry_operations;
+extern const struct dentry_operations hfs_dentry_operations;
 #endif

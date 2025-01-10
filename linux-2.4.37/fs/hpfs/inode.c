@@ -10,8 +10,7 @@
 #include <linux/smp_lock.h>
 #include "hpfs_fn.h"
 
-static struct file_operations hpfs_file_ops =
-{
+static const struct file_operations hpfs_file_ops = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	write:		hpfs_file_write,
@@ -21,14 +20,12 @@ static struct file_operations hpfs_file_ops =
 	fsync:		hpfs_file_fsync,
 };
 
-static struct inode_operations hpfs_file_iops =
-{
+static const struct inode_operations hpfs_file_iops = {
 	truncate:	hpfs_truncate,
 	setattr:	hpfs_notify_change,
 };
 
-static struct file_operations hpfs_dir_ops =
-{
+static const struct file_operations hpfs_dir_ops = {
 	llseek:		hpfs_dir_lseek,
 	read:		generic_read_dir,
 	readdir:	hpfs_readdir,
@@ -37,8 +34,7 @@ static struct file_operations hpfs_dir_ops =
 	fsync:		hpfs_file_fsync,
 };
 
-static struct inode_operations hpfs_dir_iops =
-{
+static const struct inode_operations hpfs_dir_iops = {
 	create:		hpfs_create,
 	lookup:		hpfs_lookup,
 	unlink:		hpfs_unlink,
@@ -50,7 +46,7 @@ static struct inode_operations hpfs_dir_iops =
 	setattr:	hpfs_notify_change,
 };
 
-struct address_space_operations hpfs_symlink_aops = {
+const struct address_space_operations hpfs_symlink_aops = {
 	readpage:	hpfs_symlink_readpage
 };
 

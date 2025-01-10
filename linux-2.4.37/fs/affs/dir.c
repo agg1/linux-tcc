@@ -25,7 +25,7 @@
 
 static int affs_readdir(struct file *, void *, filldir_t);
 
-struct file_operations affs_dir_operations = {
+const struct file_operations affs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	affs_readdir,
 	fsync:		file_fsync,
@@ -34,7 +34,7 @@ struct file_operations affs_dir_operations = {
 /*
  * directories can handle most operations...
  */
-struct inode_operations affs_dir_inode_operations = {
+const struct inode_operations affs_dir_inode_operations = {
 	create:		affs_create,
 	lookup:		affs_lookup,
 	link:		affs_link,

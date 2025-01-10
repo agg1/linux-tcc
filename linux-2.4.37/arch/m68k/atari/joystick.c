@@ -121,7 +121,7 @@ static unsigned int joystick_poll(struct file *file, poll_table *wait)
     return 0;
 }
 
-struct file_operations atari_joystick_fops = {
+const struct file_operations atari_joystick_fops = {
 	read:		read_joystick,
 	write:		write_joystick,
 	poll:		joystick_poll,

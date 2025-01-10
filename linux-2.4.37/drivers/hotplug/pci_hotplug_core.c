@@ -80,9 +80,9 @@ struct hotplug_slot_core {
 	struct dentry	*cur_bus_speed_dentry;
 };
 
-static struct super_operations pcihpfs_ops;
-static struct file_operations default_file_operations;
-static struct inode_operations pcihpfs_dir_inode_operations;
+static const struct super_operations pcihpfs_ops;
+static const struct file_operations default_file_operations;
+static const struct inode_operations pcihpfs_dir_inode_operations;
 static struct vfsmount *pcihpfs_mount;	/* one of the mounts of our fs for reference counting */
 static int pcihpfs_mount_count;		/* times we have mounted our fs */
 static spinlock_t mount_lock;		/* protects our mount_count */
@@ -269,7 +269,7 @@ static int default_open (struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static struct file_operations default_file_operations = {
+static const struct file_operations default_file_operations = {
 	read:		default_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -279,7 +279,7 @@ static struct file_operations default_file_operations = {
 /* file ops for the "power" files */
 static ssize_t power_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
 static ssize_t power_write_file (struct file *file, const char *buf, size_t count, loff_t *ppos);
-static struct file_operations power_file_operations = {
+static const struct file_operations power_file_operations = {
 	read:		power_read_file,
 	write:		power_write_file,
 	open:		default_open,
@@ -289,7 +289,7 @@ static struct file_operations power_file_operations = {
 /* file ops for the "attention" files */
 static ssize_t attention_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
 static ssize_t attention_write_file (struct file *file, const char *buf, size_t count, loff_t *ppos);
-static struct file_operations attention_file_operations = {
+static const struct file_operations attention_file_operations = {
 	read:		attention_read_file,
 	write:		attention_write_file,
 	open:		default_open,
@@ -298,7 +298,7 @@ static struct file_operations attention_file_operations = {
 
 /* file ops for the "latch" files */
 static ssize_t latch_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
-static struct file_operations latch_file_operations = {
+static const struct file_operations latch_file_operations = {
 	read:		latch_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -307,7 +307,7 @@ static struct file_operations latch_file_operations = {
 
 /* file ops for the "presence" files */
 static ssize_t presence_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
-static struct file_operations presence_file_operations = {
+static const struct file_operations presence_file_operations = {
 	read:		presence_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -316,7 +316,7 @@ static struct file_operations presence_file_operations = {
 
 /* file ops for the "address" files */
 static ssize_t address_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
-static struct file_operations address_file_operations = {
+static const struct file_operations address_file_operations = {
 	read:		address_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -325,7 +325,7 @@ static struct file_operations address_file_operations = {
 
 /* file ops for the "max bus speed" files */
 static ssize_t max_bus_speed_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
-static struct file_operations max_bus_speed_file_operations = {
+static const struct file_operations max_bus_speed_file_operations = {
 	read:		max_bus_speed_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -334,7 +334,7 @@ static struct file_operations max_bus_speed_file_operations = {
 
 /* file ops for the "current bus speed" files */
 static ssize_t cur_bus_speed_read_file (struct file *file, char *buf, size_t count, loff_t *offset);
-static struct file_operations cur_bus_speed_file_operations = {
+static const struct file_operations cur_bus_speed_file_operations = {
 	read:		cur_bus_speed_read_file,
 	write:		default_write_file,
 	open:		default_open,
@@ -343,14 +343,14 @@ static struct file_operations cur_bus_speed_file_operations = {
 
 /* file ops for the "test" files */
 static ssize_t test_write_file (struct file *file, const char *buf, size_t count, loff_t *ppos);
-static struct file_operations test_file_operations = {
+static const struct file_operations test_file_operations = {
 	read:		default_read_file,
 	write:		test_write_file,
 	open:		default_open,
 	llseek:		default_file_lseek,
 };
 
-static struct inode_operations pcihpfs_dir_inode_operations = {
+static const struct inode_operations pcihpfs_dir_inode_operations = {
 	create:		pcihpfs_create,
 	lookup:		pcihpfs_lookup,
 	unlink:		pcihpfs_unlink,
@@ -359,7 +359,7 @@ static struct inode_operations pcihpfs_dir_inode_operations = {
 	mknod:		pcihpfs_mknod,
 };
 
-static struct super_operations pcihpfs_ops = {
+static const struct super_operations pcihpfs_ops = {
 	statfs:		pcihpfs_statfs,
 	put_inode:	force_delete,
 };
@@ -514,7 +514,7 @@ static int pcihpfs_create_by_name (const char *name, mode_t mode,
 
 static struct dentry *fs_create_file (const char *name, mode_t mode,
 				      struct dentry *parent, void *data,
-				      struct file_operations *fops)
+				      const struct file_operations *fops)
 {
 	struct dentry *dentry;
 	int error;

@@ -312,4 +312,4 @@ void hpfs_put_super(struct super_block *);
 unsigned hpfs_count_one_bitmap(struct super_block *, secno);
 int hpfs_statfs(struct super_block *, struct statfs *);
 
-extern struct address_space_operations hpfs_aops;
+extern const struct address_space_operations hpfs_aops;

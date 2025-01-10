@@ -432,7 +432,7 @@ static int lparcfg_open(struct inode * inode, struct file * file)
 	return 0;
 }
 
-struct file_operations lparcfg_fops = {
+const struct file_operations lparcfg_fops = {
 	owner:		THIS_MODULE,
 	read:		lparcfg_read,
 	open:		lparcfg_open,

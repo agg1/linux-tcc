@@ -66,31 +66,31 @@ static const struct super_operations befs_sops = {
 	remount_fs:befs_remount,
 };
 
-struct file_operations befs_dir_operations = {
+const struct file_operations befs_dir_operations = {
 	read:generic_read_dir,
 	readdir:befs_readdir,
 };
 
-struct inode_operations befs_dir_inode_operations = {
+const struct inode_operations befs_dir_inode_operations = {
 	lookup:befs_lookup,
 };
 
-struct file_operations befs_file_operations = {
+const struct file_operations befs_file_operations = {
 	llseek:default_llseek,
 	read:generic_file_read,
 	mmap:generic_file_mmap,
 };
 
-struct inode_operations befs_file_inode_operations = {
+const struct inode_operations befs_file_inode_operations = {
 };
 
-struct address_space_operations befs_aops = {
+const struct address_space_operations befs_aops = {
 	readpage:befs_readpage,
 	sync_page:block_sync_page,
 	bmap:befs_bmap,
 };
 
-static struct inode_operations befs_symlink_inode_operations = {
+static const struct inode_operations befs_symlink_inode_operations = {
 	readlink:befs_readlink,
 	follow_link:befs_follow_link,
 };

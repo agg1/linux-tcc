@@ -1701,7 +1701,7 @@ static int sparcaudio_ioctl(struct inode * inode, struct file * file,
 	return retval;
 }
 
-static struct file_operations sparcaudioctl_fops = {
+static const struct file_operations sparcaudioctl_fops = {
 	owner:		THIS_MODULE,
 	poll:		sparcaudio_poll,
 	ioctl:		sparcaudio_ioctl,
@@ -1893,7 +1893,7 @@ static int sparcaudio_release(struct inode * inode, struct file * file)
         return 0;
 }
 
-static struct file_operations sparcaudio_fops = {
+static const struct file_operations sparcaudio_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		sparcaudio_read,

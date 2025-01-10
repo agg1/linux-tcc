@@ -56,14 +56,12 @@ int coda_fsync(struct file *, struct dentry *dentry, int datasync);
 
 int coda_hasmknod;
 
-struct dentry_operations coda_dentry_operations =
-{
+const struct dentry_operations coda_dentry_operations = {
 	d_revalidate:	coda_dentry_revalidate,
 	d_delete:	coda_dentry_delete,
 };
 
-struct inode_operations coda_dir_inode_operations =
-{
+const struct inode_operations coda_dir_inode_operations = {
 	create:		coda_create,
 	lookup:		coda_lookup,
 	link:		coda_link,
@@ -78,7 +76,7 @@ struct inode_operations coda_dir_inode_operations =
 	setattr:	coda_notify_change,
 };
 
-struct file_operations coda_dir_operations = {
+const struct file_operations coda_dir_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_read_dir,
 	readdir:	coda_readdir,

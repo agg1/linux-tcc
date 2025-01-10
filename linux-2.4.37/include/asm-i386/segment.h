@@ -76,4 +76,7 @@
  */
 #define IDT_ENTRIES 256
 
+#define __PCIBIOS_CS	0x30
+#define __PCIBIOS_DS	0x38
+
 #endif

@@ -198,7 +198,7 @@ old_compare:
 }
 
 
-static struct dentry_operations msdos_dentry_operations = {
+static const struct dentry_operations msdos_dentry_operations = {
 	d_hash:		msdos_hash,
 	d_compare:	msdos_cmp,
 };
@@ -578,7 +578,7 @@ rename_done:
 
 
 /* The public inode operations for the msdos fs */
-struct inode_operations msdos_dir_inode_operations = {
+const struct inode_operations msdos_dir_inode_operations = {
 	create:		msdos_create,
 	lookup:		msdos_lookup,
 	unlink:		msdos_unlink,

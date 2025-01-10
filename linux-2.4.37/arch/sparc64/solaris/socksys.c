@@ -49,7 +49,7 @@ extern void mykfree(void *);
 
 static unsigned int (*sock_poll)(struct file *, poll_table *);
 
-static struct file_operations socksys_file_ops = {
+static const struct file_operations socksys_file_ops = {
 	/* Currently empty */
 };
 
@@ -156,7 +156,7 @@ static unsigned int socksys_poll(struct file * filp, poll_table * wait)
 	return mask;
 }
 	
-static struct file_operations socksys_fops = {
+static const struct file_operations socksys_fops = {
 	open:		socksys_open,
 	release:	socksys_release,
 };

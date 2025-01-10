@@ -64,8 +64,8 @@ extern void			vxfs_read_inode(struct inode *);
 extern void			vxfs_put_inode(struct inode *);
 
 /* vxfs_lookup.c */
-extern struct inode_operations	vxfs_dir_inode_ops;
-extern struct file_operations	vxfs_dir_operations;
+extern const struct inode_operations	vxfs_dir_inode_ops;
+extern const struct file_operations	vxfs_dir_operations;
 
 /* vxfs_olt.c */
 extern int			vxfs_read_olt(struct super_block *, u_long);

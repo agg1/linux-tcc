@@ -37,7 +37,7 @@ int	raw_ctl_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
 int	raw_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
 
 
-static struct file_operations raw_fops = {
+static const struct file_operations raw_fops = {
 	read:		raw_read,
 	write:		raw_write,
 	open:		raw_open,
@@ -45,7 +45,7 @@ static struct file_operations raw_fops = {
 	ioctl:		raw_ioctl,
 };
 
-static struct file_operations raw_ctl_fops = {
+static const struct file_operations raw_ctl_fops = {
 	ioctl:		raw_ctl_ioctl,
 	open:		raw_open,
 };

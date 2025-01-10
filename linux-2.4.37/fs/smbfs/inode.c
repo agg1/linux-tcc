@@ -50,8 +50,7 @@ static void smb_put_super(struct super_block *);
 static int  smb_statfs(struct super_block *, struct statfs *);
 static int  smb_show_options(struct seq_file *, struct vfsmount *);
 
-static struct super_operations smb_sops =
-{
+static const struct super_operations smb_sops = {
 	put_inode:	force_delete,
 	delete_inode:	smb_delete_inode,
 	put_super:	smb_put_super,

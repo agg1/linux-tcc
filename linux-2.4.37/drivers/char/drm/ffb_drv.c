@@ -27,7 +27,7 @@
 #define DRIVER_PATCHLEVEL	1
 
 #define DRIVER_FOPS						\
-static struct file_operations	DRM(fops) = {			\
+static const struct file_operations	DRM(fops) = {			\
 	owner:   		THIS_MODULE,			\
 	open:	 		DRM(open),			\
 	flush:	 		DRM(flush),			\

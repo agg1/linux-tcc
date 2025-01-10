@@ -28,7 +28,7 @@
 
 #include "adfs.h"
 
-struct file_operations adfs_file_operations = {
+const struct file_operations adfs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	mmap:		generic_file_mmap,
@@ -36,6 +36,6 @@ struct file_operations adfs_file_operations = {
 	write:		generic_file_write,
 };
 
-struct inode_operations adfs_file_inode_operations = {
+const struct inode_operations adfs_file_inode_operations = {
 	setattr:	adfs_notify_change,
 };

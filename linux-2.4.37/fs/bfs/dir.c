@@ -65,7 +65,7 @@ static int bfs_readdir(struct file * f, void * dirent, filldir_t filldir)
 	return 0;	
 }
 
-struct file_operations bfs_dir_operations = {
+const struct file_operations bfs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	bfs_readdir,
 	fsync:		file_fsync,
@@ -243,7 +243,7 @@ end_rename:
 	return error;
 }
 
-struct inode_operations bfs_dir_inops = {
+const struct inode_operations bfs_dir_inops = {
 	create:			bfs_create,
 	lookup:			bfs_lookup,
 	link:			bfs_link,

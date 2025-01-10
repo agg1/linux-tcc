@@ -210,7 +210,7 @@ out:
 	return ret;
 }
 
-static struct vm_operations_struct dma_region_vm_ops = {
+static const struct vm_operations_struct dma_region_vm_ops = {
 	.nopage	= dma_region_pagefault,
 };
 

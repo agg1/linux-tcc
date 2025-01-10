@@ -28,7 +28,7 @@ static unsigned char ext3_filetype_table[] = {
 
 static int ext3_readdir(struct file *, void *, filldir_t);
 
-struct file_operations ext3_dir_operations = {
+const struct file_operations ext3_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	ext3_readdir,		/* BKL held */
 	ioctl:		ext3_ioctl,		/* BKL held */

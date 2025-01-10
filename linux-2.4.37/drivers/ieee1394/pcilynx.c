@@ -861,7 +861,7 @@ static ssize_t mem_read (struct file*, char*, size_t, loff_t*);
 static ssize_t mem_write(struct file*, const char*, size_t, loff_t*);
 
 
-static struct file_operations aux_ops = {
+static const struct file_operations aux_ops = {
 	.owner =	THIS_MODULE,
         .read =         mem_read,
         .write =        mem_write,

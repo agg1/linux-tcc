@@ -686,7 +686,7 @@ static int hiddev_ioctl(struct inode *inode, struct file *file,
 	return -EINVAL;
 }
 
-static struct file_operations hiddev_fops = {
+static const struct file_operations hiddev_fops = {
 	owner:		THIS_MODULE,
 	read:		hiddev_read,
 	write:		hiddev_write,

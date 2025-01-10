@@ -43,7 +43,7 @@
 #include "vfc.h"
 #include <asm/vfc_ioctls.h>
 
-static struct file_operations vfc_fops;
+static const struct file_operations vfc_fops;
 static devfs_handle_t devfs_handle;  /*  For the directory  */
 struct vfc_dev **vfc_dev_lst;
 static char vfcstr[]="vfc";
@@ -642,7 +642,7 @@ static int vfc_mmap(struct inode *inode, struct file *file,
 }
 
 
-static struct file_operations vfc_fops = {
+static const struct file_operations vfc_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	ioctl:		vfc_ioctl,

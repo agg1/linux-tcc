@@ -75,7 +75,7 @@ static int fetchop_mmap(struct file *file, struct vm_area_struct *vma);
 static void fetchop_open(struct vm_area_struct *vma);
 static void fetchop_close(struct vm_area_struct *vma);
 
-static struct file_operations fetchop_fops = {
+static const struct file_operations fetchop_fops = {
 	owner:		THIS_MODULE,
 	mmap:		fetchop_mmap,
 };
@@ -86,7 +86,7 @@ static struct miscdevice fetchop_miscdev = {
 	&fetchop_fops
 };
 
-static struct vm_operations_struct fetchop_vm_ops = {
+static const struct vm_operations_struct fetchop_vm_ops = {
 	open:		fetchop_open,
 	close:		fetchop_close,
 };

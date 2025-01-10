@@ -46,6 +46,13 @@ typedef elf_vrreg_t elf_vrregset_t[ELF_NVRREG];
 
 #define ELF_ET_DYN_BASE         (0x08000000)
 
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	0x10000000UL
+
+#define PAX_DELTA_MMAP_LEN	15
+#define PAX_DELTA_STACK_LEN	15
+#endif
+
 #define USE_ELF_CORE_DUMP
 #define ELF_EXEC_PAGESIZE	4096
 

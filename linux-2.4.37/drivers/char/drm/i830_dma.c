@@ -120,7 +120,7 @@ static int i830_freelist_put(drm_device_t *dev, drm_buf_t *buf)
    	return 0;
 }
 
-static struct file_operations i830_buffer_fops = {
+static const struct file_operations i830_buffer_fops = {
 	.open	 = DRM(open),
 	.flush	 = DRM(flush),
 	.release = DRM(release),

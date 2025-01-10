@@ -173,10 +173,10 @@ struct umsdos_ioctl {
 #include <linux/fs.h>
 #endif
 
-extern struct inode_operations umsdos_dir_inode_operations;
-extern struct inode_operations umsdos_rdir_inode_operations;
-extern struct file_operations umsdos_dir_operations;
-extern struct file_operations umsdos_rdir_operations;
+extern const struct inode_operations umsdos_dir_inode_operations;
+extern const struct inode_operations umsdos_rdir_inode_operations;
+extern const struct file_operations umsdos_dir_operations;
+extern const struct file_operations umsdos_rdir_operations;
 
 #include <linux/umsdos_fs.p>
 

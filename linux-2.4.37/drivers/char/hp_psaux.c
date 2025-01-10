@@ -414,7 +414,7 @@ static int release_aux(struct inode * inode, struct file * file)
 	return 0;
 }
 
-static struct file_operations psaux_fops = {
+static const struct file_operations psaux_fops = {
 	read:		read_aux,
 	write:		write_aux,
 	poll:		aux_poll,

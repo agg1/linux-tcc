@@ -2324,7 +2324,7 @@ static int usb_open(struct inode * inode, struct file * file)
 	int minor = MINOR(inode->i_rdev);
 	struct usb_driver *c = usb_minors[minor/16];
 	int err = -ENODEV;
-	struct file_operations *old_fops, *new_fops = NULL;
+	const struct file_operations *old_fops, *new_fops = NULL;
 
 	/*
 	 * No load-on-demand? Randy, could you ACK that it's really not
@@ -2345,7 +2345,7 @@ static int usb_open(struct inode * inode, struct file * file)
 	return err;
 }
 
-static struct file_operations usb_fops = {
+static const struct file_operations usb_fops = {
 	owner:		THIS_MODULE,
 	open:		usb_open,
 };

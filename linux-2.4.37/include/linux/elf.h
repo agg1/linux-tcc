@@ -38,6 +38,10 @@ typedef __s64	Elf64_Sxword;
 #define PT_MIPS_REGINFO		0x70000000
 #define PT_MIPS_OPTIONS		0x70000001
 
+#define PT_LOOS		0x60000000
+#define PT_GNU_STACK	(PT_LOOS + 0x474e551)
+#define PT_PAX_FLAGS	(PT_LOOS + 0x5041580)
+
 /* Flags in the e_flags field of the header */
 #define EF_MIPS_NOREORDER 0x00000001
 #define EF_MIPS_PIC       0x00000002
@@ -47,6 +51,14 @@ typedef __s64	Elf64_Sxword;
 #define EF_MIPS_32BITMODE 0x00000100
 #define EF_MIPS_ABI       0x0000f000
 #define EF_MIPS_ARCH      0xf0000000
+
+/* Constants for the e_flags field */
+#define EF_PAX_PAGEEXEC	1	/* Paging based non-executable pages */
+#define EF_PAX_EMUTRAMP	2	/* Emulate trampolines */
+#define EF_PAX_MPROTECT	4	/* Restrict mprotect() */
+#define EF_PAX_RANDMMAP	8	/* Randomize mmap() base */
+/*#define EF_PAX_RANDEXEC	16*/	/* Randomize ET_EXEC base */
+#define EF_PAX_SEGMEXEC	32	/* Segmentation based non-executable pages */
 
 /* These constants define the different elf file types */
 #define ET_NONE   0
@@ -126,6 +138,8 @@ typedef __s64	Elf64_Sxword;
 #define DT_DEBUG	21
 #define DT_TEXTREL	22
 #define DT_JMPREL	23
+#define DT_FLAGS	30
+#define DF_TEXTREL	0x00000004
 #define DT_LOPROC	0x70000000
 #define DT_HIPROC	0x7fffffff
 #define DT_MIPS_RLD_VERSION	0x70000001
@@ -462,6 +476,19 @@ typedef struct elf64_hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
+#define PF_PAGEEXEC    (1U << 4)       /* Enable  PAGEEXEC */
+#define PF_NOPAGEEXEC  (1U << 5)       /* Disable PAGEEXEC */
+#define PF_SEGMEXEC    (1U << 6)       /* Enable  SEGMEXEC */
+#define PF_NOSEGMEXEC  (1U << 7)       /* Disable SEGMEXEC */
+#define PF_MPROTECT    (1U << 8)       /* Enable  MPROTECT */
+#define PF_NOMPROTECT  (1U << 9)       /* Disable MPROTECT */
+/*#define PF_RANDEXEC  (1U << 10)*/    /* Enable  RANDEXEC */
+/*#define PF_NORANDEXEC        (1U << 11)*/    /* Disable RANDEXEC */
+#define PF_EMUTRAMP    (1U << 12)      /* Enable  EMUTRAMP */
+#define PF_NOEMUTRAMP  (1U << 13)      /* Disable EMUTRAMP */
+#define PF_RANDMMAP    (1U << 14)      /* Enable  RANDMMAP */
+#define PF_NORANDMMAP  (1U << 15)      /* Disable RANDMMAP */
+
 typedef struct elf32_phdr{
   Elf32_Word	p_type;
   Elf32_Off	p_offset;
@@ -559,6 +586,8 @@ typedef struct elf64_shdr {
 #define	EI_VERSION	6
 #define	EI_PAD		7
 
+#define EI_PAX		14
+
 #define	ELFMAG0		0x7f		/* EI_MAG */
 #define	ELFMAG1		'E'
 #define	ELFMAG2		'L'
@@ -607,6 +636,7 @@ extern Elf32_Dyn _DYNAMIC [];
 #define elfhdr		elf32_hdr
 #define elf_phdr	elf32_phdr
 #define elf_note	elf32_note
+#define elf_dyn		Elf32_Dyn
 
 #else
 
@@ -614,6 +644,7 @@ extern Elf64_Dyn _DYNAMIC [];
 #define elfhdr		elf64_hdr
 #define elf_phdr	elf64_phdr
 #define elf_note	elf64_note
+#define elf_dyn		Elf64_Dyn
 
 #endif
 

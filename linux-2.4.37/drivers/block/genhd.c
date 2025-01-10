@@ -226,7 +226,7 @@ static int part_show(struct seq_file *s, void *v)
 	return 0;
 }
 
-struct seq_operations partitions_op = {
+const struct seq_operations partitions_op = {
 	.start		= part_start,
 	.next		= part_next,
 	.stop		= part_stop,

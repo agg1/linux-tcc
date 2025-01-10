@@ -24,8 +24,8 @@ extern struct Xgt_desc_struct idt_descr, cpu_gdt_descr[NR_CPUS];
  * This is the ldt that every process will get unless we need
  * something other than this.
  */
-extern struct desc_struct default_ldt[];
-extern void set_intr_gate(unsigned int irq, void * addr);
+extern const struct desc_struct default_ldt[];
+extern void set_intr_gate(unsigned int irq, const void * addr);
 
 #define _set_tssldt_desc(n,addr,limit,type) \
 __asm__ __volatile__ ("movw %w3,0(%2)\n\t" \
@@ -38,12 +38,12 @@ __asm__ __volatile__ ("movw %w3,0(%2)\n\t" \
 	"rorl $16,%%eax" \
 	: "=m"(*(n)) : "a" (addr), "r"(n), "ir"(limit), "i"(type))
 
-static inline void set_tss_desc(unsigned int cpu, void *addr)
+static inline void set_tss_desc(unsigned int cpu, const void *addr)
 {
 	_set_tssldt_desc(&cpu_gdt_table[cpu][GDT_ENTRY_TSS], (int)addr, 235, 0x89);
 }
 
-static inline void set_ldt_desc(unsigned int cpu, void *addr, unsigned int size)
+static inline void set_ldt_desc(unsigned int cpu, const void *addr, unsigned int size)
 {
 	_set_tssldt_desc(&cpu_gdt_table[cpu][GDT_ENTRY_LDT], (int)addr, ((size << 3)-1), 0x82);
 }
@@ -62,6 +62,7 @@ static inline void set_ldt_desc(unsigned int cpu, void *addr, unsigned int size)
 	((info)->limit_in_pages << 23) | \
 	((info)->useable << 20) | \
 	0x7000)
+// 0x7100 ? see arch/i386/kernel/ldt.c grsecurity patch
 
 #define LDT_empty(info) (\
 	(info)->base_addr	== 0	&& \
@@ -95,7 +96,7 @@ static inline void clear_LDT(void)
  */
 static inline void load_LDT (mm_context_t *pc)
 {
-	void *segments = pc->ldt;
+	const void *segments = pc->ldt;
 	int count = pc->size;
 
 	if (!count) {

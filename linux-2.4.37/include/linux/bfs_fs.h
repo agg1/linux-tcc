@@ -79,13 +79,13 @@ struct bfs_super_block {
 #ifdef __KERNEL__
 
 /* file.c */
-extern struct inode_operations bfs_file_inops;
-extern struct file_operations bfs_file_operations;
-extern struct address_space_operations bfs_aops;
+extern const struct inode_operations bfs_file_inops;
+extern const struct file_operations bfs_file_operations;
+extern const struct address_space_operations bfs_aops;
 
 /* dir.c */
-extern struct inode_operations bfs_dir_inops;
-extern struct file_operations bfs_dir_operations;
+extern const struct inode_operations bfs_dir_inops;
+extern const struct file_operations bfs_dir_operations;
 
 #endif /* __KERNEL__ */
 #endif	/* _LINUX_BFS_FS_H */

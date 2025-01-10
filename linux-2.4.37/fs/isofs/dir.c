@@ -26,8 +26,7 @@
 
 static int isofs_readdir(struct file *, void *, filldir_t);
 
-struct file_operations isofs_dir_operations =
-{
+const struct file_operations isofs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	isofs_readdir,
 };
@@ -35,8 +34,7 @@ struct file_operations isofs_dir_operations =
 /*
  * directories can handle most operations...
  */
-struct inode_operations isofs_dir_inode_operations =
-{
+const struct inode_operations isofs_dir_inode_operations = {
 	lookup:		isofs_lookup,
 };
 

@@ -147,7 +147,7 @@ void ext2_put_super (struct super_block * sb)
 	return;
 }
 
-static struct super_operations ext2_sops = {
+static const struct super_operations ext2_sops = {
 	read_inode:	ext2_read_inode,
 	write_inode:	ext2_write_inode,
 	put_inode:	ext2_put_inode,

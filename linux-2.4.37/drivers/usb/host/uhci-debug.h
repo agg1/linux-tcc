@@ -561,7 +561,7 @@ static int uhci_proc_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations uhci_proc_operations = {
+static const struct file_operations uhci_proc_operations = {
 	open:		uhci_proc_open,
 	llseek:		uhci_proc_lseek,
 	read:		uhci_proc_read,

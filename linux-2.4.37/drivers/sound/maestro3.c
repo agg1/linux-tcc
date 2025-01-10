@@ -2176,7 +2176,7 @@ static int m3_ioctl_mixdev(struct inode *inode, struct file *file, unsigned int 
     return codec->mixer_ioctl(codec, cmd, arg);
 }
 
-static struct file_operations m3_mixer_fops = {
+static const struct file_operations m3_mixer_fops = {
     llseek:         no_llseek,
     ioctl:          m3_ioctl_mixdev,
     open:           m3_open_mixdev,
@@ -2554,7 +2554,7 @@ static void m3_enable_ints(struct m3_card *card)
             io + ASSP_CONTROL_C);
 }
 
-static struct file_operations m3_audio_fops = {
+static const struct file_operations m3_audio_fops = {
     llseek:     &no_llseek,
     read:       &m3_read,
     write:      &m3_write,

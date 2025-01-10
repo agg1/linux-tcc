@@ -23,7 +23,7 @@ static struct dentry *autofs_dir_lookup(struct inode *dir,struct dentry *dentry)
 	return NULL;
 }
 
-struct inode_operations autofs_dir_inode_operations = {
+const struct inode_operations autofs_dir_inode_operations = {
 	lookup:		autofs_dir_lookup,
 };
 

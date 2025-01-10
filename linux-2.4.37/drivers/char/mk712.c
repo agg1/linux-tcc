@@ -415,7 +415,7 @@ static ssize_t mk712_write(struct file *file, const char *buffer, size_t count,
 	return -EINVAL;
 }
 
-struct file_operations mk712_fops = {
+const struct file_operations mk712_fops = {
 	owner: THIS_MODULE,
 	read: mk712_read,
 	write: mk712_write,

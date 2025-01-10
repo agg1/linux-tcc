@@ -766,8 +766,9 @@ asmlinkage long sys_setresgid(gid_t rgid, gid_t egid, gid_t sgid)
 		current->egid = egid;
 	}
 	current->fsgid = current->egid;
-	if (rgid != (gid_t) -1)
+	if (rgid != (gid_t) -1) {
 		current->gid = rgid;
+	}
 	if (sgid != (gid_t) -1)
 		current->sgid = sgid;
 	return 0;

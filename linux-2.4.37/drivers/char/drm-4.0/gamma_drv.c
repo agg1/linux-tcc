@@ -49,7 +49,7 @@
 
 static drm_device_t	      gamma_device;
 
-static struct file_operations gamma_fops = {
+static const struct file_operations gamma_fops = {
 #if LINUX_VERSION_CODE >= 0x020400
 				/* This started being used during 2.4.0-test */
 	owner:   THIS_MODULE,

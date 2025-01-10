@@ -71,16 +71,16 @@ static struct dentry *capifs_root_lookup(struct inode *,struct dentry *);
 static int capifs_revalidate(struct dentry *, int);
 static struct inode *capifs_new_inode(struct super_block *sb);
 
-static struct file_operations capifs_root_operations = {
+static const struct file_operations capifs_root_operations = {
 	read:		generic_read_dir,
 	readdir:	capifs_root_readdir,
 };
 
-struct inode_operations capifs_root_inode_operations = {
+const struct inode_operations capifs_root_inode_operations = {
 	lookup: capifs_root_lookup,
 };
 
-static struct dentry_operations capifs_dentry_operations = {
+static const struct dentry_operations capifs_dentry_operations = {
 	d_revalidate: capifs_revalidate,
 };
 
@@ -217,7 +217,7 @@ static void capifs_put_super(struct super_block *sb)
 
 static int capifs_statfs(struct super_block *sb, struct statfs *buf);
 
-static struct super_operations capifs_sops = {
+static const struct super_operations capifs_sops = {
 	put_super:	capifs_put_super,
 	statfs:		capifs_statfs,
 };

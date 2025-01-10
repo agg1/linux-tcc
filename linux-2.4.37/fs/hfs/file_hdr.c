@@ -45,14 +45,14 @@ static hfs_rwret_t hdr_write(struct file *, const char *,
 			     hfs_rwarg_t, loff_t *);
 /*================ Global variables ================*/
 
-struct file_operations hfs_hdr_operations = {
+const struct file_operations hfs_hdr_operations = {
 	llseek:		hdr_llseek,
 	read:		hdr_read,
 	write:		hdr_write,
 	fsync:		file_fsync,
 };
 
-struct inode_operations hfs_hdr_inode_operations = {
+const struct inode_operations hfs_hdr_inode_operations = {
 	setattr:	hfs_notify_change_hdr,
 };
 

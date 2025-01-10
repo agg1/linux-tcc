@@ -319,3 +319,12 @@ fi
 int 'Kernel messages buffer length shift (0 = default)' CONFIG_LOG_BUF_SHIFT 0
 
 endmenu
+
+mainmenu_option next_comment
+comment 'Kernel Security'
+bool 'Grsecurity' CONFIG_GRKERNSEC
+if [ "$CONFIG_GRKERNSEC" = "y" ]; then
+    source grsecurity/Config.in
+fi
+endmenu
+

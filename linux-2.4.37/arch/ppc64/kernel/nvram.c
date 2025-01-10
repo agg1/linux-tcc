@@ -149,7 +149,7 @@ static int dev_ppc64_nvram_ioctl(struct inode *inode, struct file *file,
 	return -EINVAL;
 }
 
-struct file_operations nvram_fops = {
+const struct file_operations nvram_fops = {
 	.owner =	THIS_MODULE,
 	.llseek =	dev_ppc64_nvram_llseek,
 	.read =		dev_ppc64_read_nvram,

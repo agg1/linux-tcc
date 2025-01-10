@@ -51,6 +51,9 @@
 #include <linux/highuid.h>
 #include <linux/mman.h>
 
+#include <linux/random.h>
+#include <linux/grsecurity.h>
+
 #include <asm/types.h>
 #include <asm/uaccess.h>
 #include <asm/semaphore.h>
@@ -185,6 +188,11 @@ do_execve32(char * filename, u32 * argv, u32 * envp, struct pt_regs * regs)
 		return retval;
 
 	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
+
+#ifdef CONFIG_PAX_RANDUSTACK
+	bprm.p -= (net_random() & ~(sizeof(void *)-1)) & ~PAGE_MASK;
+#endif
+
 	memset(bprm.page, 0, MAX_ARG_PAGES*sizeof(bprm.page[0]));
 
 	DBG(("do_execve32(%s, %p, %p, %p)\n", filename, argv, envp, regs));

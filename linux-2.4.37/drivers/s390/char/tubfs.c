@@ -22,7 +22,7 @@ static int fs3270_wait(tub_t *, long *);
 static void fs3270_int(tub_t *tubp, devstat_t *dsp);
 extern void tty3270_refresh(tub_t *);
 
-static struct file_operations fs3270_fops = {
+static const struct file_operations fs3270_fops = {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,3,0))
 	owner: THIS_MODULE,		/* owner */
 #endif

@@ -222,9 +222,9 @@ extern struct dentry *isofs_lookup(struct inode *, struct dentry *);
 extern struct buffer_head *isofs_bread(struct inode *inode, unsigned int block);
 extern int isofs_get_blocks(struct inode *, long, struct buffer_head **, unsigned long);
 
-extern struct inode_operations isofs_dir_inode_operations;
-extern struct file_operations isofs_dir_operations;
-extern struct address_space_operations isofs_symlink_aops;
+extern const struct inode_operations isofs_dir_inode_operations;
+extern const struct file_operations isofs_dir_operations;
+extern const struct address_space_operations isofs_symlink_aops;
 
 /* The following macros are used to check for memory leaks. */
 #ifdef LEAK_CHECK

@@ -44,7 +44,7 @@ static ssize_t affs_file_write(struct file *filp, const char *buf, size_t count,
 static int affs_file_open(struct inode *inode, struct file *filp);
 static int affs_file_release(struct inode *inode, struct file *filp);
 
-struct file_operations affs_file_operations = {
+const struct file_operations affs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	write:		affs_file_write,
@@ -54,7 +54,7 @@ struct file_operations affs_file_operations = {
 	fsync:		file_fsync,
 };
 
-struct inode_operations affs_file_inode_operations = {
+const struct inode_operations affs_file_inode_operations = {
 	truncate:	affs_truncate,
 	setattr:	affs_notify_change,
 };
@@ -427,7 +427,7 @@ static int _affs_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,affs_get_block);
 }
-struct address_space_operations affs_aops = {
+const struct address_space_operations affs_aops = {
 	readpage: affs_readpage,
 	writepage: affs_writepage,
 	sync_page: block_sync_page,
@@ -787,7 +787,7 @@ out:
 	goto done;
 }
 
-struct address_space_operations affs_aops_ofs = {
+const struct address_space_operations affs_aops_ofs = {
 	readpage: affs_readpage_ofs,
 	//writepage: affs_writepage_ofs,
 	//sync_page: affs_sync_page_ofs,

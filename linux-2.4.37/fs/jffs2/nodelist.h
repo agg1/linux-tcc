@@ -307,13 +307,13 @@ void jffs2_stop_garbage_collect_thread(struct jffs2_sb_info *c);
 void jffs2_garbage_collect_trigger(struct jffs2_sb_info *c);
 
 /* dir.c */
-extern struct file_operations jffs2_dir_operations;
-extern struct inode_operations jffs2_dir_inode_operations;
+extern const struct file_operations jffs2_dir_operations;
+extern const struct inode_operations jffs2_dir_inode_operations;
 
 /* file.c */
-extern struct file_operations jffs2_file_operations;
-extern struct inode_operations jffs2_file_inode_operations;
-extern struct address_space_operations jffs2_file_address_operations;
+extern const struct file_operations jffs2_file_operations;
+extern const struct inode_operations jffs2_file_inode_operations;
+extern const struct address_space_operations jffs2_file_address_operations;
 int jffs2_null_fsync(struct file *, struct dentry *, int);
 int jffs2_setattr (struct dentry *dentry, struct iattr *iattr);
 int jffs2_do_readpage_nolock (struct inode *inode, struct page *pg);
@@ -341,7 +341,7 @@ int jffs2_scan_medium(struct jffs2_sb_info *c);
 int jffs2_build_filesystem(struct jffs2_sb_info *c);
 
 /* symlink.c */
-extern struct inode_operations jffs2_symlink_inode_operations;
+extern const struct inode_operations jffs2_symlink_inode_operations;
 
 /* erase.c */
 void jffs2_erase_block(struct jffs2_sb_info *c, struct jffs2_eraseblock *jeb);

@@ -51,7 +51,7 @@ static void devpts_put_super(struct super_block *sb)
 static int devpts_statfs(struct super_block *sb, struct statfs *buf);
 static int devpts_remount (struct super_block * sb, int * flags, char * data);
 
-static struct super_operations devpts_sops = {
+static const struct super_operations devpts_sops = {
 	put_super:	devpts_put_super,
 	statfs:		devpts_statfs,
 	remount_fs:	devpts_remount,

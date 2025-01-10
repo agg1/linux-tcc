@@ -476,7 +476,7 @@ static int gen_rtc_read_proc(char *page, char **start, off_t off,
  *	The various file operations we support.
  */
 
-static struct file_operations gen_rtc_fops = {
+static const struct file_operations gen_rtc_fops = {
 	.owner		= THIS_MODULE,
 #ifdef CONFIG_GEN_RTC_X
 	.read		= gen_rtc_read,

@@ -263,7 +263,7 @@ struct file_system_type *get_fs_type(const char *name)
  */
 static struct super_block *alloc_super(void)
 {
-	static struct super_operations empty_sops = {};
+	static const struct super_operations empty_sops = {};
 	struct super_block *s = kmalloc(sizeof(struct super_block),  GFP_USER);
 	if (s) {
 		memset(s, 0, sizeof(struct super_block));
@@ -828,7 +828,7 @@ void kill_super(struct super_block *sb)
 {
 	struct dentry *root = sb->s_root;
 	struct file_system_type *fs = sb->s_type;
-	struct super_operations *sop = sb->s_op;
+	const struct super_operations *sop = sb->s_op;
 
 	if (!deactivate_super(sb))
 		return;

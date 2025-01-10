@@ -45,9 +45,9 @@ static const char cprt[] = "EFS: "EFS_VERSION" - (c) 1999 Al Smith <Al.Smith@aes
 #define SUPER_INFO(s)				&((s)->u.efs_sb)
 #endif
 
-extern struct inode_operations efs_dir_inode_operations;
-extern struct file_operations efs_dir_operations;
-extern struct address_space_operations efs_symlink_aops;
+extern const struct inode_operations efs_dir_inode_operations;
+extern const struct file_operations efs_dir_operations;
+extern const struct address_space_operations efs_symlink_aops;
 
 extern struct super_block *efs_read_super(struct super_block *, void *, int);
 extern int efs_statfs(struct super_block *, struct statfs *);

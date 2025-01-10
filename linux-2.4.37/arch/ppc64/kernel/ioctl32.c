@@ -1827,7 +1827,11 @@ static int vt_check(struct file *file)
 	 * To have permissions to do most of the vt ioctls, we either have
 	 * to be the owner of the tty, or super-user.
 	 */
+#ifdef CONFIG_GRKERNSEC
+	if (current->tty == tty || capable(CAP_SYS_TTY_CONFIG))
+#else
 	if (current->tty == tty || suser())
+#endif
 		return 1;
 	return 0;                                                    
 }

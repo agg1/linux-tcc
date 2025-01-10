@@ -1704,7 +1704,7 @@ ioc_show(struct seq_file *s, void *v)
 	return 0;
 }
 
-static struct seq_operations ioc_seq_ops = {
+static const struct seq_operations ioc_seq_ops = {
 	.start = ioc_start,
 	.next  = ioc_next,
 	.stop  = ioc_stop,
@@ -1717,7 +1717,7 @@ ioc_open(struct inode *inode, struct file *file)
 	return seq_open(file, &ioc_seq_ops);
 }
 
-static struct file_operations ioc_fops = {
+static const struct file_operations ioc_fops = {
 	.open    = ioc_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,

@@ -114,7 +114,7 @@ static inline void write3byte(struct super_block *sb,
 	}
 }
 
-static struct inode_operations sysv_symlink_inode_operations = {
+static const struct inode_operations sysv_symlink_inode_operations = {
 	readlink:	page_readlink,
 	follow_link:	page_follow_link,
 };
@@ -261,7 +261,7 @@ static void sysv_delete_inode(struct inode *inode)
 	unlock_kernel();
 }
 
-struct super_operations sysv_sops = {
+const struct super_operations sysv_sops = {
 	read_inode:	sysv_read_inode,
 	write_inode:	sysv_write_inode,
 	delete_inode:	sysv_delete_inode,

@@ -56,14 +56,16 @@ r_base = .
 flush_instr:
 ### https://stackoverflow.com/questions/39323061/gnu-as-compilation-error-on-instruction-far-jmp-0x8-0x80000
 ### tcc is not aware of ljmpl , and ljmp implies different adressing and sizes (16bit/32bit)
-
-#ifdef __TINYC__
-	ljmpl	$__KERNEL_CS, $0x00100000
-			# compilation/assembling passes, see what happens...
-#else
-	ljmpl	$__KERNEL_CS, $0x00100000
-			# jump to startup_32 in arch/i386/kernel/head.S
-#endif
+#
+##ifdef __TINYC__
+#	ljmpl	$__KERNEL_CS, $0x00100000
+#			# compilation/assembling passes, see what happens...
+##else
+#	ljmpl	$__KERNEL_CS, $0x00100000
+#			# jump to startup_32 in arch/i386/kernel/head.S
+##endif
+##ljmpl   $__KERNEL_CS, $SYMBOL_NAME(startup_32) + __KERNEL_TEXT_OFFSET - __PAGE_OFFSET
+ljmpl   $__KERNEL_CS, $SYMBOL_NAME(startup_32) - __PAGE_OFFSET
 
 idt_48:
 	.word	0			# idt limit = 0
@@ -75,8 +77,12 @@ idt_48:
 #
 
 gdt_48:
+#	.word   __KERNEL_DS+7
 	.word	0x0800			# gdt limit = 2048, 256 GDT entries
-	.long	cpu_gdt_table-__PAGE_OFFSET	# gdt base = gdt (first SMP CPU)
+#	.long   boot_gdt_table-__PAGE_OFFSET    # gdt base = boot_gdt (first SMP CPU)
+	.long   cpu_gdt_table-__PAGE_OFFSET    # gdt base = boot_gdt (first SMP CPU)
+#	.word	0x0800			# gdt limit = 2048, 256 GDT entries
+#	.long	cpu_gdt_table-__PAGE_OFFSET	# gdt base = gdt (first SMP CPU)
 
 .globl SYMBOL_NAME(trampoline_end)
 SYMBOL_NAME_LABEL(trampoline_end)

@@ -182,7 +182,7 @@ static int button_read (struct file *filp, char *buffer,
  * attempts to perform these operations on the device.
  */
 
-static struct file_operations button_fops = {
+static const struct file_operations button_fops = {
 	owner:		THIS_MODULE,
 	read:		button_read,
 };

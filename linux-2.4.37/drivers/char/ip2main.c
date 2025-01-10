@@ -354,7 +354,7 @@ static struct termios    * TermiosLocked[IP2_MAX_PORTS];
 /* This is the driver descriptor for the ip2ipl device, which is used to
  * download the loadware to the boards.
  */
-static struct file_operations ip2_ipl = {
+static const struct file_operations ip2_ipl = {
 	owner:		THIS_MODULE,
 	read:		ip2_ipl_read,
 	write:		ip2_ipl_write,

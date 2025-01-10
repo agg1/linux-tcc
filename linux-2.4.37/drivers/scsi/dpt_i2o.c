@@ -110,7 +110,7 @@ static adpt_hba* hbas[DPTI_MAX_HBA];
 static adpt_hba* hba_chain = NULL;
 static int hba_count = 0;
 
-static struct file_operations adpt_fops = {
+static const struct file_operations adpt_fops = {
 	ioctl: adpt_ioctl,
 	open: adpt_open,
 	release: adpt_close

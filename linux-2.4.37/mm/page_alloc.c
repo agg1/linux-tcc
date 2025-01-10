@@ -162,11 +162,12 @@ static void fastcall __free_pages_ok (struct page *page, unsigned int order)
 	page_idx = page - base;
 	if (page_idx & ~mask)
 		BUG();
+
+	spin_lock_irqsave(&zone->lock, flags);
+
 	index = page_idx >> (1 + order);
 
 	area = zone->free_area + order;
-
-	spin_lock_irqsave(&zone->lock, flags);
 
 	zone->free_pages -= mask;
 

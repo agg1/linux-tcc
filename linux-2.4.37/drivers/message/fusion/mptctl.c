@@ -2738,7 +2738,7 @@ mptctl_hp_targetinfo(unsigned long arg)
 #define	owner_THIS_MODULE
 #endif
 
-static struct file_operations mptctl_fops = {
+static const struct file_operations mptctl_fops = {
 	owner_THIS_MODULE
 	.llseek =	no_llseek,
 	.read =		mptctl_read,

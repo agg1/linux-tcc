@@ -111,7 +111,7 @@ static ssize_t sock_sendpage(struct file *file, struct page *page,
  *	in the operation structures but are done directly via the socketcall() multiplexor.
  */
 
-static struct file_operations socket_file_ops = {
+static const struct file_operations socket_file_ops = {
 	llseek:		no_llseek,
 	read:		sock_read,
 	write:		sock_write,
@@ -271,7 +271,7 @@ static int sockfs_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
-static struct super_operations sockfs_ops = {
+static const struct super_operations sockfs_ops = {
 	statfs:		sockfs_statfs,
 };
 
@@ -298,13 +298,13 @@ static struct super_block * sockfs_read_super(struct super_block *sb, void *data
 	return sb;
 }
 
-static struct vfsmount *sock_mnt;
+struct vfsmount *sock_mnt;
 static DECLARE_FSTYPE(sock_fs_type, "sockfs", sockfs_read_super, FS_NOMOUNT);
 static int sockfs_delete_dentry(struct dentry *dentry)
 {
 	return 1;
 }
-static struct dentry_operations sockfs_dentry_operations = {
+static const struct dentry_operations sockfs_dentry_operations = {
 	d_delete:	sockfs_delete_dentry,
 };
 

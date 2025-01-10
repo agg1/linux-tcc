@@ -1648,39 +1648,39 @@ netiucv_stat_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 	return ret;
 }
 
-static struct file_operations netiucv_stat_fops = {
+static const struct file_operations netiucv_stat_fops = {
 	read:    netiucv_stat_read,
 	write:   netiucv_stat_write,
 	open:    netiucv_stat_open,
 	release: netiucv_stat_close,
 };
 
-static struct file_operations netiucv_buffer_fops = {
+static const struct file_operations netiucv_buffer_fops = {
 	read:    netiucv_buffer_read,
 	write:   netiucv_buffer_write,
 	open:    netiucv_buffer_open,
 	release: netiucv_buffer_close,
 };
 
-static struct file_operations netiucv_user_fops = {
+static const struct file_operations netiucv_user_fops = {
 	read:    netiucv_user_read,
 	write:   netiucv_user_write,
 	open:    netiucv_user_open,
 	release: netiucv_user_close,
 };
 
-static struct inode_operations netiucv_stat_iops = {
+static const struct inode_operations netiucv_stat_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &netiucv_stat_fops
 #endif
 };
-static struct inode_operations netiucv_buffer_iops = {
+static const struct inode_operations netiucv_buffer_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &netiucv_buffer_fops
 #endif
 };
 
-static struct inode_operations netiucv_user_iops = {
+static const struct inode_operations netiucv_user_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &netiucv_user_fops
 #endif

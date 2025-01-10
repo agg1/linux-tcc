@@ -224,7 +224,7 @@
 #include <linux/sysrq.h>
 
 extern unsigned long get_cmos_time(void);
-extern void machine_real_restart(unsigned char *, int);
+extern void machine_real_restart(const unsigned char *, unsigned int);
 
 #if defined(CONFIG_APM_DISPLAY_BLANK) && defined(CONFIG_VT)
 extern int (*console_blank_hook)(int);
@@ -617,7 +617,7 @@ static u8 apm_bios_call(u32 func, u32 ebx_in, u32 ecx_in,
 	__asm__ __volatile__(APM_DO_ZERO_SEGS
 		"pushl %%edi\n\t"
 		"pushl %%ebp\n\t"
-		"lcall %%cs:" SYMBOL_NAME_STR(apm_bios_entry) "\n\t"
+		"lcall *%%ss:" SYMBOL_NAME_STR(apm_bios_entry) "\n\t"
 		"setc %%al\n\t"
 		"popl %%ebp\n\t"
 		"popl %%edi\n\t"
@@ -675,7 +675,7 @@ static u8 apm_bios_call_simple(u32 func, u32 ebx_in, u32 ecx_in, u32 *eax)
 		__asm__ __volatile__(APM_DO_ZERO_SEGS
 			"pushl %%edi\n\t"
 			"pushl %%ebp\n\t"
-			"lcall %%cs:" SYMBOL_NAME_STR(apm_bios_entry) "\n\t"
+			"lcall *%%ss:" SYMBOL_NAME_STR(apm_bios_entry) "\n\t"
 			"setc %%bl\n\t"
 			"popl %%ebp\n\t"
 			"popl %%edi\n\t"
@@ -935,7 +935,7 @@ recalc:
  
 static void apm_power_off(void)
 {
-	unsigned char	po_bios_call[] = {
+	const unsigned char	po_bios_call[] = {
 		0xb8, 0x00, 0x10,	/* movw  $0x1000,ax  */
 		0x8e, 0xd0,		/* movw  ax,ss       */
 		0xbc, 0x00, 0xf0,	/* movw  $0xf000,sp  */
@@ -1899,7 +1899,7 @@ static int __init apm_setup(char *str)
 __setup("apm=", apm_setup);
 #endif
 
-static struct file_operations apm_bios_fops = {
+static const struct file_operations apm_bios_fops = {
 	owner:		THIS_MODULE,
 	read:		do_read,
 	poll:		do_poll,

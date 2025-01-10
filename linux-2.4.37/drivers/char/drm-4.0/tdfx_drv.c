@@ -44,7 +44,7 @@
 static drm_device_t	      tdfx_device;
 drm_ctx_t	              tdfx_res_ctx;
 
-static struct file_operations tdfx_fops = {
+static const struct file_operations tdfx_fops = {
 #if LINUX_VERSION_CODE >= 0x020400
 				/* This started being used during 2.4.0-test */
 	owner:   THIS_MODULE,

@@ -54,8 +54,7 @@ int jffs2_null_fsync(struct file *filp, struct dentry *dentry, int datasync)
 	return 0;
 }
 
-struct file_operations jffs2_file_operations =
-{
+const struct file_operations jffs2_file_operations = {
 	llseek:		generic_file_llseek,
 	open:		generic_file_open,
 	read:		generic_file_read,
@@ -67,13 +66,11 @@ struct file_operations jffs2_file_operations =
 
 /* jffs2_file_inode_operations */
 
-struct inode_operations jffs2_file_inode_operations =
-{
+const struct inode_operations jffs2_file_inode_operations = {
 	setattr:	jffs2_setattr
 };
 
-struct address_space_operations jffs2_file_address_operations =
-{
+const struct address_space_operations jffs2_file_address_operations = {
 	readpage:	jffs2_readpage,
 	prepare_write:	jffs2_prepare_write,
 	commit_write:	jffs2_commit_write

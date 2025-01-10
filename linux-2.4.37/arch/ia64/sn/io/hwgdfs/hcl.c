@@ -106,7 +106,7 @@ static int hcl_ioctl(struct inode * inode, struct file * file,
 
 }
 
-struct file_operations hcl_fops = {
+const struct file_operations hcl_fops = {
 	(struct module *)0,
 	NULL,		/* lseek - default */
 	NULL,		/* read - general block-dev read */

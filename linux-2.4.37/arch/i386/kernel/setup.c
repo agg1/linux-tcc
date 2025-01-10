@@ -129,7 +129,11 @@
 char ignore_irq13;		/* set if exception 16 works */
 struct cpuinfo_x86 boot_cpu_data = { 0, 0, 0, 0, -1, 1, 0, 0, -1 };
 
+#ifdef CONFIG_X86_PAE
+unsigned long mmu_cr4_features = X86_CR4_PAE;
+#else
 unsigned long mmu_cr4_features;
+#endif
 EXPORT_SYMBOL(mmu_cr4_features);
 
 /*
@@ -170,7 +174,9 @@ unsigned char aux_device_present;
 extern void mcheck_init(struct cpuinfo_x86 *c);
 //extern void dmi_scan_machine(void);
 extern int root_mountflags;
+
 extern char _text, _etext, _edata, _end;
+//extern char _text, _etext, _data, _edata, _end;
 
 static int have_cpuid_p(void) __init;
 
@@ -1212,14 +1218,14 @@ void __init setup_arch(char **cmdline_p)
 
 	if (!MOUNT_ROOT_RDONLY)
 		root_mountflags &= ~MS_RDONLY;
-	init_mm.start_code = (unsigned long) &_text;
-	init_mm.end_code = (unsigned long) &_etext;
+	init_mm.start_code = (unsigned long) &_text;// + __KERNEL_TEXT_OFFSET;
+	init_mm.end_code = (unsigned long) &_etext;// + __KERNEL_TEXT_OFFSET;
 	init_mm.end_data = (unsigned long) &_edata;
 	init_mm.brk = (unsigned long) &_end;
 
-	code_resource.start = virt_to_bus(&_text);
-	code_resource.end = virt_to_bus(&_etext)-1;
-	data_resource.start = virt_to_bus(&_etext);
+	code_resource.start = virt_to_bus(&_text);// + __KERNEL_TEXT_OFFSET);
+	code_resource.end = virt_to_bus(&_etext)-1;// + __KERNEL_TEXT_OFFSET)-1;
+//	data_resource.start = virt_to_bus(&_data);
 	data_resource.end = virt_to_bus(&_edata)-1;
 
 	parse_cmdline_early(cmdline_p);
@@ -3168,7 +3174,7 @@ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
 static void c_stop(struct seq_file *m, void *v)
 {
 }
-struct seq_operations cpuinfo_op = {
+const struct seq_operations cpuinfo_op = {
 	start:	c_start,
 	next:	c_next,
 	stop:	c_stop,
@@ -3306,7 +3312,53 @@ int __init ppro_with_ram_bug(void)
 	printk(KERN_INFO "Your Pentium Pro seems ok.\n");
 	return 0;
 }
-	
+
+static int current_ypos = 25, current_xpos;
+#define VGABASE (0xb8000)
+#define VGAXY(x, y) (VGABASE + 2 * (x + y * SCREEN_INFO.orig_video_cols))
+
+static void early_vga_write(const char *str, int n)
+{
+	char c;
+	int  i, k, j;
+
+	while ((c = *str++) != '\0' && n-- > 0) {
+		if (current_ypos >= SCREEN_INFO.orig_video_lines) {
+			/* scroll 1 line up */
+			for (k = 1, j = 0; k < SCREEN_INFO.orig_video_lines; k++, j++) {
+				for (i = 0; i < SCREEN_INFO.orig_video_cols; i++) {
+					isa_writew(isa_readw(VGAXY(i, k)), VGAXY(i, j));
+				}
+			}
+			for (i = 0; i < SCREEN_INFO.orig_video_cols; i++)
+				isa_writew(0x720, VGAXY(i, j));
+			current_ypos = SCREEN_INFO.orig_video_lines-1;
+		}
+		if (c == '\n') {
+			current_xpos = 0;
+			current_ypos++;
+		} else if (c != '\r')  {
+			isa_writew((0x700 | (unsigned short) c), VGAXY(current_xpos, current_ypos));
+			if (++current_xpos >= SCREEN_INFO.orig_video_cols) {
+				current_xpos = 0;
+				current_ypos++;
+			}
+		}
+	}
+}
+
+asmlinkage void __init early_printk(const char *fmt, ...)
+{
+	char buf[512];
+	int n;
+	va_list ap;
+
+	va_start(ap, fmt);
+	n = vsnprintf(buf, 512, fmt, ap);
+	early_vga_write(buf, n);
+	va_end(ap);
+}
+
 /*
  * Local Variables:
  * mode:c

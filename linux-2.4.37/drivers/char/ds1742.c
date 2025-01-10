@@ -312,7 +312,7 @@ static int ds1742_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations ds1742_fops = {
+static const struct file_operations ds1742_fops = {
 	owner:THIS_MODULE,
 	llseek:no_llseek,
 	ioctl:ds1742_ioctl,

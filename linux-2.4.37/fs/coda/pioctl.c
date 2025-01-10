@@ -30,13 +30,12 @@ static int coda_pioctl(struct inode * inode, struct file * filp,
                        unsigned int cmd, unsigned long user_data);
 
 /* exported from this file */
-struct inode_operations coda_ioctl_inode_operations =
-{
+const struct inode_operations coda_ioctl_inode_operations = {
 	permission:	coda_ioctl_permission,
 	setattr:	coda_notify_change,
 };
 
-struct file_operations coda_ioctl_operations = {
+const struct file_operations coda_ioctl_operations = {
 	owner:		THIS_MODULE,
 	ioctl:		coda_pioctl,
 };

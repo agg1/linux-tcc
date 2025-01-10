@@ -1266,7 +1266,7 @@ static int reiserfs_rename (struct inode * old_dir, struct dentry *old_dentry,
 /*
  * directories can handle most operations...
  */
-struct inode_operations reiserfs_dir_inode_operations = {
+const struct inode_operations reiserfs_dir_inode_operations = {
   //&reiserfs_dir_operations,	/* default_file_ops */
     create:	reiserfs_create,
     lookup:	reiserfs_lookup,

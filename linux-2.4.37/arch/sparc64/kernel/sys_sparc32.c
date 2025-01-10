@@ -53,6 +53,8 @@
 #include <linux/vmalloc.h>
 #include <linux/dnotify.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
+#include <linux/random.h>
+#include <linux/grsecurity.h>
 
 #include <asm/types.h>
 #include <asm/ipc.h>
@@ -3276,6 +3278,9 @@ do_execve32(char * filename, u32 * argv, u32 * envp, struct pt_regs * regs)
 	int i;
 
 	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
+#ifdef CONFIG_PAX_RANDUSTACK
+	bprm.p -= (net_random() & ~(sizeof(void *)-1)) & ~PAGE_MASK;
+#endif
 	memset(bprm.page, 0, MAX_ARG_PAGES * sizeof(bprm.page[0]));
 
 	file = open_exec(filename);

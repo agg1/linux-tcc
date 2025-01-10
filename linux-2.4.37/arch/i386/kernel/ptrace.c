@@ -336,7 +336,19 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 			  if(addr == (long) &dummy->u_debugreg[5]) break;
 			  if(addr < (long) &dummy->u_debugreg[4] &&
 			     ((unsigned long) data) >= TASK_SIZE-3) break;
-			  
+
+#ifdef CONFIG_GRKERNSEC
+				if(addr >= (long) &dummy->u_debugreg[0] &&
+					addr <= (long) &dummy->u_debugreg[3])
+				{
+					long reg   = (addr - (long) &dummy->u_debugreg[0]) >> 2;
+					long type  = (child->thread.debugreg[7] >> (DR_CONTROL_SHIFT + 4*reg)) & 3;
+					long align = (child->thread.debugreg[7] >> (DR_CONTROL_SHIFT + 2 + 4*reg)) & 3;
+					if((type & 1) && (data & align))
+						break;
+				}
+#endif
+
 			  if(addr == (long) &dummy->u_debugreg[7]) {
 				  data &= ~DR_CONTROL_RESERVED;
 				  for(i=0; i<4; i++)

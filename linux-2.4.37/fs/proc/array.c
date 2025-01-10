@@ -360,6 +360,12 @@ int proc_pid_stat(struct task_struct *task, char * buffer)
 	if (permitted)
 		wchan = get_wchan(task);
 
+#ifdef CONFIG_GRKERNSEC_HIDESYM
+	wchan = 0;
+	eip = 0;
+	esp = 0;
+#endif
+
 	collect_sigign_sigcatch(task, &sigign, &sigcatch);
 
 	/* scale priority and nice values from timeslices to -20..20 */
@@ -633,12 +639,22 @@ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
 	return NULL;
 }
 
-struct seq_operations proc_pid_maps_op = {
+const struct seq_operations proc_pid_maps_op = {
 	.start	= m_start,
 	.next	= m_next,
 	.stop	= m_stop,
 	.show	= show_map
 };
+
+#ifdef CONFIG_GRKERNSEC_PROC_IPADDR	 
+int proc_pid_ipaddr(struct task_struct *task, char * buffer)	 
+{	 
+	int len;	 
+
+	len = sprintf(buffer, "%u.%u.%u.%u\n", NIPQUAD(task->curr_ip));	 
+	return len;	 
+}	 
+#endif
 
 #ifdef CONFIG_SMP
 int proc_pid_cpu(struct task_struct *task, char * buffer)

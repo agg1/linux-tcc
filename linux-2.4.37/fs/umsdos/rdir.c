@@ -21,7 +21,7 @@
 
 extern struct dentry *saved_root;
 extern struct inode *pseudo_root;
-extern struct dentry_operations umsdos_dentry_operations;
+extern const struct dentry_operations umsdos_dentry_operations;
 
 struct RDIR_FILLDIR {
 	void *dirbuf;
@@ -224,15 +224,13 @@ out:
  * have a "r" prefix (r for real) such as UMSDOS_rlookup, to differentiate
  * from the one with full UMSDOS semantics.
  */
-struct file_operations umsdos_rdir_operations =
-{
+const struct file_operations umsdos_rdir_operations = {
 	read:		generic_read_dir,
 	readdir:	UMSDOS_rreaddir,
 	ioctl:		UMSDOS_ioctl_dir,
 };
 
-struct inode_operations umsdos_rdir_inode_operations =
-{
+const struct inode_operations umsdos_rdir_inode_operations = {
 	create:		msdos_create,
 	lookup:		UMSDOS_rlookup,
 	unlink:		msdos_unlink,

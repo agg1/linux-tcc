@@ -30,7 +30,7 @@
 #define QNX4_VERSION  4
 #define QNX4_BMNAME   ".bitmap"
 
-static struct super_operations qnx4_sops;
+static const struct super_operations qnx4_sops;
 
 #ifdef CONFIG_QNX4FS_RW
 
@@ -125,8 +125,7 @@ static void qnx4_read_inode(struct inode *);
 static int qnx4_remount(struct super_block *sb, int *flags, char *data);
 static int qnx4_statfs(struct super_block *, struct statfs *);
 
-static struct super_operations qnx4_sops =
-{
+static const struct super_operations qnx4_sops = {
 	read_inode:	qnx4_read_inode,
 #ifdef CONFIG_QNX4FS_RW
 	write_inode:	qnx4_write_inode,
@@ -428,7 +427,7 @@ static int qnx4_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,qnx4_get_block);
 }
-struct address_space_operations qnx4_aops = {
+const struct address_space_operations qnx4_aops = {
 	readpage: qnx4_readpage,
 	writepage: qnx4_writepage,
 	sync_page: block_sync_page,

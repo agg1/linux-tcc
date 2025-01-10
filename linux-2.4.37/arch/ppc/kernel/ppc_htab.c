@@ -61,7 +61,7 @@ extern unsigned int htab_hash_searches;
 #define PMC1 953
 #define PMC2 954
 
-struct file_operations ppc_htab_operations = {
+const struct file_operations ppc_htab_operations = {
         llseek:         ppc_htab_lseek,
         read:           ppc_htab_read,
         write:          ppc_htab_write,

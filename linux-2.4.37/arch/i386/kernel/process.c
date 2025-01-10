@@ -158,7 +158,7 @@ static int __init idle_setup (char *str)
 
 __setup("idle=", idle_setup);
 
-static int reboot_mode;
+static unsigned short reboot_mode;
 int reboot_thru_bios;
 
 #ifdef CONFIG_SMP
@@ -220,12 +220,15 @@ real_mode_gdt_entries [3] =
 	0x0000000000000000ULL,	/* Null descriptor */
 	0x00009a000000ffffULL,	/* 16-bit real-mode 64k code at 0x00000000 */
 	0x000092000100ffffULL	/* 16-bit real-mode 64k data at 0x00000100 */
+//// kernel/head.S gdt unaltered; pci-pc.c, apm.c PCBIOS_CS etc..
+//	0x00009b000000ffffULL,	/* 16-bit real-mode 64k code at 0x00000000 */
+//	0x000093000100ffffULL	/* 16-bit real-mode 64k data at 0x00000100 */
 };
 
-struct
+static const struct
 {
 	unsigned short       size __attribute__ ((packed));
-	unsigned long long * base __attribute__ ((packed));
+	const unsigned long long * base __attribute__ ((packed));
 }
 real_mode_gdt = { sizeof (real_mode_gdt_entries) - 1, real_mode_gdt_entries },
 real_mode_idt = { 0x3ff, 0 },
@@ -250,7 +253,7 @@ no_idt = { 0, 0 };
    More could be done here to set up the registers as if a CPU reset had
    occurred; hopefully real BIOSs don't assume much. */
 
-static unsigned char real_mode_switch [] =
+static const unsigned char real_mode_switch [] =
 {
 	0x66, 0x0f, 0x20, 0xc0,			/*    movl  %cr0,%eax        */
 	0x66, 0x83, 0xe0, 0x11,			/*    andl  $0x00000011,%eax */
@@ -264,7 +267,7 @@ static unsigned char real_mode_switch [] =
 	0x24, 0x10,				/* f: andb  $0x10,al         */
 	0x66, 0x0f, 0x22, 0xc0			/*    movl  %eax,%cr0        */
 };
-static unsigned char jump_to_bios [] =
+static const unsigned char jump_to_bios [] =
 {
 	0xea, 0x00, 0x00, 0xff, 0xff		/*    ljmp  $0xffff,$0x0000  */
 };
@@ -283,7 +286,7 @@ static inline void kb_wait(void)
  * specified by the code and length parameters.
  * We assume that length will aways be less that 100!
  */
-void machine_real_restart(unsigned char *code, int length)
+void machine_real_restart(const unsigned char *code, unsigned int length)
 {
 	unsigned long flags;
 
@@ -326,7 +329,7 @@ void machine_real_restart(unsigned char *code, int length)
 	   REBOOT.COM programs, and the previous reset routine did this
 	   too. */
 
-	*((unsigned short *)0x472) = reboot_mode;
+	__put_user(reboot_mode, (unsigned short *)0x472);
 
 	/* For the switch to real mode, copy some code to low memory.  It has
 	   to be in the first 64k because it is running in 16-bit mode, and it
@@ -334,9 +337,9 @@ void machine_real_restart(unsigned char *code, int length)
 	   off paging.  Copy it near the end of the first page, out of the way
 	   of BIOS variables. */
 
-	memcpy ((void *) (0x1000 - sizeof (real_mode_switch) - 100),
+	__copy_to_user ((void *) (0x1000 - sizeof (real_mode_switch) - 100),
 		real_mode_switch, sizeof (real_mode_switch));
-	memcpy ((void *) (0x1000 - 100), code, length);
+	__copy_to_user ((void *) (0x1000 - 100), code, length);
 
 	/* Set up the IDT for real mode. */
 
@@ -419,7 +422,7 @@ void machine_restart(char * __unused)
 
 	if(!reboot_thru_bios) {
 		/* rebooting needs to touch the page at absolute addr 0 */
-		*((unsigned short *)__va(0x472)) = reboot_mode;
+		__put_user(reboot_mode, (unsigned short *)0x472);
 		for (;;) {
 			int i;
 			for (i=0; i<100; i++) {
@@ -570,7 +573,7 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long esp,
 	struct pt_regs * childregs;
 	struct task_struct *tsk;
 
-	childregs = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p)) - 1;
+	childregs = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p - sizeof(unsigned long))) - 1;
 	struct_cpy(childregs, regs);
 	childregs->eax = 0;
 	childregs->esp = esp;
@@ -871,6 +874,29 @@ unsigned long get_wchan(struct task_struct *p)
 }
 #undef last_sched
 #undef first_sched
+
+#ifdef CONFIG_PAX_RANDKSTACK
+asmlinkage void pax_randomize_kstack(void)
+{
+	struct tss_struct *tss;
+	unsigned long time;
+
+	tss = init_tss + smp_processor_id();
+	rdtscl(time);
+
+	/* P4 seems to return a 0 LSB, ignore it */
+#ifdef CONFIG_MPENTIUM4
+	time &= 0x1EUL;
+	time <<= 2;
+#else
+	time &= 0xFUL;
+	time <<= 3;
+#endif
+
+	tss->esp0 ^= time;
+	current->thread.esp0 = tss->esp0;
+}
+#endif
 
 /*
  * sys_alloc_thread_area: get a yet unused TLS descriptor index.

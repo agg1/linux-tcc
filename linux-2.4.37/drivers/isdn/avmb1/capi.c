@@ -1068,8 +1068,7 @@ capi_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations capi_fops =
-{
+static const struct file_operations capi_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		capi_read,
@@ -1258,8 +1257,7 @@ capinc_raw_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations capinc_raw_fops =
-{
+static const struct file_operations capinc_raw_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		capinc_raw_read,

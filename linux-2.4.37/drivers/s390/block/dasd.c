@@ -4968,14 +4968,14 @@ dasd_devices_close (struct inode *inode, struct file *file)
 	return rc;
 }
 
-static struct file_operations dasd_devices_file_ops = {
+static const struct file_operations dasd_devices_file_ops = {
 	read:dasd_generic_read,	        /* read */
 	write:dasd_devices_write,	/* write */
 	open:dasd_devices_open,	        /* open */
 	release:dasd_devices_close,	/* close */
 };
 
-static struct inode_operations dasd_devices_inode_ops = {
+static const struct inode_operations dasd_devices_inode_ops = {
 };
 
 static int
@@ -5248,14 +5248,14 @@ dasd_statistics_write (struct file *file, const char *user_buf,
 	return user_len;
 }
 
-static struct file_operations dasd_statistics_file_ops = {
+static const struct file_operations dasd_statistics_file_ops = {
 	read:dasd_generic_read,	        /* read */
 	write:dasd_statistics_write,	/* write */
 	open:dasd_statistics_open,	/* open */
 	release:dasd_devices_close,	/* close */
 };
 
-static struct inode_operations dasd_statistics_inode_ops = {
+static const struct inode_operations dasd_statistics_inode_ops = {
 };
 
 int

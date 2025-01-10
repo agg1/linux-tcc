@@ -109,6 +109,7 @@
 #include <linux/poll.h>
 #include <linux/smp_lock.h>
 #include <linux/rtnetlink.h>
+#include <linux/grsecurity.h>
 
 #include <asm/checksum.h>
 
@@ -589,6 +590,11 @@ static unix_socket *unix_find_other(struct sockaddr_un *sunname, int len,
 		if (err)
 			goto put_fail;
 
+		if (!gr_acl_handle_unix(nd.dentry, nd.mnt)) {
+			err = -EACCES;
+			goto put_fail;
+		}
+		
 		err = -ECONNREFUSED;
 		if (!S_ISSOCK(nd.dentry->d_inode->i_mode))
 			goto put_fail;
@@ -612,6 +618,13 @@ static unix_socket *unix_find_other(struct sockaddr_un *sunname, int len,
 		if (u) {
 			struct dentry *dentry;
 			dentry = u->protinfo.af_unix.dentry;
+
+			if (!gr_handle_chroot_unix(u->peercred.pid)) {
+				err = -EPERM;
+				sock_put(u);
+				goto fail;
+			}
+
 			if (dentry)
 				UPDATE_ATIME(dentry->d_inode);
 		} else
@@ -710,9 +723,19 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		 * All right, let's create it.
 		 */
 		mode = S_IFSOCK | (sock->inode->i_mode & ~current->fs->umask);
+	
+		if (!gr_acl_handle_mknod(dentry, nd.dentry, nd.mnt, mode)) {
+			err = -EACCES;
+			goto out_mknod_dput;
+		}	
+
 		err = vfs_mknod(nd.dentry->d_inode, dentry, mode, 0);
+
 		if (err)
 			goto out_mknod_dput;
+
+		gr_handle_create(dentry, nd.mnt);
+
 		up(&nd.dentry->d_inode->i_sem);
 		dput(nd.dentry);
 		nd.dentry = dentry;
@@ -729,6 +752,10 @@ static int unix_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 			unix_release_addr(addr);
 			goto out_unlock;
 		}
+
+#ifdef CONFIG_GRKERNSEC_CHROOT_UNIX
+		sk->peercred.pid = current->pid;
+#endif
 
 		list = &unix_socket_table[addr->hash];
 	} else {
@@ -856,6 +883,9 @@ static int unix_stream_connect(struct socket *sock, struct sockaddr *uaddr,
 	int st;
 	int err;
 	long timeo;
+#ifdef CONFIG_GRKERNSEC
+	struct task_struct *p, **htable;
+#endif
 
 	err = unix_mkname(sunaddr, addr_len, &hash);
 	if (err < 0)
@@ -981,6 +1011,17 @@ restart:
 
 	/* Set credentials */
 	sk->peercred = other->peercred;
+
+//#ifdef CONFIG_GRKERNSEC
+//	read_lock(&tasklist_lock);
+//	htable = &pidhash[pid_hashfn(other->peercred.pid)];
+//	for (p = *htable; p && p->pid != other->peercred.pid; p = p->pidhash_next);
+//	if (p) {
+//		p->curr_ip = current->curr_ip;
+//		p->used_accept = 1;
+//	}
+//	read_unlock(&tasklist_lock);
+//#endif
 
 	sock_hold(newsk);
 	unix_peer(sk)=newsk;

@@ -1196,8 +1196,7 @@ static int amdtp_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations amdtp_fops =
-{
+static const struct file_operations amdtp_fops = {
 	.owner =	THIS_MODULE,
 	.write =	amdtp_write,
 	.poll =		amdtp_poll,

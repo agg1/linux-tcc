@@ -150,7 +150,7 @@ static DECLARE_MUTEX (minor_table_mutex);
  * would use "struct net_driver" instead, and a serial
  * device would use "struct tty_driver". 
  */
-static struct file_operations skel_fops = {
+static const struct file_operations skel_fops = {
 	/*
 	 * The owner field is part of the module-locking
 	 * mechanism. The idea is that the kernel knows

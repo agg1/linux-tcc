@@ -199,7 +199,7 @@ static ssize_t riowd_read(struct file *file, char *buffer, size_t count, loff_t 
 	return -EINVAL;
 }
 
-static struct file_operations riowd_fops = {
+static const struct file_operations riowd_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		riowd_ioctl,
 	open:		riowd_open,

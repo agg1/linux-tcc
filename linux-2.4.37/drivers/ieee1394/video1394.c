@@ -1254,8 +1254,7 @@ static int video1394_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations video1394_fops=
-{
+static const struct file_operations video1394_fops = {
 	.owner =	THIS_MODULE,
 	.ioctl =	video1394_ioctl,
 	.mmap =		video1394_mmap,

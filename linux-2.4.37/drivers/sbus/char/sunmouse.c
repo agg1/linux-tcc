@@ -586,7 +586,7 @@ sun_mouse_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsig
 	return 0;
 }
 
-struct file_operations sun_mouse_fops = {
+const struct file_operations sun_mouse_fops = {
 	read:		sun_mouse_read,
 	write:		sun_mouse_write,
 	poll:		sun_mouse_poll,

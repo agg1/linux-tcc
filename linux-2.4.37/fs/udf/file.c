@@ -142,7 +142,7 @@ out:
 	return err;
 }
 
-struct address_space_operations udf_adinicb_aops = {
+const struct address_space_operations udf_adinicb_aops = {
 	readpage:		udf_adinicb_readpage,
 	writepage:		udf_adinicb_writepage,
 	sync_page:		block_sync_page,
@@ -360,7 +360,7 @@ static int udf_open_file(struct inode * inode, struct file * filp)
 	return 0;
 }
 
-struct file_operations udf_file_operations = {
+const struct file_operations udf_file_operations = {
 	read:			generic_file_read,
 	ioctl:			udf_ioctl,
 	open:			udf_open_file,
@@ -370,6 +370,6 @@ struct file_operations udf_file_operations = {
 	fsync:			udf_fsync_file,
 };
 
-struct inode_operations udf_file_inode_operations = {
+const struct inode_operations udf_file_inode_operations = {
 	truncate:		udf_truncate,
 };

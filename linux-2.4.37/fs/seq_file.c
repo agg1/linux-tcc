@@ -25,7 +25,7 @@
  *	ERR_PTR(error).  In the end of sequence they return %NULL. ->show()
  *	returns 0 in case of success and negative number in case of error.
  */
-int seq_open(struct file *file, struct seq_operations *op)
+int seq_open(struct file *file, const struct seq_operations *op)
 {
 	struct seq_file *p = kmalloc(sizeof(*p), GFP_KERNEL);
 	if (!p)
@@ -364,7 +364,7 @@ int single_open(struct file *file, int (*show)(struct seq_file *, void*), void *
 
 int single_release(struct inode *inode, struct file *file)
 {
-	struct seq_operations *op = ((struct seq_file *)file->private_data)->op;
+	struct seq_operations *op = (struct seq_operations *)((struct seq_file *)file->private_data)->op;
 	int res = seq_release(inode, file);
 	kfree(op);
 	return res;

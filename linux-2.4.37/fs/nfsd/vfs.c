@@ -526,7 +526,7 @@ nfsd_close(struct file *filp)
  * after it.
  */
 inline void nfsd_dosync(struct file *filp, struct dentry *dp, 
-			struct file_operations *fop)
+			const struct file_operations *fop)
 {
 	struct inode *inode = dp->d_inode;
 	int (*fsync) (struct file *, struct dentry *, int);

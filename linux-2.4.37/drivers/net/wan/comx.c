@@ -96,7 +96,7 @@ static int comx_mkdir(struct inode *, struct dentry *, int);
 static int comx_rmdir(struct inode *, struct dentry *);
 static struct dentry *comx_lookup(struct inode *, struct dentry *);
 
-static struct inode_operations comx_root_inode_ops = {
+static const struct inode_operations comx_root_inode_ops = {
 	lookup:	comx_lookup,
 	mkdir: comx_mkdir,
 	rmdir: comx_rmdir,
@@ -106,7 +106,7 @@ static int comx_delete_dentry(struct dentry *dentry);
 static struct proc_dir_entry *create_comx_proc_entry(char *name, int mode,
 	int size, struct proc_dir_entry *dir);
 
-static struct dentry_operations comx_dentry_operations = {
+static const struct dentry_operations comx_dentry_operations = {
 	d_delete:	comx_delete_dentry,
 };
 

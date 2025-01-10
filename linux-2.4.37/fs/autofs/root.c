@@ -25,13 +25,13 @@ static int autofs_root_rmdir(struct inode *,struct dentry *);
 static int autofs_root_mkdir(struct inode *,struct dentry *,int);
 static int autofs_root_ioctl(struct inode *, struct file *,unsigned int,unsigned long);
 
-struct file_operations autofs_root_operations = {
+const struct file_operations autofs_root_operations = {
 	read:		generic_read_dir,
 	readdir:	autofs_root_readdir,
 	ioctl:		autofs_root_ioctl,
 };
 
-struct inode_operations autofs_root_inode_operations = {
+const struct inode_operations autofs_root_inode_operations = {
         lookup:		autofs_root_lookup,
         unlink:		autofs_root_unlink,
         symlink:	autofs_root_symlink,
@@ -187,7 +187,7 @@ static int autofs_revalidate(struct dentry * dentry, int flags)
 	return 1;
 }
 
-static struct dentry_operations autofs_dentry_operations = {
+static const struct dentry_operations autofs_dentry_operations = {
 	d_revalidate:	autofs_revalidate,
 };
 

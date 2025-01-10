@@ -8,6 +8,7 @@
 #include <linux/config.h>
 #include <asm/uaccess.h>
 #include <asm/mmx.h>
+#include <asm/segment.h>
 
 #ifdef CONFIG_X86_USE_3DNOW_AND_WORKS
 
@@ -75,6 +76,11 @@ __generic_copy_from_user(void *to, const void *from, unsigned long n)
 do {									   \
 	int __d0, __d1, __d2;						   \
 	__asm__ __volatile__(						   \
+		"	movw %w0,%%ds\n"				   \
+		:							   \
+		: "r"(__USER_DS)					   \
+		: "memory");						   \
+	__asm__ __volatile__(						   \
 		"	testl %1,%1\n"					   \
 		"	jz 2f\n"					   \
 		"0:	lodsb\n"					   \
@@ -85,6 +91,8 @@ do {									   \
 		"	jnz 0b\n"					   \
 		"1:	subl %1,%0\n"					   \
 		"2:\n"							   \
+		"	pushl %%ss\n"					   \
+		"	popl %%ds\n"					   \
 		".section .fixup,\"ax\"\n"				   \
 		"3:	movl %5,%0\n"					   \
 		"	jmp 2b\n"					   \
@@ -163,10 +171,13 @@ strncpy_from_user(char *dst, const char *src, long count)
 do {									\
 	int __d0;							\
   	__asm__ __volatile__(						\
+		"	movw %w6,%%es\n"				\
 		"0:	rep; stosl\n"					\
 		"	movl %2,%0\n"					\
 		"1:	rep; stosb\n"					\
 		"2:\n"							\
+		"	pushl %%ss\n"					\
+		"	popl %%es\n"					\
 		".section .fixup,\"ax\"\n"				\
 		"3:	lea 0(%2,%0,4),%0\n"				\
 		"	jmp 2b\n"					\
@@ -177,7 +188,8 @@ do {									\
 		"	.long 1b,2b\n"					\
 		".previous"						\
 		: "=&c"(size), "=&D" (__d0)				\
-		: "r"(size & 3), "0"(size / 4), "1"(addr), "a"(0));	\
+		: "r"(size & 3), "0"(size / 4), "1"(addr), "a"(0),	\
+		  "r"(__USER_DS));					\
 } while (0)
 
 /**
@@ -233,6 +245,7 @@ long strnlen_user(const char *s, long n)
 	unsigned long res, tmp;
 
 	__asm__ __volatile__(
+		"	movw %w8,%%es\n"
 		"	testl %0, %0\n"
 		"	jz 3f\n"
 		"	andl %0,%%ecx\n"
@@ -241,6 +254,8 @@ long strnlen_user(const char *s, long n)
 		"	subl %%ecx,%0\n"
 		"	addl %0,%%eax\n"
 		"1:\n"
+		"	pushl %%ss\n"
+		"	popl %%es\n"
 		".section .fixup,\"ax\"\n"
 		"2:	xorl %%eax,%%eax\n"
 		"	jmp 1b\n"
@@ -252,7 +267,7 @@ long strnlen_user(const char *s, long n)
 		"	.long 0b,2b\n"
 		".previous"
 		:"=r" (n), "=D" (s), "=a" (res), "=c" (tmp)
-		:"0" (n), "1" (s), "2" (0), "3" (mask)
+		:"0" (n), "1" (s), "2" (0), "3" (mask), "r" (__USER_DS)
 		:"cc");
 	return res & mask;
 }

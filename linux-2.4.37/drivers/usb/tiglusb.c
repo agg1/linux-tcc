@@ -311,7 +311,7 @@ tiglusb_ioctl (struct inode *inode, struct file *filp,
 
 /* ----- kernel module registering ------------------------------------ */
 
-static struct file_operations tiglusb_fops = {
+static const struct file_operations tiglusb_fops = {
 	.owner =        THIS_MODULE,
 	.llseek =	no_llseek,
 	.read =		tiglusb_read,

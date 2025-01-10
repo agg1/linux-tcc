@@ -137,10 +137,10 @@ struct autofs_dir_ent *autofs_expire(struct super_block *,struct autofs_sb_info 
 
 /* Operations structures */
 
-extern struct inode_operations autofs_root_inode_operations;
-extern struct inode_operations autofs_symlink_inode_operations;
-extern struct inode_operations autofs_dir_inode_operations;
-extern struct file_operations autofs_root_operations;
+extern const struct inode_operations autofs_root_inode_operations;
+extern const struct inode_operations autofs_symlink_inode_operations;
+extern const struct inode_operations autofs_dir_inode_operations;
+extern const struct file_operations autofs_root_operations;
 
 /* Initializing function */
 

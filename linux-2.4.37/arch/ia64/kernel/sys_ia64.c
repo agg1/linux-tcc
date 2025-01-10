@@ -34,6 +34,13 @@ arch_get_unmapped_area (struct file *filp, unsigned long addr, unsigned long len
 	if (rgn_index(addr)==REGION_HPAGE)
 		addr = 0;
 #endif
+
+#ifdef CONFIG_PAX_RANDMMAP
+//	if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+	if (!addr || filp)
+		addr = TASK_UNMAPPED_BASE + current->mm->delta_mmap;
+	else
+#endif
 	if (!addr)
 		addr = TASK_UNMAPPED_BASE;
 

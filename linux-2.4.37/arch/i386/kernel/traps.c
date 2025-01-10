@@ -54,7 +54,7 @@ asmlinkage int system_call(void);
 asmlinkage void lcall7(void);
 asmlinkage void lcall27(void);
 
-struct desc_struct default_ldt[] = { { 0, 0 }, { 0, 0 }, { 0, 0 },
+const struct desc_struct default_ldt[] = { { 0, 0 }, { 0, 0 }, { 0, 0 },
 		{ 0, 0 }, { 0, 0 } };
 
 /*
@@ -62,7 +62,7 @@ struct desc_struct default_ldt[] = { { 0, 0 }, { 0, 0 }, { 0, 0 },
  * F0 0F bug workaround.. We have a special link segment
  * for this.
  */
-struct desc_struct idt_table[256] __attribute__((__section__(".data.idt"))) = { {0, 0}, };
+const struct desc_struct idt_table[256] __attribute__((__section__(".data.idt"))) = { {0, 0}, };
 
 asmlinkage void divide_error(void);
 asmlinkage void debug(void);
@@ -810,22 +810,22 @@ do { \
  * Pentium F0 0F bugfix can have resulted in the mapped
  * IDT being write-protected.
  */
-void set_intr_gate(unsigned int n, void *addr)
+void set_intr_gate(unsigned int n, const void *addr)
 {
 	_set_gate(idt_table+n,14,0,addr);
 }
 
-static void __init set_trap_gate(unsigned int n, void *addr)
+static void __init set_trap_gate(unsigned int n, const void *addr)
 {
 	_set_gate(idt_table+n,15,0,addr);
 }
 
-static void __init set_system_gate(unsigned int n, void *addr)
+static void __init set_system_gate(unsigned int n, const void *addr)
 {
 	_set_gate(idt_table+n,15,3,addr);
 }
 
-static void __init set_call_gate(void *a, void *addr)
+static void __init set_call_gate(void *a, const void *addr)
 {
 	_set_gate(a,12,3,addr);
 }

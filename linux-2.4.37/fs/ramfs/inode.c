@@ -35,10 +35,10 @@
 /* some random number */
 #define RAMFS_MAGIC	0x858458f6
 
-static struct super_operations ramfs_ops;
-static struct address_space_operations ramfs_aops;
-static struct file_operations ramfs_file_operations;
-static struct inode_operations ramfs_dir_inode_operations;
+static const struct super_operations ramfs_ops;
+static const struct address_space_operations ramfs_aops;
+static const struct file_operations ramfs_file_operations;
+static const struct inode_operations ramfs_dir_inode_operations;
 
 static int ramfs_statfs(struct super_block *sb, struct statfs *buf)
 {
@@ -271,21 +271,21 @@ static int ramfs_sync_file(struct file * file, struct dentry *dentry, int datasy
 	return 0;
 }
 
-static struct address_space_operations ramfs_aops = {
+static const struct address_space_operations ramfs_aops = {
 	readpage:	ramfs_readpage,
 	writepage:	fail_writepage,
 	prepare_write:	ramfs_prepare_write,
 	commit_write:	ramfs_commit_write
 };
 
-static struct file_operations ramfs_file_operations = {
+static const struct file_operations ramfs_file_operations = {
 	read:		generic_file_read,
 	write:		generic_file_write,
 	mmap:		generic_file_mmap,
 	fsync:		ramfs_sync_file,
 };
 
-static struct inode_operations ramfs_dir_inode_operations = {
+static const struct inode_operations ramfs_dir_inode_operations = {
 	create:		ramfs_create,
 	lookup:		ramfs_lookup,
 	link:		ramfs_link,
@@ -297,7 +297,7 @@ static struct inode_operations ramfs_dir_inode_operations = {
 	rename:		ramfs_rename,
 };
 
-static struct super_operations ramfs_ops = {
+static const struct super_operations ramfs_ops = {
 	statfs:		ramfs_statfs,
 	put_inode:	force_delete,
 };

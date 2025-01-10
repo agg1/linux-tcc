@@ -547,7 +547,7 @@ void auerswald_removeservice(struct auerswald *cp, struct auerscon *scp)
 
 /*----------------------------------------------------------------------*/
 /* File operation structure                                             */
-static struct file_operations auerswald_fops = {
+static const struct file_operations auerswald_fops = {
 	owner:THIS_MODULE,
 	llseek:auerchar_llseek,
 	read:auerchar_read,

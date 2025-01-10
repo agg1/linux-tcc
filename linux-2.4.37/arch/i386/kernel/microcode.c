@@ -474,7 +474,7 @@ static int microcode_ioctl (struct inode *inode, struct file *file,
 }
 
 /* shared between misc device and devfs regular file */
-static struct file_operations microcode_fops = {
+static const struct file_operations microcode_fops = {
 	.owner		= THIS_MODULE,
 	.write		= microcode_write,
 	.ioctl		= microcode_ioctl,

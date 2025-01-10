@@ -2229,7 +2229,7 @@ static int reiserfs_direct_io(int rw, struct inode *inode,
                              reiserfs_get_block_direct_io) ;
 }
 
-struct address_space_operations reiserfs_address_space_operations = {
+const struct address_space_operations reiserfs_address_space_operations = {
     writepage: reiserfs_writepage,
     readpage: reiserfs_readpage, 
     sync_page: block_sync_page,

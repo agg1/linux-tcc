@@ -40,8 +40,7 @@ static void coda_put_super(struct super_block *);
 static int coda_statfs(struct super_block *sb, struct statfs *buf);
 
 /* exported operations */
-struct super_operations coda_super_operations =
-{
+const struct super_operations coda_super_operations = {
 	read_inode:	coda_read_inode,
 	clear_inode:	coda_clear_inode,
 	put_super:	coda_put_super,
@@ -236,7 +235,7 @@ int coda_notify_change(struct dentry *de, struct iattr *iattr)
 	return error;
 }
 
-struct inode_operations coda_file_inode_operations = {
+const struct inode_operations coda_file_inode_operations = {
 	permission:	coda_permission,
 	revalidate:	coda_revalidate_inode,
 	setattr:	coda_notify_change,

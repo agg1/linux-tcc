@@ -7,3 +7,11 @@ define_bool CONFIG_MIPS32 n
 define_bool CONFIG_MIPS64 y
 
 source arch/mips/config-shared.in
+
+mainmenu_option next_comment
+comment 'Kernel Security'
+bool 'Grsecurity' CONFIG_GRKERNSEC
+if [ "$CONFIG_GRKERNSEC" = "y" ]; then
+        source grsecurity/Config.in
+fi
+endmenu

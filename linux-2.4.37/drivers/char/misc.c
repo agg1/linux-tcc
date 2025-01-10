@@ -104,7 +104,7 @@ static int misc_open(struct inode * inode, struct file * file)
 	int minor = MINOR(inode->i_rdev);
 	struct miscdevice *c;
 	int err = -ENODEV;
-	struct file_operations *old_fops, *new_fops = NULL;
+	const struct file_operations *old_fops, *new_fops = NULL;
 	
 	down(&misc_sem);
 	
@@ -143,7 +143,7 @@ fail:
 	return err;
 }
 
-static struct file_operations misc_fops = {
+static const struct file_operations misc_fops = {
 	owner:		THIS_MODULE,
 	open:		misc_open,
 };

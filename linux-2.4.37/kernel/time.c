@@ -27,6 +27,7 @@
 #include <linux/mm.h>
 #include <linux/timex.h>
 #include <linux/smp_lock.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 
@@ -89,6 +90,9 @@ asmlinkage long sys_stime(int * tptr)
 	time_maxerror = NTP_PHASE_LIMIT;
 	time_esterror = NTP_PHASE_LIMIT;
 	write_unlock_irq(&xtime_lock);
+
+	gr_log_timechange();
+
 	return 0;
 }
 
@@ -167,6 +171,8 @@ int do_sys_settimeofday(struct timeval *tv, struct timezone *tz)
 		 * globally block out interrupts when it runs.
 		 */
 		do_settimeofday(tv);
+
+		gr_log_timechange();
 	}
 	return 0;
 }

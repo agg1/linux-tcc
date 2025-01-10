@@ -102,8 +102,10 @@ static int load_misc_binary(struct linux_binprm *bprm, struct pt_regs *regs)
 	int retval;
 
 	retval = -ENOEXEC;
-	if (!enabled)
+	if (!enabled || bprm->misc)
 		goto _ret;
+
+	bprm->misc++;
 
 	/* to keep locking time low, we copy the interpreter string */
 	read_lock(&entries_lock);
@@ -479,7 +481,7 @@ static ssize_t bm_entry_write(struct file *file, const char *buffer,
 	return count;
 }
 
-static struct file_operations bm_entry_operations = {
+static const struct file_operations bm_entry_operations = {
 	read:		bm_entry_read,
 	write:		bm_entry_write,
 };
@@ -538,7 +540,7 @@ static ssize_t bm_register_write(struct file *file, const char *buffer,
 	return count;
 }
 
-static struct file_operations bm_register_operations = {
+static const struct file_operations bm_register_operations = {
 	write:		bm_register_write,
 };
 
@@ -587,7 +589,7 @@ static ssize_t bm_status_write(struct file * file, const char * buffer,
 	return count;
 }
 
-static struct file_operations bm_status_operations = {
+static const struct file_operations bm_status_operations = {
 	read:		bm_status_read,
 	write:		bm_status_write,
 };
@@ -600,7 +602,7 @@ static struct dentry * bm_lookup(struct inode *dir, struct dentry *dentry)
 	return NULL;
 }
 
-static struct inode_operations bm_dir_inode_operations = {
+static const struct inode_operations bm_dir_inode_operations = {
 	lookup:		bm_lookup,
 };
 
@@ -614,7 +616,7 @@ static int bm_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
-static struct super_operations s_ops = {
+static const struct super_operations s_ops = {
 	statfs:		bm_statfs,
 	put_inode:	force_delete,
 	clear_inode:	bm_clear_inode,

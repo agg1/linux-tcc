@@ -412,7 +412,7 @@ struct address_space {
 	struct list_head	dirty_pages;	/* list of dirty pages */
 	struct list_head	locked_pages;	/* list of locked pages */
 	unsigned long		nrpages;	/* number of total pages */
-	struct address_space_operations *a_ops;	/* methods */
+	const struct address_space_operations *a_ops;	/* methods */
 	struct inode		*host;		/* owner: inode, block_device */
 	struct vm_area_struct	*i_mmap;	/* list of private mappings */
 	struct vm_area_struct	*i_mmap_shared; /* list of shared mappings */
@@ -467,8 +467,8 @@ struct inode {
 	struct semaphore	i_sem;
 	struct rw_semaphore	i_alloc_sem;
 	struct semaphore	i_zombie;
-	struct inode_operations	*i_op;
-	struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
+	const struct inode_operations	*i_op;
+	const struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
 	struct super_block	*i_sb;
 	wait_queue_head_t	i_wait;
 	struct file_lock	*i_flock;
@@ -569,7 +569,7 @@ struct file {
 	struct list_head	f_list;
 	struct dentry		*f_dentry;
 	struct vfsmount         *f_vfsmnt;
-	struct file_operations	*f_op;
+	const struct file_operations	*f_op;
 	atomic_t		f_count;
 	unsigned int 		f_flags;
 	mode_t			f_mode;
@@ -754,7 +754,7 @@ struct super_block {
 	unsigned char		s_dirt;
 	unsigned long long	s_maxbytes;	/* Max file size */
 	struct file_system_type	*s_type;
-	struct super_operations	*s_op;
+	const struct super_operations	*s_op;
 	struct dquot_operations	*dq_op;
 	struct quotactl_ops	*s_qcop;
 	unsigned long		s_flags;
@@ -1120,16 +1120,16 @@ extern struct char_device *cdget(dev_t);
 extern void cdput(struct char_device *);
 extern int blkdev_open(struct inode *, struct file *);
 extern int blkdev_close(struct inode *, struct file *);
-extern struct file_operations def_blk_fops;
-extern struct address_space_operations def_blk_aops;
-extern struct file_operations def_fifo_fops;
+extern const struct file_operations def_blk_fops;
+extern const struct address_space_operations def_blk_aops;
+extern const struct file_operations def_fifo_fops;
 extern int ioctl_by_bdev(struct block_device *, unsigned, unsigned long);
 extern int blkdev_get(struct block_device *, mode_t, unsigned, int);
 extern int blkdev_put(struct block_device *, int);
 
 /* fs/devices.c */
 extern const struct block_device_operations *get_blkfops(unsigned int);
-extern int register_chrdev(unsigned int, const char *, struct file_operations *);
+extern int register_chrdev(unsigned int, const char *, const struct file_operations *);
 extern int unregister_chrdev(unsigned int, const char *);
 extern int chrdev_open(struct inode *, struct file *);
 extern const char * bdevname(kdev_t);
@@ -1141,12 +1141,12 @@ extern void init_special_inode(struct inode *, umode_t, int);
 extern void make_bad_inode(struct inode *);
 extern int is_bad_inode(struct inode *);
 
-extern struct file_operations read_fifo_fops;
-extern struct file_operations write_fifo_fops;
-extern struct file_operations rdwr_fifo_fops;
-extern struct file_operations read_pipe_fops;
-extern struct file_operations write_pipe_fops;
-extern struct file_operations rdwr_pipe_fops;
+extern const struct file_operations read_fifo_fops;
+extern const struct file_operations write_fifo_fops;
+extern const struct file_operations rdwr_fifo_fops;
+extern const struct file_operations read_pipe_fops;
+extern const struct file_operations write_pipe_fops;
+extern const struct file_operations rdwr_pipe_fops;
 
 extern int fs_may_remount_ro(struct super_block *);
 
@@ -1541,13 +1541,13 @@ extern loff_t generic_file_llseek(struct file *file, loff_t offset, int origin);
 extern ssize_t generic_read_dir(struct file *, char *, size_t, loff_t *);
 extern int generic_file_open(struct inode * inode, struct file * filp);
 
-extern struct file_operations generic_ro_fops;
+extern const struct file_operations generic_ro_fops;
 
 extern int vfs_readlink(struct dentry *, char *, int, const char *);
 extern int vfs_follow_link(struct nameidata *, const char *);
 extern int page_readlink(struct dentry *, char *, int);
 extern int page_follow_link(struct dentry *, struct nameidata *);
-extern struct inode_operations page_symlink_inode_operations;
+extern const struct inode_operations page_symlink_inode_operations;
 
 extern int vfs_readdir(struct file *, filldir_t, void *);
 extern int dcache_dir_open(struct inode *, struct file *);
@@ -1555,7 +1555,7 @@ extern int dcache_dir_close(struct inode *, struct file *);
 extern loff_t dcache_dir_lseek(struct file *, loff_t, int);
 extern int dcache_dir_fsync(struct file *, struct dentry *, int);
 extern int dcache_readdir(struct file *, void *, filldir_t);
-extern struct file_operations dcache_dir_ops;
+extern const struct file_operations dcache_dir_ops;
 
 extern struct file_system_type *get_fs_type(const char *name);
 extern struct super_block *get_super(kdev_t);

@@ -155,7 +155,7 @@ static int video_open(struct inode *inode, struct file *file)
 		}
 	}
 	if (vfl->fops) {
-		struct file_operations *old_fops;
+		const struct file_operations *old_fops;
 
 		old_fops = file->f_op;
                 file->f_op = fops_get(vfl->fops);
@@ -489,8 +489,7 @@ static void videodev_proc_destroy_dev (struct video_device *vfd)
 
 #endif /* CONFIG_VIDEO_PROC_FS */
 
-static struct file_operations video_fops=
-{
+static const struct file_operations video_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		video_read,

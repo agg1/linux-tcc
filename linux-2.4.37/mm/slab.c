@@ -2028,7 +2028,7 @@ static int s_show(struct seq_file *m, void *p)
  * + further values on SMP and with statistics enabled
  */
 
-struct seq_operations slabinfo_op = {
+const struct seq_operations slabinfo_op = {
 	start:	s_start,
 	next:	s_next,
 	stop:	s_stop,

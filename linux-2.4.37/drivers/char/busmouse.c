@@ -332,8 +332,7 @@ static unsigned int busmouse_poll(struct file *file, poll_table *wait)
 	return 0;
 }
 
-struct file_operations busmouse_fops=
-{
+const struct file_operations busmouse_fops = {
 	owner:		THIS_MODULE,
 	read:		busmouse_read,
 	write:		busmouse_write,

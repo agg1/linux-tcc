@@ -46,12 +46,12 @@ static int	nfsctl_getfs(struct nfsctl_fsparm *, struct knfsd_fh *);
 static int	nfsctl_ugidupdate(struct nfsctl_ugidmap *data);
 #endif
 
-extern struct seq_operations nfs_exports_op;
+extern const struct seq_operations nfs_exports_op;
 static int exports_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &nfs_exports_op);
 }
-static struct file_operations exports_operations = {
+static const struct file_operations exports_operations = {
 	open:		exports_open,
 	read:		seq_read,
 	llseek:		seq_lseek,

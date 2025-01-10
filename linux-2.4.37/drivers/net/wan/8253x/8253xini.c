@@ -182,8 +182,7 @@ struct net_device auraXX20n_prototype = /* used for the network device */
 	sab8253xn_init /* network driver initialization */
 };
 
-struct file_operations sab8253xc_fops =
-{
+const struct file_operations sab8253xc_fops = {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 4, 0))
 	NULL,
 #endif

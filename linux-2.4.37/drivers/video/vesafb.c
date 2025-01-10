@@ -546,7 +546,7 @@ int __init vesafb_init(void)
 	video_visual = (video_bpp == 8) ?
 		FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
 
-#ifndef __i386__
+#if !defined(__i386__) || defined(CONFIG_PAX_KERNEXEC)
 	screen_info.vesapm_seg = 0;
 #endif
 

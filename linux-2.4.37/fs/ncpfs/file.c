@@ -279,8 +279,7 @@ static int ncp_release(struct inode *inode, struct file *file) {
 	return 0;
 }
 
-struct file_operations ncp_file_operations =
-{
+const struct file_operations ncp_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		ncp_file_read,
 	write:		ncp_file_write,
@@ -290,7 +289,6 @@ struct file_operations ncp_file_operations =
 	fsync:		ncp_fsync,
 };
 
-struct inode_operations ncp_file_inode_operations =
-{
+const struct inode_operations ncp_file_inode_operations = {
 	setattr:	ncp_notify_change,
 };

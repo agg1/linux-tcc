@@ -430,7 +430,7 @@ static int register_serial_portandirq(unsigned int port, int irq)
 
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,0)
-static struct file_operations mwave_fops = {
+static const struct file_operations mwave_fops = {
 	owner:THIS_MODULE,
 	read:mwave_read,
 	write:mwave_write,
@@ -439,7 +439,7 @@ static struct file_operations mwave_fops = {
 	release:mwave_close
 };
 #else
-static struct file_operations mwave_fops = {
+static const struct file_operations mwave_fops = {
 	NULL,			/* lseek */
 	mwave_read,		/* read */
 	mwave_write,		/* write */

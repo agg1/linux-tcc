@@ -73,13 +73,13 @@ static void isofs_put_super(struct super_block *sb)
 static void isofs_read_inode(struct inode *);
 static int isofs_statfs (struct super_block *, struct statfs *);
 
-static struct super_operations isofs_sops = {
+static const struct super_operations isofs_sops = {
 	read_inode:	isofs_read_inode,
 	put_super:	isofs_put_super,
 	statfs:		isofs_statfs,
 };
 
-static struct dentry_operations isofs_dentry_ops[] = {
+static const struct dentry_operations isofs_dentry_ops[] = {
 	{
 		d_hash:		isofs_hash,
 		d_compare:	isofs_dentry_cmp,
@@ -989,7 +989,7 @@ static int _isofs_bmap(struct address_space *mapping, long block)
 	return generic_block_bmap(mapping,block,isofs_get_block);
 }
 
-static struct address_space_operations isofs_aops = {
+static const struct address_space_operations isofs_aops = {
 	readpage: isofs_readpage,
 	sync_page: block_sync_page,
 	bmap: _isofs_bmap

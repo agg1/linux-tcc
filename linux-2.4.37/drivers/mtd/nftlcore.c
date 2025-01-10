@@ -1021,7 +1021,7 @@ static int nftl_release(struct inode *inode, struct file *fp)
 	return 0;
 }
 #if LINUX_VERSION_CODE < 0x20326
-static struct file_operations nftl_fops = {
+static const struct file_operations nftl_fops = {
 	read:		block_read,
 	write:		block_write,
 	ioctl:		nftl_ioctl,

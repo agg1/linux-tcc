@@ -871,16 +871,14 @@ static int devfsd_close (struct inode *inode, struct file *file);
 #ifdef CONFIG_DEVFS_DEBUG
 static ssize_t stat_read (struct file *file, char *buf, size_t len,
 			  loff_t *ppos);
-static struct file_operations stat_fops =
-{
+static const struct file_operations stat_fops = {
     .read    = stat_read,
 };
 #endif
 
 
 /*  Devfs daemon file operations  */
-static struct file_operations devfsd_fops =
-{
+static const struct file_operations devfsd_fops = {
     .read    = devfsd_read,
     .ioctl   = devfsd_ioctl,
     .release = devfsd_close,
@@ -1545,7 +1543,7 @@ static void devfsd_notify (struct devfs_entry *de,unsigned short type,int wait)
 devfs_handle_t devfs_register (devfs_handle_t dir, const char *name,
 			       unsigned int flags,
 			       unsigned int major, unsigned int minor,
-			       umode_t mode, void *ops, void *info)
+			       umode_t mode, const void *ops, void *info)
 {
     char devtype = S_ISCHR (mode) ? DEVFS_SPECIAL_CHR : DEVFS_SPECIAL_BLK;
     int err;
@@ -2245,7 +2243,7 @@ const char *devfs_get_name (devfs_handle_t de, unsigned int *namelen)
  */
 
 int devfs_register_chrdev (unsigned int major, const char *name,
-			   struct file_operations *fops)
+			   const struct file_operations *fops)
 {
     if (boot_options & OPTION_ONLY) return 0;
     return register_chrdev (major, name, fops);
@@ -2541,11 +2539,11 @@ static int get_removable_partition (struct devfs_entry *dir, const char *name,
 
 /*  Superblock operations follow  */
 
-static struct inode_operations devfs_iops;
-static struct inode_operations devfs_dir_iops;
-static struct file_operations devfs_fops;
-static struct file_operations devfs_dir_fops;
-static struct inode_operations devfs_symlink_iops;
+static const struct inode_operations devfs_iops;
+static const struct inode_operations devfs_dir_iops;
+static const struct file_operations devfs_fops;
+static const struct file_operations devfs_dir_fops;
+static const struct inode_operations devfs_symlink_iops;
 
 static int devfs_notify_change (struct dentry *dentry, struct iattr *iattr)
 {
@@ -2599,8 +2597,7 @@ static void devfs_clear_inode (struct inode *inode)
     if ( S_ISBLK (inode->i_mode) ) bdput (inode->i_bdev);
 }   /*  End Function devfs_clear_inode  */
 
-static struct super_operations devfs_sops =
-{ 
+static const struct super_operations devfs_sops = { 
     .put_inode     = force_delete,
     .clear_inode   = devfs_clear_inode,
     .statfs        = devfs_statfs,
@@ -2822,13 +2819,11 @@ static int devfs_open (struct inode *inode, struct file *file)
     return 0;
 }   /*  End Function devfs_open  */
 
-static struct file_operations devfs_fops =
-{
+static const struct file_operations devfs_fops = {
     .open    = devfs_open,
 };
 
-static struct file_operations devfs_dir_fops =
-{
+static const struct file_operations devfs_dir_fops = {
     .read    = generic_read_dir,
     .readdir = devfs_readdir,
     .open    = devfs_open,
@@ -2871,8 +2866,7 @@ static void devfs_d_iput (struct dentry *dentry, struct inode *inode)
 
 static int devfs_d_delete (struct dentry *dentry);
 
-static struct dentry_operations devfs_dops =
-{
+static const struct dentry_operations devfs_dops = {
     .d_delete     = devfs_d_delete,
     .d_release    = devfs_d_release,
     .d_iput       = devfs_d_iput,
@@ -2880,8 +2874,7 @@ static struct dentry_operations devfs_dops =
 
 static int devfs_d_revalidate_wait (struct dentry *dentry, int flags);
 
-static struct dentry_operations devfs_wait_dops =
-{
+static const struct dentry_operations devfs_wait_dops = {
     .d_delete     = devfs_d_delete,
     .d_release    = devfs_d_release,
     .d_iput       = devfs_d_iput,
@@ -3250,13 +3243,11 @@ static int devfs_follow_link (struct dentry *dentry, struct nameidata *nd)
     return err;
 }   /*  End Function devfs_follow_link  */
 
-static struct inode_operations devfs_iops =
-{
+static const struct inode_operations devfs_iops = {
     .setattr        = devfs_notify_change,
 };
 
-static struct inode_operations devfs_dir_iops =
-{
+static const struct inode_operations devfs_dir_iops = {
     .lookup         = devfs_lookup,
     .unlink         = devfs_unlink,
     .symlink        = devfs_symlink,
@@ -3266,8 +3257,7 @@ static struct inode_operations devfs_dir_iops =
     .setattr        = devfs_notify_change,
 };
 
-static struct inode_operations devfs_symlink_iops =
-{
+static const struct inode_operations devfs_symlink_iops = {
     .readlink       = devfs_readlink,
     .follow_link    = devfs_follow_link,
     .setattr        = devfs_notify_change,

@@ -223,7 +223,7 @@ void uctrl_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 	printk("in uctrl_interrupt\n");
 }
 
-static struct file_operations uctrl_fops = {
+static const struct file_operations uctrl_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	ioctl:		uctrl_ioctl,

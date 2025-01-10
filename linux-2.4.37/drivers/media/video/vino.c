@@ -1007,7 +1007,7 @@ static int vino_ioctl(struct inode *inode, struct file *file,
 	return err;
 }
 
-static struct file_operations vino_fops = {
+static const struct file_operations vino_fops = {
 	.owner		= THIS_MODULE,
 	.open		= vino_open,
 	.release	= vino_close,

@@ -31,7 +31,7 @@
 #include <asm/uaccess.h>
 #include <linux/module.h>
 
-extern struct inode_operations affs_symlink_inode_operations;
+extern const struct inode_operations affs_symlink_inode_operations;
 extern struct timezone sys_tz;
 
 void

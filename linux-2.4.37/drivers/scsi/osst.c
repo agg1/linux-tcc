@@ -5501,7 +5501,7 @@ __setup("osst=", osst_setup);
 #endif
 
 
-static struct file_operations osst_fops = {
+static const struct file_operations osst_fops = {
 	read:		osst_read,
 	write:		osst_write,
 	ioctl:		osst_ioctl,

@@ -255,7 +255,7 @@ int hfsplus_remount(struct super_block *sb, int *flags, char *data)
 	return 0;
 }
 
-static struct super_operations hfsplus_sops = {
+static const struct super_operations hfsplus_sops = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,0)
 	.alloc_inode	= hfsplus_alloc_inode,
 	.destroy_inode	= hfsplus_destroy_inode,

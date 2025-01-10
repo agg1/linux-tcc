@@ -68,6 +68,13 @@ typedef struct user_fxsr_struct elf_fpxregset_t;
 
 #define ELF_ET_DYN_BASE         (2 * TASK_SIZE / 3)
 
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	(current->thread.flags & THREAD_IA32 ? 0x08048000UL : 0x400000UL)
+
+#define PAX_DELTA_MMAP_LEN	(current->thread.flags & THREAD_IA32 ? 16 : 24)
+#define PAX_DELTA_STACK_LEN	(current->thread.flags & THREAD_IA32 ? 16 : 24)
+#endif
+
 /* regs is struct pt_regs, pr_reg is elf_gregset_t (which is
    now struct_user_regs, they are different). Assumes current is the process
    getting dumped. */

@@ -671,7 +671,7 @@ static int hung_up_tty_ioctl(struct inode * inode, struct file * file,
 	return cmd == TIOCSPGRP ? -ENOTTY : -EIO;
 }
 
-static struct file_operations tty_fops = {
+static const struct file_operations tty_fops = {
 	llseek:		no_llseek,
 	read:		tty_read,
 	write:		tty_write,
@@ -682,7 +682,7 @@ static struct file_operations tty_fops = {
 	fasync:		tty_fasync,
 };
 
-static struct file_operations hung_up_tty_fops = {
+static const struct file_operations hung_up_tty_fops = {
 	llseek:		no_llseek,
 	read:		hung_up_tty_read,
 	write:		hung_up_tty_write,
@@ -1802,7 +1802,11 @@ init_dev_done:
 		retval = -ENODEV;
 	filp->f_flags = saved_flags;
 
+#ifdef CONFIG_GRKERNSEC
+	if (!retval && test_bit(TTY_EXCLUSIVE, &tty->flags) && !capable(CAP_SYS_TTY_CONFIG))
+#else
 	if (!retval && test_bit(TTY_EXCLUSIVE, &tty->flags) && !suser())
+#endif
 		retval = -EBUSY;
 
 	if (retval) {
@@ -1909,7 +1913,11 @@ static int tiocsti(struct tty_struct *tty, char * arg)
 	char ch, mbz = 0;
 	struct tty_ldisc *ld;
 
+#ifdef CONFIG_GRKERNSEC
+	if ((current->tty != tty) && !capable(CAP_SYS_TTY_CONFIG))
+#else
 	if ((current->tty != tty) && !suser())
+#endif
 		return -EPERM;
 	if (get_user(ch, arg))
 		return -EFAULT;
@@ -1949,7 +1957,11 @@ static int tioccons(struct inode *inode, struct file *file)
 	if (inode->i_rdev == SYSCONS_DEV ||
 	    inode->i_rdev == CONSOLE_DEV) {
 		struct file *f;
+#ifdef CONFIG_GRKERNSEC
+		if (!capable(CAP_SYS_TTY_CONFIG))
+#else
 		if (!suser())
+#endif
 			return -EPERM;
 		spin_lock(&redirect_lock);
 		f = redirect;
@@ -2001,7 +2013,11 @@ static int tiocsctty(struct tty_struct *tty, int arg)
 		 * This tty is already the controlling
 		 * tty for another session group!
 		 */
+#ifdef CONFIG_GRKERNSEC
+		if ((arg == 1) && capable(CAP_SYS_ADMIN)) {
+#else
 		if ((arg == 1) && suser()) {
+#endif
 			/*
 			 * Steal it away
 			 */

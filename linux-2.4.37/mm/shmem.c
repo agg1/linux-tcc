@@ -65,12 +65,12 @@ enum sgp_type {
 static int shmem_getpage(struct inode *inode, unsigned long idx,
 			 struct page **pagep, enum sgp_type sgp);
 
-static struct super_operations shmem_ops;
-static struct address_space_operations shmem_aops;
-static struct file_operations shmem_file_operations;
-static struct inode_operations shmem_inode_operations;
-static struct inode_operations shmem_dir_inode_operations;
-static struct vm_operations_struct shmem_vm_ops;
+static const struct super_operations shmem_ops;
+static const struct address_space_operations shmem_aops;
+static const struct file_operations shmem_file_operations;
+static const struct inode_operations shmem_inode_operations;
+static const struct inode_operations shmem_dir_inode_operations;
+static const struct vm_operations_struct shmem_vm_ops;
 
 LIST_HEAD(shmem_inodes);
 static spinlock_t shmem_ilock = SPIN_LOCK_UNLOCKED;
@@ -841,7 +841,7 @@ void shmem_lock(struct file *file, int lock)
 
 static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
 {
-	struct vm_operations_struct *ops;
+	const struct vm_operations_struct *ops;
 	struct inode *inode = file->f_dentry->d_inode;
 
 	ops = &shmem_vm_ops;
@@ -930,8 +930,8 @@ out:
 
 #ifdef CONFIG_TMPFS
 
-static struct inode_operations shmem_symlink_inode_operations;
-static struct inode_operations shmem_symlink_inline_operations;
+static const struct inode_operations shmem_symlink_inode_operations;
+static const struct inode_operations shmem_symlink_inline_operations;
 
 /*
  * tmpfs itself makes no use of generic_file_read, generic_file_mmap
@@ -1188,7 +1188,7 @@ static int shmem_delete_dentry(struct dentry *dentry)
  */
 static struct dentry *shmem_lookup(struct inode *dir, struct dentry *dentry)
 {
-	static struct dentry_operations shmem_dentry_operations = {
+	static const struct dentry_operations shmem_dentry_operations = {
 		.d_delete = shmem_delete_dentry,
 	};
 
@@ -1424,12 +1424,12 @@ static int shmem_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return res;
 }
 
-static struct inode_operations shmem_symlink_inline_operations = {
+static const struct inode_operations shmem_symlink_inline_operations = {
 	readlink:	shmem_readlink_inline,
 	follow_link:	shmem_follow_link_inline,
 };
 
-static struct inode_operations shmem_symlink_inode_operations = {
+static const struct inode_operations shmem_symlink_inode_operations = {
 	truncate:	shmem_truncate,
 	readlink:	shmem_readlink,
 	follow_link:	shmem_follow_link,
@@ -1570,7 +1570,7 @@ static struct super_block *shmem_read_super(struct super_block *sb, void *data, 
 	return sb;
 }
 
-static struct address_space_operations shmem_aops = {
+static const struct address_space_operations shmem_aops = {
 	removepage:	shmem_removepage,
 	writepage:	shmem_writepage,
 #ifdef CONFIG_TMPFS
@@ -1580,7 +1580,7 @@ static struct address_space_operations shmem_aops = {
 #endif
 };
 
-static struct file_operations shmem_file_operations = {
+static const struct file_operations shmem_file_operations = {
 	mmap:		shmem_mmap,
 #ifdef CONFIG_TMPFS
 	read:		shmem_file_read,
@@ -1589,12 +1589,12 @@ static struct file_operations shmem_file_operations = {
 #endif
 };
 
-static struct inode_operations shmem_inode_operations = {
+static const struct inode_operations shmem_inode_operations = {
 	truncate:	shmem_truncate,
 	setattr:	shmem_notify_change,
 };
 
-static struct inode_operations shmem_dir_inode_operations = {
+static const struct inode_operations shmem_dir_inode_operations = {
 #ifdef CONFIG_TMPFS
 	create:		shmem_create,
 	lookup:		shmem_lookup,
@@ -1608,7 +1608,7 @@ static struct inode_operations shmem_dir_inode_operations = {
 #endif
 };
 
-static struct super_operations shmem_ops = {
+static const struct super_operations shmem_ops = {
 #ifdef CONFIG_TMPFS
 	statfs:		shmem_statfs,
 	remount_fs:	shmem_remount_fs,
@@ -1617,7 +1617,7 @@ static struct super_operations shmem_ops = {
 	put_inode:	force_delete,
 };
 
-static struct vm_operations_struct shmem_vm_ops = {
+static const struct vm_operations_struct shmem_vm_ops = {
 	nopage:		shmem_nopage,
 };
 
@@ -1628,7 +1628,7 @@ static DECLARE_FSTYPE(tmpfs_fs_type, "tmpfs", shmem_read_super, FS_LITTER);
 #else
 static DECLARE_FSTYPE(tmpfs_fs_type, "tmpfs", shmem_read_super, FS_LITTER|FS_NOMOUNT);
 #endif
-static struct vfsmount *shm_mnt;
+struct vfsmount *shm_mnt;
 
 static int __init init_tmpfs(void)
 {

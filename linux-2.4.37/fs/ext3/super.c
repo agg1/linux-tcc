@@ -450,7 +450,7 @@ void ext3_put_super (struct super_block * sb)
 
 static struct dquot_operations ext3_qops;
 
-static struct super_operations ext3_sops = {
+static const struct super_operations ext3_sops = {
 	read_inode:	ext3_read_inode,	/* BKL held */
 	write_inode:	ext3_write_inode,	/* BKL not held.  Don't need */
 	dirty_inode:	ext3_dirty_inode,	/* BKL not held.  We take it */

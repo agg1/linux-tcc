@@ -412,7 +412,7 @@ out:
 }
 
 static struct proc_dir_entry *efi_systab_entry;
-static struct file_operations efi_systab_fops = {
+static const struct file_operations efi_systab_fops = {
 	.read = efi_systab_read,
 };
 

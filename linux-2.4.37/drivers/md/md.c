@@ -3293,7 +3293,7 @@ static int md_seq_show(struct seq_file *seq, void *v)
 }
 
   
-static struct seq_operations md_seq_ops = {
+static const struct seq_operations md_seq_ops = {
 	.start  = md_seq_start,
 	.next   = md_seq_next,
 	.stop   = md_seq_stop,
@@ -3308,7 +3308,7 @@ static int md_seq_open(struct inode *inode, struct file *file)
 	return error;
 }
 
-static struct file_operations md_seq_fops = {
+static const struct file_operations md_seq_fops = {
 	.open           = md_seq_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,

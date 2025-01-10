@@ -10929,8 +10929,7 @@ static int qeth_procfile_ioctl(struct inode *inode, struct file *file,
      return result;
 };
 
-static struct file_operations qeth_procfile_fops =
-{
+static const struct file_operations qeth_procfile_fops = {
 	ioctl:qeth_procfile_ioctl,
 	read:qeth_procfile_read,
 	write:qeth_procfile_write,
@@ -10940,8 +10939,7 @@ static struct file_operations qeth_procfile_fops =
 
 static struct proc_dir_entry *qeth_proc_file;
 
-static struct file_operations qeth_ipato_procfile_fops =
-{
+static const struct file_operations qeth_ipato_procfile_fops = {
 	read:qeth_procfile_read, /* same as above! */
 	write:qeth_ipato_procfile_write,
 	open:qeth_ipato_procfile_open,

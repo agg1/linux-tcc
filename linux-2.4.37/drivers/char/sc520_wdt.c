@@ -286,7 +286,7 @@ static int fop_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 	}
 }
 
-static struct file_operations wdt_fops = {
+static const struct file_operations wdt_fops = {
 	owner:		THIS_MODULE,
 	llseek:		fop_llseek,
 	write:		fop_write,

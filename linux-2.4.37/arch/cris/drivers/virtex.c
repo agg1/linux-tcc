@@ -372,7 +372,7 @@ virtex_ioctl(struct inode *inode, struct file *file,
 return 0;
 }
 
-static struct file_operations virtex_fops = {
+static const struct file_operations virtex_fops = {
 	owner:    THIS_MODULE,
 	ioctl:    virtex_ioctl,
 	open:     virtex_open,

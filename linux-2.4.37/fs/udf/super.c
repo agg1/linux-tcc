@@ -99,7 +99,7 @@ static int udf_statfs(struct super_block *, struct statfs *);
 static DECLARE_FSTYPE_DEV(udf_fstype, "udf", udf_read_super);
 
 /* Superblock operations */
-static struct super_operations udf_sb_ops = {
+static const struct super_operations udf_sb_ops = {
 	read_inode:		udf_read_inode,
 	write_inode:		udf_write_inode,
 	put_inode:		udf_put_inode,

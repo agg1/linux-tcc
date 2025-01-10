@@ -14,6 +14,8 @@
 #include <linux/smp.h>
 #include <linux/smp_lock.h>
 #include <linux/stddef.h>
+#include <linux/grsecurity.h>
+#include <asm/desc.h>
 
 /* Set EXTENT bits starting at BASE in BITMAP to value TURN_ON. */
 static void set_bitmap(unsigned long *bitmap, short base, short extent, int new_value)
@@ -59,8 +61,16 @@ asmlinkage int sys_ioperm(unsigned long from, unsigned long num, int turn_on)
 
 	if ((from + num <= from) || (from + num > IO_BITMAP_SIZE*32))
 		return -EINVAL;
+#ifdef CONFIG_GRKERNSEC_IO
+	if (turn_on) {
+		gr_handle_ioperm();
+#else
 	if (turn_on && !capable(CAP_SYS_RAWIO))
+#endif
 		return -EPERM;
+#ifdef CONFIG_GRKERNSEC_IO
+	}
+#endif
 	/*
 	 * If it's the first ioperm() call in this thread's lifetime, set the
 	 * IO bitmap up. ioperm() is much less timing critical than clone(),
@@ -109,8 +119,13 @@ asmlinkage int sys_iopl(unsigned long unused)
 		return -EINVAL;
 	/* Trying to gain more privileges? */
 	if (level > old) {
+#ifdef CONFIG_GRKERNSEC_IO
+		gr_handle_iopl();
+		return -EPERM;
+#else
 		if (!capable(CAP_SYS_RAWIO))
 			return -EPERM;
+#endif
 	}
 	regs->eflags = (regs->eflags & 0xffffcfff) | (level << 12);
 	return 0;

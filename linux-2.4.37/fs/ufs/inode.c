@@ -467,7 +467,7 @@ static int ufs_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,ufs_getfrag_block);
 }
-struct address_space_operations ufs_aops = {
+const struct address_space_operations ufs_aops = {
 	readpage: ufs_readpage,
 	writepage: ufs_writepage,
 	sync_page: block_sync_page,

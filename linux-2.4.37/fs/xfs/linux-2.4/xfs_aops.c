@@ -1287,7 +1287,7 @@ linvfs_direct_IO(
 }
 
 
-struct address_space_operations linvfs_aops = {
+const struct address_space_operations linvfs_aops = {
 	.readpage		= linvfs_readpage,
 	.writepage		= linvfs_writepage,
 	.sync_page		= block_sync_page,

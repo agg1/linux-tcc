@@ -1020,7 +1020,7 @@ static struct page *emu10k1_mm_nopage (struct vm_area_struct * vma, unsigned lon
 	return dmapage;
 }
 
-struct vm_operations_struct emu10k1_mm_ops = {
+const struct vm_operations_struct emu10k1_mm_ops = {
 	nopage:         emu10k1_mm_nopage,
 };
 
@@ -1558,7 +1558,7 @@ void emu10k1_waveout_bh(unsigned long refdata)
 	return;
 }
 
-struct file_operations emu10k1_audio_fops = {
+const struct file_operations emu10k1_audio_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		emu10k1_audio_read,

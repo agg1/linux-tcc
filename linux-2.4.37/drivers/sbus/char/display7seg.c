@@ -164,7 +164,7 @@ static int d7s_ioctl(struct inode *inode, struct file *f,
 	return 0;
 }
 
-static struct file_operations d7s_fops = {
+static const struct file_operations d7s_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		d7s_ioctl,
 	open:		d7s_open,

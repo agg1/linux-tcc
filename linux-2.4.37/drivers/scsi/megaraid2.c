@@ -97,7 +97,7 @@ static struct semaphore megaraid_ioc_mtx;
 /*
  * The File Operations structure for the serial/ioctl interface of the driver
  */
-static struct file_operations megadev_fops = {
+static const struct file_operations megadev_fops = {
 	.ioctl		= megadev_ioctl_entry,
 	.open		= megadev_open,
 	.release	= megadev_close,

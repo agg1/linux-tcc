@@ -24,7 +24,7 @@ clean:
 
 BTOBJS := $(HEAD) init/main.o init/version.o init/do_mounts.o
 BTLIBS := $(CORE_FILES_NO_BTFIX) $(FILESYSTEMS) \
-	$(DRIVERS) $(NETWORKS)
+	$(DRIVERS) $(NETWORKS) $(GRSECURITY)
 
 GENFILES := include/linux/version.h include/linux/compile.h $(foreach dirname, $(CORE_FILES_NO_BTFIX), _dir_$(dir $(dirname)))
 .PHONY : $(GENFILES)

@@ -168,7 +168,7 @@ static ssize_t do_write(struct file *file, const char *buf, size_t len,
 }
 
 
-static struct file_operations vfd_fops = {
+static const struct file_operations vfd_fops = {
 	read:		do_read,	/* Read */
 	write:		do_write,	/* Write */
 	open:		do_open,	/* Open */

@@ -317,7 +317,7 @@ static int evdev_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 	return -EINVAL;
 }
 
-static struct file_operations evdev_fops = {
+static const struct file_operations evdev_fops = {
 	owner:		THIS_MODULE,
 	read:		evdev_read,
 	write:		evdev_write,

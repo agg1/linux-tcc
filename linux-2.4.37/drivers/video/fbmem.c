@@ -748,7 +748,7 @@ fb_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations fb_fops = {
+static const struct file_operations fb_fops = {
 	owner:		THIS_MODULE,
 	read:		fb_read,
 	write:		fb_write,

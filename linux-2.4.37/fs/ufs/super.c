@@ -177,7 +177,7 @@ void ufs_print_cylinder_stuff(struct super_block *sb, struct ufs_cylinder_group 
 }
 #endif /* UFS_SUPER_DEBUG_MORE */
 
-static struct super_operations ufs_super_ops;
+static const struct super_operations ufs_super_ops;
 
 static char error_buf[1024];
 
@@ -980,7 +980,7 @@ int ufs_statfs (struct super_block * sb, struct statfs * buf)
 	return 0;
 }
 
-static struct super_operations ufs_super_ops = {
+static const struct super_operations ufs_super_ops = {
 	read_inode:	ufs_read_inode,
 	write_inode:	ufs_write_inode,
 	delete_inode:	ufs_delete_inode,

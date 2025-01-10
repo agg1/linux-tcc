@@ -38,7 +38,7 @@
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,3,98))
 static struct block_device_operations tapeblock_fops = {
 #else
-static struct file_operations tapeblock_fops = {
+static const struct file_operations tapeblock_fops = {
 #endif
     owner   : THIS_MODULE,
     open    : tapeblock_open,      /* open */

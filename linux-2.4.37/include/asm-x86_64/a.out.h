@@ -23,7 +23,7 @@ struct exec
 
 #ifdef __KERNEL__
 
-#define STACK_TOP	TASK_SIZE
+#define __STACK_TOP	TASK_SIZE
 
 #endif
 

@@ -45,8 +45,7 @@ static int umsdos_dentry_dput(struct dentry *dentry)
 	return 0;
 }
 
-struct dentry_operations umsdos_dentry_operations =
-{
+const struct dentry_operations umsdos_dentry_operations = {
 	d_revalidate:	umsdos_dentry_validate,
 	d_delete:	umsdos_dentry_dput,
 };
@@ -787,15 +786,13 @@ out_release:
 }	
 
 
-struct file_operations umsdos_dir_operations =
-{
+const struct file_operations umsdos_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	UMSDOS_readdir,
 	ioctl:		UMSDOS_ioctl_dir,
 };
 
-struct inode_operations umsdos_dir_inode_operations =
-{
+const struct inode_operations umsdos_dir_inode_operations = {
 	create:		UMSDOS_create,
 	lookup:		UMSDOS_lookup,
 	link:		UMSDOS_link,

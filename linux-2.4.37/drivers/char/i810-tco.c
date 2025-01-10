@@ -376,7 +376,7 @@ static unsigned char __init i810tco_getdevice (void)
 	return 0;
 }
 
-static struct file_operations i810tco_fops = {
+static const struct file_operations i810tco_fops = {
 	owner:		THIS_MODULE,
 	write:		i810tco_write,
 	ioctl:		i810tco_ioctl,

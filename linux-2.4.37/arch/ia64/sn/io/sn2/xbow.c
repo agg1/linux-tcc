@@ -141,7 +141,7 @@ xbow_mmap(struct file * file, struct vm_area_struct * vma)
  * As each of the functions are implemented, put the
  * appropriate function name below.
  */
-struct file_operations xbow_fops = {
+const struct file_operations xbow_fops = {
         .owner		= THIS_MODULE,
         .mmap		= xbow_mmap,
 };

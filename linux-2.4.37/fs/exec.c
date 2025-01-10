@@ -46,6 +46,9 @@
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
 #include <asm/mmu_context.h>
+#include <linux/major.h>
+#include <linux/random.h>
+#include <linux/grsecurity.h>
 
 #ifdef CONFIG_KMOD
 #include <linux/kmod.h>
@@ -1088,11 +1091,17 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 		return retval;
 
 	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
+
+#ifdef CONFIG_PAX_RANDUSTACK
+	bprm.p -= (net_random() & ~15) & ~PAGE_MASK;
+#endif
+
 	memset(bprm.page, 0, MAX_ARG_PAGES*sizeof(bprm.page[0])); 
 
 	bprm.file = file;
 	bprm.filename = filename;
 	bprm.sh_bang = 0;
+	bprm.misc = 0;
 	bprm.loader = 0;
 	bprm.exec = 0;
 	if ((bprm.argc = count(argv, bprm.p / sizeof(void *))) < 0) {

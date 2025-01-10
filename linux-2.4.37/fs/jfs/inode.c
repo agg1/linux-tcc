@@ -28,12 +28,12 @@
 #include "jfs_debug.h"
 
 
-extern struct inode_operations jfs_dir_inode_operations;
-extern struct inode_operations jfs_file_inode_operations;
-extern struct inode_operations jfs_symlink_inode_operations;
-extern struct file_operations jfs_dir_operations;
-extern struct file_operations jfs_file_operations;
-struct address_space_operations jfs_aops;
+extern const struct inode_operations jfs_dir_inode_operations;
+extern const struct inode_operations jfs_file_inode_operations;
+extern const struct inode_operations jfs_symlink_inode_operations;
+extern const struct file_operations jfs_dir_operations;
+extern const struct file_operations jfs_file_operations;
+const struct address_space_operations jfs_aops;
 extern int freeZeroLink(struct inode *);
 
 void jfs_clear_inode(struct inode *inode)
@@ -335,7 +335,7 @@ static int jfs_direct_IO(int rw, struct inode *inode, struct kiobuf *iobuf,
 				 blocksize, jfs_get_block);
 }
 
-struct address_space_operations jfs_aops = {
+const struct address_space_operations jfs_aops = {
 	.readpage	= jfs_readpage,
 	.writepage	= jfs_writepage,
 	.sync_page	= block_sync_page,

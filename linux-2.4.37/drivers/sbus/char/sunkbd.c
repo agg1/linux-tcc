@@ -1546,8 +1546,7 @@ kbd_close (struct inode *i, struct file *f)
 	return 0;
 }
 
-static struct file_operations kbd_fops =
-{
+static const struct file_operations kbd_fops = {
 	read:		kbd_read,
 	poll:		kbd_poll,
 	ioctl:		kbd_ioctl,

@@ -717,7 +717,7 @@ int xpram_ioctl (struct inode *inode, struct file *filp,
  */
 
 #if (XPRAM_VERSION == 22)
-struct file_operations xpram_fops = {
+const struct file_operations xpram_fops = {
 	NULL,          /* lseek: default */
 	block_read,
 	block_write,

@@ -20,6 +20,8 @@
 #include <linux/ptrace.h>
 #include <linux/mount.h>
 
+#include <linux/grsecurity.h>
+
 #include <asm/uaccess.h>
 #include <asm/pgtable.h>
 #include <asm/mmu_context.h>
@@ -680,9 +682,12 @@ asmlinkage NORET_TYPE void do_exit(long code)
 
 	acct_process(code);
 
+	gr_del_task_from_ip_table(tsk);
+
 	__exit_mm(tsk);
 
 	sem_exit();
+	gr_shm_exit();
 	__exit_files(tsk);
 	__exit_fs(tsk);
 	exit_namespace(tsk);

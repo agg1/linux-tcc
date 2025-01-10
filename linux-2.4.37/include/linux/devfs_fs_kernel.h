@@ -64,7 +64,7 @@ extern void devfs_put (devfs_handle_t de);
 extern devfs_handle_t devfs_register (devfs_handle_t dir, const char *name,
 				      unsigned int flags,
 				      unsigned int major, unsigned int minor,
-				      umode_t mode, void *ops, void *info);
+				      umode_t mode, const void *ops, void *info);
 extern void devfs_unregister (devfs_handle_t de);
 extern int devfs_mk_symlink (devfs_handle_t dir, const char *name,
 			     unsigned int flags, const char *link,
@@ -95,7 +95,7 @@ extern void devfs_auto_unregister (devfs_handle_t master,devfs_handle_t slave);
 extern devfs_handle_t devfs_get_unregister_slave (devfs_handle_t master);
 extern const char *devfs_get_name (devfs_handle_t de, unsigned int *namelen);
 extern int devfs_register_chrdev (unsigned int major, const char *name,
-				  struct file_operations *fops);
+				  const struct file_operations *fops);
 extern int devfs_register_blkdev (unsigned int major, const char *name,
 				  struct block_device_operations *bdops);
 extern int devfs_unregister_chrdev (unsigned int major, const char *name);
@@ -106,7 +106,7 @@ extern void devfs_register_series (devfs_handle_t dir, const char *format,
 				   unsigned int num_entries,
 				   unsigned int flags, unsigned int major,
 				   unsigned int minor_start,
-				   umode_t mode, void *ops, void *info);
+				   umode_t mode, const void *ops, void *info);
 extern int devfs_alloc_major (char type);
 extern void devfs_dealloc_major (char type, int major);
 extern kdev_t devfs_alloc_devnum (char type);
@@ -136,7 +136,7 @@ static inline devfs_handle_t devfs_register (devfs_handle_t dir,
 					     unsigned int major,
 					     unsigned int minor,
 					     umode_t mode,
-					     void *ops, void *info)
+					     const void *ops, void *info)
 {
     return NULL;
 }
@@ -242,7 +242,7 @@ static inline const char *devfs_get_name (devfs_handle_t de,
     return NULL;
 }
 static inline int devfs_register_chrdev (unsigned int major, const char *name,
-					 struct file_operations *fops)
+					 const struct file_operations *fops)
 {
     return register_chrdev (major, name, fops);
 }
@@ -271,7 +271,7 @@ static inline void devfs_register_series (devfs_handle_t dir,
 					  unsigned int flags,
 					  unsigned int major,
 					  unsigned int minor_start,
-					  umode_t mode, void *ops, void *info)
+					  umode_t mode, const void *ops, void *info)
 {
     return;
 }

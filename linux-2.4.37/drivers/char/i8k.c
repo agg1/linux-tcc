@@ -112,7 +112,7 @@ static int i8k_ioctl(struct inode *, struct file *, unsigned int,
 		     unsigned long);
 static void i8k_keys_set_timer(void);
 
-static struct file_operations i8k_fops = {
+static const struct file_operations i8k_fops = {
     read:	i8k_read,
     ioctl:	i8k_ioctl,
 };

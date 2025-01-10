@@ -608,7 +608,7 @@ static int ext2_direct_IO(int rw, struct inode * inode, struct kiobuf * iobuf, u
 {
 	return generic_direct_IO(rw, inode, iobuf, blocknr, blocksize, ext2_get_block);
 }
-struct address_space_operations ext2_aops = {
+const struct address_space_operations ext2_aops = {
 	readpage: ext2_readpage,
 	writepage: ext2_writepage,
 	sync_page: block_sync_page,

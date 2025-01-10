@@ -408,8 +408,7 @@ static void reiserfs_dirty_inode (struct inode * inode) {
     unlock_kernel() ;
 }
 
-struct super_operations reiserfs_sops = 
-{
+const struct super_operations reiserfs_sops = {
   read_inode: reiserfs_read_inode,
   read_inode2: reiserfs_read_inode2,
   write_inode: reiserfs_write_inode,

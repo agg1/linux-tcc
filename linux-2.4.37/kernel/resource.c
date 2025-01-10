@@ -67,7 +67,7 @@ static int r_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-static struct seq_operations resource_op = {
+static const struct seq_operations resource_op = {
 	.start	= r_start,
 	.next	= r_next,
 	.stop	= r_stop,
@@ -94,14 +94,14 @@ static int iomem_open(struct inode *inode, struct file *file)
 	return res;
 }
 
-struct file_operations proc_ioports_operations = {
+const struct file_operations proc_ioports_operations = {
 	.open		= ioports_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= seq_release,
 };
 
-struct file_operations proc_iomem_operations = {
+const struct file_operations proc_iomem_operations = {
 	.open		= iomem_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

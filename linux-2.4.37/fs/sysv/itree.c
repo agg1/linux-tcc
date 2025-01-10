@@ -429,7 +429,7 @@ static int sysv_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,get_block);
 }
-struct address_space_operations sysv_aops = {
+const struct address_space_operations sysv_aops = {
 	readpage: sysv_readpage,
 	writepage: sysv_writepage,
 	sync_page: block_sync_page,

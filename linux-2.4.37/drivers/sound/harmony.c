@@ -809,7 +809,7 @@ static void harmony_interrupt(int irq, void *dev, struct pt_regs *regs)
  * Sound playing functions
  */
 
-static struct file_operations harmony_audio_fops = {
+static const struct file_operations harmony_audio_fops = {
 	owner:	THIS_MODULE,
 	llseek:	no_llseek,
 	read: 	harmony_audio_read,
@@ -1131,7 +1131,7 @@ static int harmony_mixer_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations harmony_mixer_fops = {
+static const struct file_operations harmony_mixer_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	open:		harmony_mixer_open,

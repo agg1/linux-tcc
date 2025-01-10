@@ -342,7 +342,7 @@ out:
 	return err;
 }
 
-struct inode_operations ext2_dir_inode_operations = {
+const struct inode_operations ext2_dir_inode_operations = {
 	create:		ext2_create,
 	lookup:		ext2_lookup,
 	link:		ext2_link,

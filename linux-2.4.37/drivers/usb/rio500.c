@@ -436,8 +436,7 @@ read_rio(struct file *file, char *buffer, size_t count, loff_t * ppos)
 	return read_count;
 }
 
-static struct
-file_operations usb_rio_fops = {
+static const struct file_operations usb_rio_fops = {
 	read:		read_rio,
 	write:		write_rio,
 	ioctl:		ioctl_rio,

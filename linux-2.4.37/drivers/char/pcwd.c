@@ -710,7 +710,7 @@ static struct pci_driver pcwd_driver = {
 	probe:pcwd_init_one,
 };
 
-static struct file_operations pcwd_fops = {
+static const struct file_operations pcwd_fops = {
 	owner:THIS_MODULE,
 	write:pcwd_write,
 	ioctl:pcwd_ioctl,
@@ -724,7 +724,7 @@ static struct miscdevice pcwd_miscdev = {
 	&pcwd_fops
 };
 
-static struct file_operations pcwd_temp_fops = {
+static const struct file_operations pcwd_temp_fops = {
 	owner:THIS_MODULE,
 	read:pcwd_read,
 	open:pcwd_open,

@@ -32,25 +32,25 @@
 #define __NO_VERSION__
 #include "drmP.h"
 
-struct vm_operations_struct   drm_vm_ops = {
+const struct vm_operations_struct   drm_vm_ops = {
 	nopage:	 drm_vm_nopage,
 	open:	 drm_vm_open,
 	close:	 drm_vm_close,
 };
 
-struct vm_operations_struct   drm_vm_shm_ops = {
+const struct vm_operations_struct   drm_vm_shm_ops = {
 	nopage:	 drm_vm_shm_nopage,
 	open:	 drm_vm_open,
 	close:	 drm_vm_close,
 };
 
-struct vm_operations_struct   drm_vm_shm_lock_ops = {
+const struct vm_operations_struct   drm_vm_shm_lock_ops = {
 	nopage:	 drm_vm_shm_nopage_lock,
 	open:	 drm_vm_open,
 	close:	 drm_vm_close,
 };
 
-struct vm_operations_struct   drm_vm_dma_ops = {
+const struct vm_operations_struct   drm_vm_dma_ops = {
 	nopage:	 drm_vm_dma_nopage,
 	open:	 drm_vm_open,
 	close:	 drm_vm_close,

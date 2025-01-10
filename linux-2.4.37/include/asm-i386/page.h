@@ -81,6 +81,8 @@ typedef struct { unsigned long pgprot; } pgprot_t;
 
 #define __PAGE_OFFSET		(0xC0000000)
 
+//#define __KERNEL_TEXT_OFFSET	(0)
+
 /*
  * This much address space is reserved for vmalloc() and iomap()
  * as well as fixmap mappings.

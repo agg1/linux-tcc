@@ -120,7 +120,7 @@ EXPORT_SYMBOL(devfs_register_tape);
 void devfs_register_series (devfs_handle_t dir, const char *format,
 			    unsigned int num_entries, unsigned int flags,
 			    unsigned int major, unsigned int minor_start,
-			    umode_t mode, void *ops, void *info)
+			    umode_t mode, const void *ops, void *info)
 {
     unsigned int count;
     char devname[128];

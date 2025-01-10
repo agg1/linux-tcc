@@ -244,25 +244,25 @@ extern int hfs_rename(struct inode *, struct dentry *,
 /* dir_cap.c */
 extern const struct hfs_name hfs_cap_reserved1[];
 extern const struct hfs_name hfs_cap_reserved2[];
-extern struct inode_operations hfs_cap_ndir_inode_operations;
-extern struct inode_operations hfs_cap_fdir_inode_operations;
-extern struct inode_operations hfs_cap_rdir_inode_operations;
-extern struct file_operations hfs_cap_dir_operations;
+extern const struct inode_operations hfs_cap_ndir_inode_operations;
+extern const struct inode_operations hfs_cap_fdir_inode_operations;
+extern const struct inode_operations hfs_cap_rdir_inode_operations;
+extern const struct file_operations hfs_cap_dir_operations;
 extern void hfs_cap_drop_dentry(struct dentry *, const ino_t);
 
 /* dir_dbl.c */
 extern const struct hfs_name hfs_dbl_reserved1[];
 extern const struct hfs_name hfs_dbl_reserved2[];
-extern struct inode_operations hfs_dbl_dir_inode_operations;
-extern struct file_operations hfs_dbl_dir_operations;
+extern const struct inode_operations hfs_dbl_dir_inode_operations;
+extern const struct file_operations hfs_dbl_dir_operations;
 extern void hfs_dbl_drop_dentry(struct dentry *, const ino_t);
 
 /* dir_nat.c */
 extern const struct hfs_name hfs_nat_reserved1[];
 extern const struct hfs_name hfs_nat_reserved2[];
-extern struct inode_operations hfs_nat_ndir_inode_operations;
-extern struct inode_operations hfs_nat_hdir_inode_operations;
-extern struct file_operations hfs_nat_dir_operations;
+extern const struct inode_operations hfs_nat_ndir_inode_operations;
+extern const struct inode_operations hfs_nat_hdir_inode_operations;
+extern const struct file_operations hfs_nat_dir_operations;
 extern void hfs_nat_drop_dentry(struct dentry *, const ino_t);
 
 /* file.c */
@@ -271,16 +271,16 @@ extern hfs_s32 hfs_do_read(struct inode *, struct hfs_fork *, hfs_u32,
 extern hfs_s32 hfs_do_write(struct inode *, struct hfs_fork *, hfs_u32,
 			    const char *, hfs_u32);
 extern void hfs_file_fix_mode(struct hfs_cat_entry *entry);
-extern struct inode_operations hfs_file_inode_operations;
-extern struct file_operations hfs_file_operations;
+extern const struct inode_operations hfs_file_inode_operations;
+extern const struct file_operations hfs_file_operations;
 
 /* file_cap.c */
-extern struct inode_operations hfs_cap_info_inode_operations;
-extern struct file_operations hfs_cap_info_operations;
+extern const struct inode_operations hfs_cap_info_inode_operations;
+extern const struct file_operations hfs_cap_info_operations;
 
 /* file_hdr.c */
-extern struct inode_operations hfs_hdr_inode_operations;
-extern struct file_operations hfs_hdr_operations;
+extern const struct inode_operations hfs_hdr_inode_operations;
+extern const struct file_operations hfs_hdr_operations;
 extern const struct hfs_hdr_layout hfs_dbl_fil_hdr_layout;
 extern const struct hfs_hdr_layout hfs_dbl_dir_hdr_layout;
 extern const struct hfs_hdr_layout hfs_nat_hdr_layout;

@@ -36,8 +36,7 @@
 /*
  * file operation structure for tape devices
  */
-static struct file_operations tape_fops =
-{
+static const struct file_operations tape_fops = {
     //    owner   : THIS_MODULE,
 	llseek:NULL,		/* lseek - default */
 	read:tape_read,		/* read  */

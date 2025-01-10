@@ -147,7 +147,7 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext *sc, unsigned long *p
 	COPY(rdx); COPY(rcx); 
 	COPY(rip);
 	if (regs->rip >= TASK_SIZE && regs->rip < VSYSCALL_START) { 
-		regs->rip = 0;
+		regs->rip = ~0UL;
 		return -EFAULT;
 	}
 	COPY(r8);
@@ -364,7 +364,7 @@ static void setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
 	if (regs->rip >= TASK_SIZE) { 
 		if (sig == SIGSEGV)
 			ka->sa.sa_handler = SIG_DFL;
-		regs->rip = 0;
+		regs->rip = ~0UL;
 	}
 	regs->cs = __USER_CS;
 	regs->ss = __USER_DS; 

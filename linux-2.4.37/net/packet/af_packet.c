@@ -1615,7 +1615,7 @@ static void packet_mm_close(struct vm_area_struct *vma)
 		atomic_dec(&sk->protinfo.af_packet->mapped);
 }
 
-static struct vm_operations_struct packet_mmap_ops = {
+static const struct vm_operations_struct packet_mmap_ops = {
 	open:	packet_mm_open,
 	close:	packet_mm_close,
 };

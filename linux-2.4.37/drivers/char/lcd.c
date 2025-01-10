@@ -556,7 +556,7 @@ static long lcd_read(struct inode *inode, struct file *file, char *buf, unsigned
  *	The various file operations we support.
  */
 
-static struct file_operations lcd_fops = {
+static const struct file_operations lcd_fops = {
 	read:		lcd_read,
 	ioctl:		lcd_ioctl,
 	open:		lcd_open,

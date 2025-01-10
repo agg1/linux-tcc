@@ -619,7 +619,7 @@ not_empty:
 	return 0;
 }
 
-struct file_operations ext2_dir_operations = {
+const struct file_operations ext2_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	ext2_readdir,
 	ioctl:		ext2_ioctl,

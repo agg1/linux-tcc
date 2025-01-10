@@ -42,12 +42,12 @@
 #include "vxfs_extern.h"
 
 
-extern struct address_space_operations vxfs_aops;
-extern struct address_space_operations vxfs_immed_aops;
+extern const struct address_space_operations vxfs_aops;
+extern const struct address_space_operations vxfs_immed_aops;
 
-extern struct inode_operations vxfs_immed_symlink_iops;
+extern const struct inode_operations vxfs_immed_symlink_iops;
 
-static struct file_operations vxfs_file_operations = {
+static const struct file_operations vxfs_file_operations = {
 	.open =			generic_file_open,
 	.llseek =		generic_file_llseek,
 	.read =			generic_file_read,
@@ -301,7 +301,7 @@ vxfs_read_inode(struct inode *ip)
 {
 	struct super_block		*sbp = ip->i_sb;
 	struct vxfs_inode_info		*vip;
-	struct address_space_operations	*aops;
+	const struct address_space_operations	*aops;
 	ino_t				ino = ip->i_ino;
 
 	if (!(vip = __vxfs_iget(ino, VXFS_SBI(sbp)->vsi_ilist)))

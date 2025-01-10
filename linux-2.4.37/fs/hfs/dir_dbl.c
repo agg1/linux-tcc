@@ -56,13 +56,13 @@ const struct hfs_name hfs_dbl_reserved2[] = {
 #define ROOTINFO	(&hfs_dbl_reserved2[0])
 #define PCNT_ROOTINFO	(&hfs_dbl_reserved2[1])
 
-struct file_operations hfs_dbl_dir_operations = {
+const struct file_operations hfs_dbl_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	dbl_readdir,
 	fsync:		file_fsync,
 };
 
-struct inode_operations hfs_dbl_dir_inode_operations = {
+const struct inode_operations hfs_dbl_dir_inode_operations = {
 	create:		dbl_create,
 	lookup:		dbl_lookup,
 	unlink:		dbl_unlink,

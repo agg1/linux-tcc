@@ -1389,7 +1389,7 @@ static int ext3_releasepage(struct page *page, int wait)
 }
 
 
-struct address_space_operations ext3_aops = {
+const struct address_space_operations ext3_aops = {
 	readpage:	ext3_readpage,		/* BKL not held.  Don't need */
 	writepage:	ext3_writepage,		/* BKL not held.  We take it */
 	sync_page:	block_sync_page,

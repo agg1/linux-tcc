@@ -58,6 +58,14 @@ typedef struct user_fxsr_struct elf_fpxregset_t;
 
 #define ELF_ET_DYN_BASE         (TASK_SIZE / 3 * 2)
 
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	0x08048000UL
+
+#define PAX_DELTA_MMAP_LEN	16
+//#define PAX_DELTA_STACK_LEN	(current->mm->pax_flags & MF_PAX_SEGMEXEC ? 15 : 16)
+#define PAX_DELTA_STACK_LEN	16
+#endif
+
 /* Wow, the "main" arch needs arch dependent functions too.. :) */
 
 //#define savesegment(seg,value) \
@@ -77,16 +85,16 @@ typedef struct user_fxsr_struct elf_fpxregset_t;
 	pr_reg[4] = regs->edi;				\
 	pr_reg[5] = regs->ebp;				\
 	pr_reg[6] = regs->eax;				\
-	pr_reg[7] = regs->xds;				\
-	pr_reg[8] = regs->xes;				\
+	pr_reg[7] = regs->xds & 0xffff;			\
+	pr_reg[8] = regs->xes & 0xffff;			\
 	savesegment(fs,pr_reg[9]);			\
 	savesegment(gs,pr_reg[10]);			\
 	pr_reg[11] = regs->orig_eax;			\
 	pr_reg[12] = regs->eip;				\
-	pr_reg[13] = regs->xcs;				\
+	pr_reg[13] = regs->xcs & 0xffff;		\
 	pr_reg[14] = regs->eflags;			\
 	pr_reg[15] = regs->esp;				\
-	pr_reg[16] = regs->xss;
+	pr_reg[16] = regs->xss & 0xffff;
 
 /* This yields a mask that user programs can use to figure out what
    instruction set this CPU supports.  This could be done in user space,

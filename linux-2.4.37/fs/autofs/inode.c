@@ -41,7 +41,7 @@ static void autofs_put_super(struct super_block *sb)
 static int autofs_statfs(struct super_block *sb, struct statfs *buf);
 static void autofs_read_inode(struct inode *inode);
 
-static struct super_operations autofs_sops = {
+static const struct super_operations autofs_sops = {
 	read_inode:	autofs_read_inode,
 	put_super:	autofs_put_super,
 	statfs:		autofs_statfs,

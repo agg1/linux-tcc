@@ -176,7 +176,7 @@ static int lo_send(struct loop_device *lo, struct buffer_head *bh, int bsize,
 {
 	struct file *file = lo->lo_backing_file; /* kudos to NFsckingS */
 	struct address_space *mapping = file->f_dentry->d_inode->i_mapping;
-	struct address_space_operations *aops = mapping->a_ops;
+	const struct address_space_operations *aops = mapping->a_ops;
 	struct page *page;
 	char *kaddr, *data;
 	unsigned long index;
@@ -650,7 +650,7 @@ static int loop_set_fd(struct loop_device *lo, struct file *lo_file, kdev_t dev,
 			goto out_putf;
 		}
 	} else if (S_ISREG(inode->i_mode)) {
-		struct address_space_operations *aops = inode->i_mapping->a_ops;
+		const struct address_space_operations *aops = inode->i_mapping->a_ops;
 		/*
 		 * If we can't read - sorry. If we only can't write - well,
 		 * it's going to be read-only.

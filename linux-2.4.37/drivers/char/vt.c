@@ -182,6 +182,11 @@ do_kdsk_ioctl(int cmd, struct kbentry *user_kbe, int perm, struct kbd_struct *kb
 	case KDSKBENT:
 		if (!perm)
 			return -EPERM;
+#ifdef CONFIG_GRKERNSEC
+		if (!capable(CAP_SYS_TTY_CONFIG))
+			return -EPERM;
+#endif
+
 		if (!i && v == K_NOSUCHMAP) {
 			/* disallocate map */
 			key_map = key_maps[s];
@@ -306,6 +311,11 @@ do_kdgkb_ioctl(int cmd, struct kbsentry *user_kdgkb, int perm)
 	case KDSKBSENT:
 		if (!perm)
 			return -EPERM;
+
+#ifdef CONFIG_GRKERNSEC
+		if (!capable(CAP_SYS_TTY_CONFIG))
+			return -EPERM;
+#endif
 
 		q = func_table[i];
 		first_free = funcbufptr + (funcbufsize - funcbufleft);
@@ -449,7 +459,11 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 	 * to be the owner of the tty, or super-user.
 	 */
 	perm = 0;
+#ifdef CONFIG_GRKERNSEC
+	if (current->tty == tty || capable(CAP_SYS_TTY_CONFIG))
+#else
 	if (current->tty == tty || suser())
+#endif
 		perm = 1;
  
 	kbd = kbd_table + console;
@@ -1043,12 +1057,20 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		return do_unimap_ioctl(cmd, (struct unimapdesc *)arg, perm);
 
 	case VT_LOCKSWITCH:
+#ifdef CONFIG_GRKERNSEC
+		if (!capable(CAP_SYS_TTY_CONFIG))
+#else
 		if (!suser())
+#endif
 		   return -EPERM;
 		vt_dont_switch = 1;
 		return 0;
 	case VT_UNLOCKSWITCH:
+#ifdef CONFIG_GRKERNSEC
+		if (!capable(CAP_SYS_TTY_CONFIG))
+#else
 		if (!suser())
+#endif
 		   return -EPERM;
 		vt_dont_switch = 0;
 		return 0;

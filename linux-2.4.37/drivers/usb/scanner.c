@@ -852,8 +852,7 @@ ioctl_scanner(struct inode *inode, struct file *file,
 	return retval;
 }
 
-static struct
-file_operations usb_scanner_fops = {
+static const struct file_operations usb_scanner_fops = {
 	owner:		THIS_MODULE,
 	read:		read_scanner,
 	write:		write_scanner,

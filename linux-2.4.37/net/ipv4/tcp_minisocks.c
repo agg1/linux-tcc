@@ -977,8 +977,11 @@ listen_overflow:
 
 embryonic_reset:
 	NET_INC_STATS_BH(EmbryonicRsts);
+
+#ifndef CONFIG_GRKERNSEC_BLACKHOLE
 	if (!(flg & TCP_FLAG_RST))
 		req->class->send_reset(skb);
+#endif
 
 	tcp_synq_drop(sk, req, prev);
 	return NULL;

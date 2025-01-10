@@ -169,8 +169,8 @@ static char version[] __devinitdata =
 
 /* Module Parameters */
 MODULE_PARM(phys_dma,"i");
-MODULE_PARM_DESC(phys_dma, "Enable physical dma (default = 1).");
-static int phys_dma = 1;
+MODULE_PARM_DESC(phys_dma, "Enable physical dma (default = 0).");
+static int phys_dma = 0;
 
 static void dma_trm_tasklet(unsigned long data);
 static void dma_trm_reset(struct dma_trm_ctx *d);

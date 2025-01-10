@@ -577,7 +577,7 @@ pcibr_mmap(struct file * file, struct vm_area_struct * vma)
  * appropriate function name below.
  */
 static int pcibr_mmap(struct file * file, struct vm_area_struct * vma);
-struct file_operations pcibr_fops = {
+const struct file_operations pcibr_fops = {
 	.owner		= THIS_MODULE,
 	.mmap		= pcibr_mmap,
 };

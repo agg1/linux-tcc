@@ -2308,7 +2308,7 @@ int filemap_sync(struct vm_area_struct * vma, unsigned long address,
 	return error;
 }
 
-static struct vm_operations_struct generic_file_vm_ops = {
+static const struct vm_operations_struct generic_file_vm_ops = {
 	nopage:		filemap_nopage,
 };
 
@@ -2324,7 +2324,8 @@ int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
 			return -EINVAL;
 	}
 	if (!mapping->a_ops->readpage)
-		return -ENOEXEC;
+		return -ENODEV;
+
 	UPDATE_ATIME(inode);
 	vma->vm_ops = &generic_file_vm_ops;
 	return 0;
@@ -2554,6 +2555,7 @@ static long madvise_fixup_middle(struct vm_area_struct * vma,
  * We can potentially split a vm area into separate
  * areas, each area with its own behavior.
  */
+
 static long madvise_behavior(struct vm_area_struct * vma,
 	unsigned long start, unsigned long end, int behavior)
 {

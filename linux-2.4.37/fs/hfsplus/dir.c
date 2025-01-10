@@ -468,7 +468,7 @@ int hfsplus_rename(struct inode *old_dir, struct dentry *old_dentry,
 	return res;
 }
 
-struct inode_operations hfsplus_dir_inode_operations = {
+const struct inode_operations hfsplus_dir_inode_operations = {
 	.lookup		= hfsplus_lookup,
 	.create		= hfsplus_create,
 	.link		= hfsplus_link,
@@ -480,7 +480,7 @@ struct inode_operations hfsplus_dir_inode_operations = {
 	.rename		= hfsplus_rename,
 };
 
-struct file_operations hfsplus_dir_operations = {
+const struct file_operations hfsplus_dir_operations = {
 	.read		= generic_read_dir,
 	.readdir	= hfsplus_readdir,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)

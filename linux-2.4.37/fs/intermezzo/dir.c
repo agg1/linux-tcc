@@ -248,7 +248,7 @@ struct dentry *presto_lookup(struct inode * dir, struct dentry *dentry)
         int minor;
         ino_t ino;
         unsigned int generation;
-        struct inode_operations *iops;
+        const struct inode_operations *iops;
         int is_ilookup = 0;
 
         ENTRY;
@@ -918,8 +918,8 @@ int presto_permission(struct inode *inode, int mask)
 
         if ( cache ) {
                 /* we only override the file/dir permission operations */
-                struct inode_operations *fiops = filter_c2cfiops(cache->cache_filter);
-                struct inode_operations *diops = filter_c2cdiops(cache->cache_filter);
+                const struct inode_operations *fiops = filter_c2cfiops(cache->cache_filter);
+                const struct inode_operations *diops = filter_c2cdiops(cache->cache_filter);
 
                 if ( S_ISREG(mode) && fiops && fiops->permission ) {
                         EXIT;
@@ -1388,11 +1388,11 @@ int presto_ioctl(struct inode *inode, struct file *file,
         return 0;
 }
 
-struct file_operations presto_dir_fops = {
+const struct file_operations presto_dir_fops = {
         .ioctl =  presto_ioctl
 };
 
-struct inode_operations presto_dir_iops = {
+const struct inode_operations presto_dir_iops = {
         .create       = presto_create,
         .lookup       = presto_lookup,
         .link         = presto_link,

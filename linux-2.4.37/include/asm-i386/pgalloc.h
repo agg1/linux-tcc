@@ -4,6 +4,7 @@
 #include <linux/config.h>
 #include <asm/processor.h>
 #include <asm/fixmap.h>
+#include <asm/desc.h>
 #include <linux/threads.h>
 
 #define pgd_quicklist (current_cpu_data.pgd_quick)
@@ -13,6 +14,9 @@
 
 #define pmd_populate(mm, pmd, pte) \
 		set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(pte)))
+
+#define pmd_populate_kernel(mm, pmd, pte) \
+		set_pmd(pmd, __pmd(_KERNPG_TABLE + __pa(pte)))
 
 /*
  * Allocate and free page tables.

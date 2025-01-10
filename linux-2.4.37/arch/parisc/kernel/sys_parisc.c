@@ -90,6 +90,12 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
 		inode = filp->f_dentry->d_inode;
 	}
 
+#ifdef CONFIG_PAX_RANDMMAP
+//	if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+	if (!addr || filp)
+		addr = TASK_UNMAPPED_BASE + current->mm->delta_mmap;
+#endif
+
 	if (inode && (flags & MAP_SHARED) && (inode->i_mapping->i_mmap_shared)) {
 		addr = get_shared_area(inode, addr, len, pgoff);
 	} else {
@@ -104,6 +110,7 @@ static unsigned long do_mmap2(unsigned long addr, unsigned long len,
 {
 	struct file * file = NULL;
 	unsigned long error = -EBADF;
+
 	if (!(flags & MAP_ANONYMOUS)) {
 		file = fget(fd);
 		if (!file)

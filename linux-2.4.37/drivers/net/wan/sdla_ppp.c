@@ -467,7 +467,7 @@ static int update(wan_device_t *wandev)
 	sdla_t* card = wandev->private;
  	netdevice_t* dev;
         volatile ppp_private_area_t *ppp_priv_area;
-	ppp_flags_t *flags = card->flags;
+	ppp_flags_t *flags;
 	unsigned long timeout;
 
 	/* sanity checks */
@@ -491,6 +491,7 @@ static int update(wan_device_t *wandev)
 	
 	ppp_priv_area->update_comms_stats = 2;
 	ppp_priv_area->timer_int_enabled |= TMR_INT_ENABLED_UPDATE;
+	flags = card->flags;
 	flags->imask |= PPP_INTR_TIMER;	
 	
 	/* wait a maximum of 1 second for the statistics to be updated */ 

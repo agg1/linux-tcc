@@ -3202,38 +3202,38 @@ static ssize_t ctc_stat_read(struct file *file, char *buf, size_t count,
 	return ret;
 }
 
-static struct file_operations ctc_stat_fops = {
+static const struct file_operations ctc_stat_fops = {
 	read:    ctc_stat_read,
 	write:   ctc_stat_write,
 	open:    ctc_stat_open,
 	release: ctc_stat_close,
 };
 
-static struct file_operations ctc_ctrl_fops = {
+static const struct file_operations ctc_ctrl_fops = {
 	read:    ctc_ctrl_read,
 	write:   ctc_ctrl_write,
 	open:    ctc_ctrl_open,
 	release: ctc_ctrl_close,
 };
 
-static struct file_operations ctc_loglevel_fops = {
+static const struct file_operations ctc_loglevel_fops = {
 	read:    ctc_loglevel_read,
 	write:   ctc_loglevel_write,
 	open:    ctc_loglevel_open,
 	release: ctc_loglevel_close,
 };
 
-static struct inode_operations ctc_stat_iops = {
+static const struct inode_operations ctc_stat_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &ctc_stat_fops
 #endif
 };
-static struct inode_operations ctc_ctrl_iops = {
+static const struct inode_operations ctc_ctrl_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &ctc_ctrl_fops
 #endif
 };
-static struct inode_operations ctc_loglevel_iops = {
+static const struct inode_operations ctc_loglevel_iops = {
 #if LINUX_VERSION_CODE < 0x020363
 	default_file_ops: &ctc_loglevel_fops
 #endif

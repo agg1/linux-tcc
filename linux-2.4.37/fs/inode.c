@@ -1200,7 +1200,7 @@ void iput(struct inode *inode)
 {
 	if (inode) {
 		struct super_block *sb = inode->i_sb;
-		struct super_operations *op = NULL;
+		const struct super_operations *op = NULL;
 
 		if (inode->i_state == I_CLEAR)
 			BUG();

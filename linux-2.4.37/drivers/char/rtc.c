@@ -686,7 +686,7 @@ static unsigned int rtc_poll(struct file *file, poll_table *wait)
  *	The various file operations we support.
  */
 
-static struct file_operations rtc_fops = {
+static const struct file_operations rtc_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		rtc_read,

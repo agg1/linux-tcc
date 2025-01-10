@@ -8,6 +8,7 @@
 #include <linux/sched.h>
 #include <linux/prefetch.h>
 #include <asm/page.h>
+#include <asm/segment.h>
 
 #define VERIFY_READ 0
 #define VERIFY_WRITE 1
@@ -277,9 +278,12 @@ extern void __put_user_bad(void);
 
 #define __put_user_u64(x, addr, err)				\
 	__asm__ __volatile__(					\
-		"1:	movl %%eax,0(%2)\n"			\
-		"2:	movl %%edx,4(%2)\n"			\
+		"	movw %w5,%%ds\n"			\
+		"1:	movl %%eax,%%ds:0(%2)\n"		\
+		"2:	movl %%edx,%%ds:4(%2)\n"		\
 		"3:\n"						\
+		"	pushl %%ss\n"				\
+		"	popl %%ds\n"				\
 		".section .fixup,\"ax\"\n"			\
 		"4:	movl %3,%0\n"				\
 		"	jmp 3b\n"				\
@@ -290,7 +294,8 @@ extern void __put_user_bad(void);
 		"	.long 2b,4b\n"				\
 		".previous"					\
 		: "=r"(err)					\
-		: "A" (x), "r" (addr), "i"(-EFAULT), "0"(err))
+		: "A" (x), "r" (addr), "i"(-EFAULT), "0"(err),	\
+		  "r"(__USER_DS))
 
 #define __put_user_size(x,ptr,size,retval)				\
 do {									\
@@ -314,8 +319,11 @@ struct __large_struct { unsigned long buf[100]; };
  */
 #define __put_user_asm(x, addr, err, itype, rtype, ltype)	\
 	__asm__ __volatile__(					\
-		"1:	mov"itype" %"rtype"1,%2\n"		\
+		"	movw %w5,%%ds\n"			\
+		"1:	mov"itype" %"rtype"1,%%ds:%2\n"		\
 		"2:\n"						\
+		"	pushl %%ss\n"				\
+		"	popl %%ds\n"				\
 		".section .fixup,\"ax\"\n"			\
 		"3:	movl %3,%0\n"				\
 		"	jmp 2b\n"				\
@@ -325,7 +333,8 @@ struct __large_struct { unsigned long buf[100]; };
 		"	.long 1b,3b\n"				\
 		".previous"					\
 		: "=r"(err)					\
-		: ltype (x), "m"(__m(addr)), "i"(-EFAULT), "0"(err))
+		: ltype (x), "m"(__m(addr)), "i"(-EFAULT), "0"(err), \
+		  "r"(__USER_DS))
 
 
 #define __get_user_nocheck(x,ptr,size)				\
@@ -351,8 +360,11 @@ do {									\
 
 #define __get_user_asm(x, addr, err, itype, rtype, ltype)	\
 	__asm__ __volatile__(					\
-		"1:	mov"itype" %2,%"rtype"1\n"		\
+		"	movw %w5,%%ds\n"			\
+		"1:	mov"itype" %%ds:%2,%"rtype"1\n"		\
 		"2:\n"						\
+		"	pushl %%ss\n"				\
+		"	popl %%ds\n"				\
 		".section .fixup,\"ax\"\n"			\
 		"3:	movl %3,%0\n"				\
 		"	xor"itype" %"rtype"1,%"rtype"1\n"	\
@@ -363,7 +375,7 @@ do {									\
 		"	.long 1b,3b\n"				\
 		".previous"					\
 		: "=r"(err), ltype (x)				\
-		: "m"(__m(addr)), "i"(-EFAULT), "0"(err))
+		: "m"(__m(addr)), "i"(-EFAULT), "0"(err), "r"(__USER_DS))
 
 
 /*
@@ -375,10 +387,13 @@ do {									\
 do {									\
 	int __d0, __d1;							\
 	__asm__ __volatile__(						\
+		"	movw %w7,%%es\n"				\
 		"0:	rep; movsl\n"					\
 		"	movl %3,%0\n"					\
 		"1:	rep; movsb\n"					\
 		"2:\n"							\
+		"	pushl %%ss\n"					\
+		"	popl %%es\n"					\
 		".section .fixup,\"ax\"\n"				\
 		"3:	lea 0(%3,%0,4),%0\n"				\
 		"	jmp 2b\n"					\
@@ -389,7 +404,8 @@ do {									\
 		"	.long 1b,2b\n"					\
 		".previous"						\
 		: "=&c"(size), "=&D" (__d0), "=&S" (__d1)		\
-		: "r"(size & 3), "0"(size / 4), "1"(to), "2"(from)	\
+		: "r"(size & 3), "0"(size / 4), "1"(to), "2"(from),	\
+		  "r"(__USER_DS)					\
 		: "memory");						\
 } while (0)
 
@@ -397,10 +413,13 @@ do {									\
 do {									\
 	int __d0, __d1;							\
 	__asm__ __volatile__(						\
+		"	movw %w7,%%ds\n"				\
 		"0:	rep; movsl\n"					\
 		"	movl %3,%0\n"					\
 		"1:	rep; movsb\n"					\
 		"2:\n"							\
+		"	pushl %%ss\n"					\
+		"	popl %%ds\n"					\
 		".section .fixup,\"ax\"\n"				\
 		"3:	lea 0(%3,%0,4),%0\n"				\
 		"4:	pushl %0\n"					\
@@ -417,7 +436,8 @@ do {									\
 		"	.long 1b,4b\n"					\
 		".previous"						\
 		: "=&c"(size), "=&D" (__d0), "=&S" (__d1)		\
-		: "r"(size & 3), "0"(size / 4), "1"(to), "2"(from)	\
+		: "r"(size & 3), "0"(size / 4), "1"(to), "2"(from),	\
+		  "r"(__USER_DS)					\
 		: "memory");						\
 } while (0)
 
@@ -446,8 +466,11 @@ do {								\
 	switch (size & 3) {					\
 	default:						\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%es\n"		\
 			"0:	rep; movsl\n"			\
 			"1:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%es\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"2:	shl $2,%0\n"			\
 			"	jmp 1b\n"			\
@@ -457,14 +480,18 @@ do {								\
 			"	.long 0b,2b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 1:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%es\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsb\n"			\
 			"2:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%es\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"3:	shl $2,%0\n"			\
 			"4:	incl %0\n"			\
@@ -476,14 +503,18 @@ do {								\
 			"	.long 1b,4b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 2:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%es\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsw\n"			\
 			"2:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%es\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"3:	shl $2,%0\n"			\
 			"4:	addl $2,%0\n"			\
@@ -495,15 +526,19 @@ do {								\
 			"	.long 1b,4b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 3:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%es\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsw\n"			\
 			"2:	movsb\n"			\
 			"3:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%es\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"4:	shl $2,%0\n"			\
 			"5:	addl $2,%0\n"			\
@@ -517,7 +552,8 @@ do {								\
 			"	.long 2b,6b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	}							\
@@ -530,8 +566,11 @@ do {								\
 	switch (size & 3) {					\
 	default:						\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%ds\n"		\
 			"0:	rep; movsl\n"			\
 			"1:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%ds\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"2:	pushl %0\n"			\
 			"	pushl %%eax\n"			\
@@ -547,14 +586,18 @@ do {								\
 			"	.long 0b,2b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 1:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%ds\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsb\n"			\
 			"2:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%ds\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"3:	pushl %0\n"			\
 			"	pushl %%eax\n"			\
@@ -579,14 +622,18 @@ do {								\
 			"	.long 1b,4b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 2:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%ds\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsw\n"			\
 			"2:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%ds\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"3:	pushl %0\n"			\
 			"	pushl %%eax\n"			\
@@ -611,15 +658,19 @@ do {								\
 			"	.long 1b,4b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	case 3:							\
 		__asm__ __volatile__(				\
+			"	movw %w6,%%ds\n"		\
 			"0:	rep; movsl\n"			\
 			"1:	movsw\n"			\
 			"2:	movsb\n"			\
 			"3:\n"					\
+			"	pushl %%ss\n"			\
+			"	popl %%ds\n"			\
 			".section .fixup,\"ax\"\n"		\
 			"4:	pushl %0\n"			\
 			"	pushl %%eax\n"			\
@@ -653,7 +704,8 @@ do {								\
 			"	.long 2b,6b\n"			\
 			".previous"				\
 			: "=c"(size), "=&S" (__d0), "=&D" (__d1)\
-			: "1"(from), "2"(to), "0"(size/4)	\
+			: "1"(from), "2"(to), "0"(size/4),	\
+			  "r"(__USER_DS)			\
 			: "memory");				\
 		break;						\
 	}							\

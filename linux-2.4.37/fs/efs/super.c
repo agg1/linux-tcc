@@ -15,7 +15,7 @@
 
 static DECLARE_FSTYPE_DEV(efs_fs_type, "efs", efs_read_super);
 
-static struct super_operations efs_superblock_operations = {
+static const struct super_operations efs_superblock_operations = {
 	read_inode:	efs_read_inode,
 	statfs:		efs_statfs,
 };

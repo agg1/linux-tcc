@@ -159,14 +159,14 @@ DECLARE_MUTEX(debug_lock);
 
 static int initialized = 0;
 
-static struct file_operations debug_file_ops = {
+static const struct file_operations debug_file_ops = {
 	read:    debug_output,
 	write:   debug_input,	
 	open:    debug_open,
 	release: debug_close,
 };
 
-static struct inode_operations debug_inode_ops = {
+static const struct inode_operations debug_inode_ops = {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,3,98))
 	default_file_ops: &debug_file_ops,	/* file ops */
 #endif

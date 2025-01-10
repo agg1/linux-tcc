@@ -698,7 +698,7 @@ MODULE_LICENSE("GPL");
 #endif
 
 /* ioctl interface */
-static struct file_operations gdth_fops = {
+static const struct file_operations gdth_fops = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
     .ioctl   = gdth_ioctl,
     .open    = gdth_open,

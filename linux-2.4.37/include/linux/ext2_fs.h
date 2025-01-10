@@ -639,20 +639,20 @@ extern int ext2_statfs (struct super_block *, struct statfs *);
  */
 
 /* dir.c */
-extern struct file_operations ext2_dir_operations;
+extern const struct file_operations ext2_dir_operations;
 
 /* file.c */
-extern struct inode_operations ext2_file_inode_operations;
-extern struct file_operations ext2_file_operations;
+extern const struct inode_operations ext2_file_inode_operations;
+extern const struct file_operations ext2_file_operations;
 
 /* inode.c */
-extern struct address_space_operations ext2_aops;
+extern const struct address_space_operations ext2_aops;
 
 /* namei.c */
-extern struct inode_operations ext2_dir_inode_operations;
+extern const struct inode_operations ext2_dir_inode_operations;
 
 /* symlink.c */
-extern struct inode_operations ext2_fast_symlink_inode_operations;
+extern const struct inode_operations ext2_fast_symlink_inode_operations;
 
 #endif	/* __KERNEL__ */
 

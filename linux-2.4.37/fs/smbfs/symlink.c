@@ -83,8 +83,7 @@ out:
 	return result;
 }
 
-struct inode_operations smb_link_inode_operations =
-{
+const struct inode_operations smb_link_inode_operations = {
 	.readlink	= smb_read_link,
 	.follow_link	= smb_follow_link,
 };

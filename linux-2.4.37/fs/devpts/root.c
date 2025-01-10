@@ -20,16 +20,16 @@ static int devpts_root_readdir(struct file *,void *,filldir_t);
 static struct dentry *devpts_root_lookup(struct inode *,struct dentry *);
 static int devpts_revalidate(struct dentry *, int);
 
-struct file_operations devpts_root_operations = {
+const struct file_operations devpts_root_operations = {
 	read:		generic_read_dir,
 	readdir:	devpts_root_readdir,
 };
 
-struct inode_operations devpts_root_inode_operations = {
+const struct inode_operations devpts_root_inode_operations = {
 	lookup:		devpts_root_lookup,
 };
 
-static struct dentry_operations devpts_dentry_operations = {
+static const struct dentry_operations devpts_dentry_operations = {
 	d_revalidate:	devpts_revalidate,
 };
 

@@ -461,7 +461,7 @@ static void wd_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 	return;
 }
 
-static struct file_operations wd_fops = {
+static const struct file_operations wd_fops = {
 	owner:		THIS_MODULE,
 	ioctl:		wd_ioctl,
 	open:		wd_open,

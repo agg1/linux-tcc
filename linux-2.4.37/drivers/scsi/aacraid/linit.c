@@ -122,7 +122,7 @@ static int aac_cfg_ioctl(struct inode * inode, struct file * file, unsigned int 
 static int aac_cfg_open(struct inode * inode, struct file * file);
 static int aac_cfg_release(struct inode * inode,struct file * file);
 
-static struct file_operations aac_cfg_fops = {
+static const struct file_operations aac_cfg_fops = {
 	owner: THIS_MODULE,
 	ioctl: aac_cfg_ioctl,
 	open: aac_cfg_open,

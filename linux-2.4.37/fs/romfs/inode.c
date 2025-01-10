@@ -90,7 +90,7 @@ romfs_checksum(void *data, int size)
 	return sum;
 }
 
-static struct super_operations romfs_ops;
+static const struct super_operations romfs_ops;
 
 static struct super_block *
 romfs_read_super(struct super_block *s, void *data, int silent)
@@ -435,16 +435,16 @@ err_out:
 
 /* Mapping from our types to the kernel */
 
-static struct address_space_operations romfs_aops = {
+static const struct address_space_operations romfs_aops = {
 	readpage: romfs_readpage
 };
 
-static struct file_operations romfs_dir_operations = {
+static const struct file_operations romfs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	romfs_readdir,
 };
 
-static struct inode_operations romfs_dir_inode_operations = {
+static const struct inode_operations romfs_dir_inode_operations = {
 	lookup:		romfs_lookup,
 };
 
@@ -525,7 +525,7 @@ romfs_read_inode(struct inode *i)
 	}
 }
 
-static struct super_operations romfs_ops = {
+static const struct super_operations romfs_ops = {
 	read_inode:	romfs_read_inode,
 	statfs:		romfs_statfs,
 };

@@ -34,10 +34,13 @@
 #include <linux/smp_lock.h>
 #include <linux/compiler.h>
 #include <linux/highmem.h>
+#include <linux/random.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 #include <asm/param.h>
 #include <asm/pgalloc.h>
+#include <asm/system.h>
 
 #define DLINFO_ITEMS 13
 
@@ -82,17 +85,21 @@ static struct linux_binfmt elf_format = {
 
 static int set_brk(unsigned long start, unsigned long end)
 {
+	unsigned long e = end, retval;
+
 	start = ELF_PAGEALIGN(start);
 	end = ELF_PAGEALIGN(end);
+
+	down_write(&current->mm->mmap_sem);
 	if (end > start) {
-		unsigned long addr;
-		down_write(&current->mm->mmap_sem);
-		addr = do_brk(start, end - start);
-		up_write(&current->mm->mmap_sem);
-		if (BAD_ADDR(addr))
-			return addr;
+		retval = do_brk(start, end - start);
+		if (BAD_ADDR(retval))
+			goto out;
 	}
-	current->mm->start_brk = current->mm->brk = end;
+	current->mm->start_brk = current->mm->brk = e;
+	retval = 0UL;
+out:
+	up_write(&current->mm->mmap_sem);
 	return 0;
 }
 
@@ -273,7 +280,7 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 	unsigned long load_addr = 0;
 	int load_addr_set = 0;
 	unsigned long last_bss = 0, elf_bss = 0;
-	unsigned long error = ~0UL;
+	unsigned long error = -EINVAL;
 	int retval, i, size;
 
 	/* First of all, some simple consistency checks */
@@ -395,6 +402,8 @@ static unsigned long load_elf_interp(struct elfhdr * interp_elf_ex,
 	 * switch to out-of-band error reporting.
 	 */
 	error = ((unsigned long) interp_elf_ex->e_entry) + load_addr;
+	if (BAD_ADDR(error))
+		error = -EFAULT;
 
 out_close:
 	kfree(elf_phdata);
@@ -405,7 +414,7 @@ out:
 static unsigned long load_aout_interp(struct exec * interp_ex,
 			     struct file * interpreter)
 {
-	unsigned long text_data, elf_entry = ~0UL;
+	unsigned long text_data, elf_entry = -EINVAL;
 	char * addr;
 	loff_t offset;
 
@@ -682,14 +691,31 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	current->mm->end_data = 0;
 	current->mm->end_code = 0;
 	current->mm->mmap = NULL;
+
+#ifdef CONFIG_PAX_ASLR
+	current->mm->delta_mmap = 0UL;
+	current->mm->delta_stack = 0UL;
+#endif
+
 	current->flags &= ~PF_FORKNOEXEC;
+
+#ifdef CONFIG_PAX_ASLR
+	current->mm->delta_mmap = (net_random() & ((1UL << PAX_DELTA_MMAP_LEN)-1)) << PAGE_SHIFT;
+	current->mm->delta_stack = (net_random() & ((1UL << PAX_DELTA_STACK_LEN)-1)) << PAGE_SHIFT;
+#endif
+
 	elf_entry = (unsigned long) elf_ex.e_entry;
 
 	/* Do this so that we can load the interpreter, if need be.  We will
 	   change some of these later */
 	current->mm->rss = 0;
 	current->mm->free_area_cache = TASK_UNMAPPED_BASE;
-	setup_arg_pages(bprm); /* XXX: check error */
+	retval = setup_arg_pages(bprm);
+	if (retval < 0) {
+		send_sig(SIGKILL, current, 0);
+		goto out_free_dentry;
+	}
+
 	current->mm->start_stack = bprm->p;
 
 	/* Now we do a little grungy work by mmaping the ELF image into
@@ -739,6 +765,20 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 			   base, as well as whatever program they might try to exec.  This
 		           is because the brk will follow the loader, and is not movable.  */
 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
+
+#ifdef CONFIG_PAX_RANDMMAP
+			/* PaX: randomize base address at the default exe base if requested */
+//			if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && elf_interpreter) {
+			if (elf_interpreter) {
+#ifdef __sparc_v9__
+				load_bias = (net_random() & ((1UL << PAX_DELTA_MMAP_LEN) - 1)) << (PAGE_SHIFT+1);
+#else
+				load_bias = (net_random() & ((1UL << PAX_DELTA_MMAP_LEN) - 1)) << PAGE_SHIFT;
+#endif
+				load_bias = ELF_PAGESTART(PAX_ELF_ET_DYN_BASE - vaddr + load_bias);
+				elf_flags |= MAP_FIXED;
+			}
+#endif
 		}
 
 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt, elf_prot, elf_flags);
@@ -794,6 +834,11 @@ static int load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	end_code += load_bias;
 	start_data += load_bias;
 	end_data += load_bias;
+
+#ifdef CONFIG_PAX_RANDMMAP
+//	if (current->mm->pax_flags & MF_PAX_RANDMMAP)
+		elf_brk += PAGE_SIZE + ((net_random() & ~PAGE_MASK) << 4);
+#endif
 
 	/* Calling set_brk effectively mmaps the pages that we need
 	 * for the bss and break sections.  We must do this before
@@ -1050,7 +1095,7 @@ static int dump_seek(struct file *file, off_t off)
  *
  * I think we should skip something. But I am not sure how. H.J.
  */
-static inline int maydump(struct vm_area_struct *vma)
+static inline int maydump(struct vm_area_struct *vma, long signr)
 {
 	/*
 	 * If we may not read the contents, don't allow us to dump
@@ -1062,12 +1107,15 @@ static inline int maydump(struct vm_area_struct *vma)
 	/* Do not dump I/O mapped devices! -DaveM */
 	if (vma->vm_flags & VM_IO)
 		return 0;
-#if 1
+//#if 1
+	if (signr == SIGKILL)
+		return 1;
+
 	if (vma->vm_flags & (VM_WRITE|VM_GROWSUP|VM_GROWSDOWN))
 		return 1;
 	if (vma->vm_flags & (VM_READ|VM_EXEC|VM_EXECUTABLE|VM_SHARED))
 		return 0;
-#endif
+//#endif
 	return 1;
 }
 
@@ -1497,7 +1545,7 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 		phdr.p_offset = offset;
 		phdr.p_vaddr = vma->vm_start;
 		phdr.p_paddr = 0;
-		phdr.p_filesz = maydump(vma) ? sz : 0;
+		phdr.p_filesz = maydump(vma, signr) ? sz : 0;
 		phdr.p_memsz = sz;
 		offset += phdr.p_filesz;
 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
@@ -1526,7 +1574,7 @@ static int elf_core_dump(long signr, struct pt_regs * regs, struct file * file)
 	for(vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
 		unsigned long addr;
 
-		if (!maydump(vma))
+		if (!maydump(vma, signr))
 			continue;
 
 #ifdef DEBUG

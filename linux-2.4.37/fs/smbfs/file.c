@@ -288,7 +288,7 @@ static int smb_commit_write(struct file *file, struct page *page,
 	return status;
 }
 
-struct address_space_operations smb_file_aops = {
+const struct address_space_operations smb_file_aops = {
 	readpage: smb_readpage,
 	writepage: smb_writepage,
 	prepare_write: smb_prepare_write,
@@ -382,8 +382,7 @@ smb_file_permission(struct inode *inode, int mask)
 	return error;
 }
 
-struct file_operations smb_file_operations =
-{
+const struct file_operations smb_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		smb_file_read,
 	write:		smb_file_write,
@@ -394,8 +393,7 @@ struct file_operations smb_file_operations =
 	fsync:		smb_fsync,
 };
 
-struct inode_operations smb_file_inode_operations =
-{
+const struct inode_operations smb_file_inode_operations = {
 	permission:	smb_file_permission,
 	revalidate:	smb_revalidate_inode,
 	setattr:	smb_notify_change,

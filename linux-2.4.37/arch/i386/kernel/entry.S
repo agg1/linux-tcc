@@ -210,6 +210,17 @@ ENTRY(system_call)
 	jae badsys
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
 	movl %eax,EAX(%esp)		# save the return value
+
+#ifdef CONFIG_PAX_RANDKSTACK
+	cli				# need_resched and signals atomic test
+	cmpl $0,need_resched(%ebx)
+	jne reschedule
+	cmpl $0,sigpending(%ebx)
+	jne signal_return
+	call SYMBOL_NAME(pax_randomize_kstack)
+	jmp restore_all
+#endif
+
 ENTRY(ret_from_sys_call)
 	cli				# need_resched and signals atomic test
 	cmpl $0,need_resched(%ebx)

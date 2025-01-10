@@ -232,7 +232,7 @@ static int adfs_statfs(struct super_block *sb, struct statfs *buf)
 	return 0;
 }
 
-static struct super_operations adfs_sops = {
+static const struct super_operations adfs_sops = {
 	write_inode:	adfs_write_inode,
 	put_super:	adfs_put_super,
 	statfs:		adfs_statfs,

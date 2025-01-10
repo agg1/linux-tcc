@@ -20,7 +20,7 @@
  * We have mostly NULLs here: the current defaults are OK for
  * the coh filesystem.
  */
-struct file_operations sysv_file_operations = {
+const struct file_operations sysv_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	write:		generic_file_write,
@@ -28,7 +28,7 @@ struct file_operations sysv_file_operations = {
 	fsync:		sysv_sync_file,
 };
 
-struct inode_operations sysv_file_inode_operations = {
+const struct inode_operations sysv_file_inode_operations = {
 	truncate:	sysv_truncate,
 };
 

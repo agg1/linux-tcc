@@ -249,7 +249,7 @@ static unsigned int aux_poll(struct file *file, poll_table * wait)
 	return 0;
 }
 
-struct file_operations psaux_fops = {
+const struct file_operations psaux_fops = {
 	read:		read_aux,
 	write:		write_aux,
 	poll:		aux_poll,

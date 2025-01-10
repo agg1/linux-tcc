@@ -456,7 +456,7 @@ struct usb_driver {
 
 	struct list_head driver_list;
 
-	struct file_operations *fops;
+	const struct file_operations *fops;
 	int minor;
 
 	struct semaphore serialize;

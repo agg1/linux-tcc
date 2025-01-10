@@ -41,7 +41,7 @@ static ssize_t nfs_file_write(struct file *, const char *, size_t, loff_t *);
 static int  nfs_file_flush(struct file *);
 static int  nfs_fsync(struct file *, struct dentry *dentry, int datasync);
 
-struct file_operations nfs_file_operations = {
+const struct file_operations nfs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		nfs_file_read,
 	write:		nfs_file_write,
@@ -53,7 +53,7 @@ struct file_operations nfs_file_operations = {
 	lock:		nfs_lock,
 };
 
-struct inode_operations nfs_file_inode_operations = {
+const struct inode_operations nfs_file_inode_operations = {
 	permission:	nfs_permission,
 	revalidate:	nfs_revalidate,
 	setattr:	nfs_notify_change,
@@ -196,7 +196,7 @@ static int nfs_sync_page(struct page *page)
 	return 0;
 }
 
-struct address_space_operations nfs_file_aops = {
+const struct address_space_operations nfs_file_aops = {
 	readpage: nfs_readpage,
 	sync_page: nfs_sync_page,
 	writepage: nfs_writepage,

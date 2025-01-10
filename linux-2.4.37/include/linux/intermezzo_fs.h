@@ -337,7 +337,7 @@ int presto_lento_up(int minor);
 int izo_psdev_setchannel(struct file *file, int fd);
 
 /* inode.c */
-extern struct super_operations presto_super_ops;
+extern const struct super_operations presto_super_ops;
 void presto_set_ops(struct inode *inode, struct  filter_fs *filter);
 
 /* dcache.c */
@@ -348,15 +348,15 @@ struct presto_dentry_data *izo_alloc_ddata(void);
 int presto_set_dd(struct dentry *);
 int presto_init_ddata_cache(void);
 void presto_cleanup_ddata_cache(void);
-extern struct dentry_operations presto_dentry_ops;
+extern const struct dentry_operations presto_dentry_ops;
 
 /* dir.c */
-extern struct inode_operations presto_dir_iops;
-extern struct inode_operations presto_file_iops;
-extern struct inode_operations presto_sym_iops;
-extern struct file_operations presto_dir_fops;
-extern struct file_operations presto_file_fops;
-extern struct file_operations presto_sym_fops;
+extern const struct inode_operations presto_dir_iops;
+extern const struct inode_operations presto_file_iops;
+extern const struct inode_operations presto_sym_iops;
+extern const struct file_operations presto_dir_fops;
+extern const struct file_operations presto_file_fops;
+extern const struct file_operations presto_sym_fops;
 int presto_setattr(struct dentry *de, struct iattr *iattr);
 int presto_settime(struct presto_file_set *fset, struct dentry *newobj,
                    struct dentry *parent, struct dentry *target,

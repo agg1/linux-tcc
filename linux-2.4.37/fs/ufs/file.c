@@ -41,7 +41,7 @@
  * the ufs filesystem.
  */
  
-struct file_operations ufs_file_operations = {
+const struct file_operations ufs_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	write:		generic_file_write,
@@ -49,6 +49,6 @@ struct file_operations ufs_file_operations = {
 	open:           generic_file_open,
 };
 
-struct inode_operations ufs_file_inode_operations = {
+const struct inode_operations ufs_file_inode_operations = {
 	truncate:	ufs_truncate,
 };

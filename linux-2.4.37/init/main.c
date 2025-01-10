@@ -28,6 +28,7 @@
 #include <linux/bootmem.h>
 #include <linux/file.h>
 #include <linux/tty.h>
+#include <linux/grsecurity.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -119,6 +120,8 @@ extern void ecard_init(void);
 #if defined(CONFIG_SYSVIPC)
 extern void ipc_init(void);
 #endif
+
+extern void grsecurity_init(void);
 
 /*
  * Boot command-line arguments
@@ -574,6 +577,7 @@ static int init(void * unused)
 	do_basic_setup();
 
 	prepare_namespace();
+	grsecurity_init();
 
 	/*
 	 * Ok, we have completed the initial bootup, and

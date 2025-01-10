@@ -45,15 +45,13 @@ static int ncp_rename(struct inode *, struct dentry *,
 extern int ncp_symlink(struct inode *, struct dentry *, const char *);
 #endif
 		      
-struct file_operations ncp_dir_operations =
-{
+const struct file_operations ncp_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	ncp_readdir,
 	ioctl:		ncp_ioctl,
 };
 
-struct inode_operations ncp_dir_inode_operations =
-{
+const struct inode_operations ncp_dir_inode_operations = {
 	create:		ncp_create,
 	lookup:		ncp_lookup,
 	unlink:		ncp_unlink,
@@ -74,16 +72,14 @@ static int ncp_hash_dentry(struct dentry *, struct qstr *);
 static int ncp_compare_dentry (struct dentry *, struct qstr *, struct qstr *);
 static int ncp_delete_dentry(struct dentry *);
 
-static struct dentry_operations ncp_dentry_operations =
-{
+static const struct dentry_operations ncp_dentry_operations = {
 	d_revalidate:	ncp_lookup_validate,
 	d_hash:		ncp_hash_dentry,
 	d_compare:	ncp_compare_dentry,
 	d_delete:	ncp_delete_dentry,
 };
 
-struct dentry_operations ncp_root_dentry_operations =
-{
+const struct dentry_operations ncp_root_dentry_operations = {
 	d_hash:		ncp_hash_dentry,
 	d_compare:	ncp_compare_dentry,
 	d_delete:	ncp_delete_dentry,

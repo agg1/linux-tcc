@@ -1508,7 +1508,7 @@ xfs_mapping_buftarg(
 	kdev_t			kdev;
 	struct inode		*inode;
 	struct address_space	*mapping;
-	static struct address_space_operations mapping_aops = {
+	static const struct address_space_operations mapping_aops = {
 		.sync_page = block_sync_page,
 	};
 

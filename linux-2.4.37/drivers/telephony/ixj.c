@@ -6767,8 +6767,7 @@ static int ixj_fasync(int fd, struct file *file_p, int mode)
 	return fasync_helper(fd, file_p, mode, &j->async_queue);
 }
 
-struct file_operations ixj_fops =
-{
+const struct file_operations ixj_fops = {
         owner:          THIS_MODULE,
         read:           ixj_enhanced_read,
         write:          ixj_enhanced_write,

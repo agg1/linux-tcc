@@ -15,7 +15,7 @@
  */
 int minix_sync_file(struct file *, struct dentry *, int);
 
-struct file_operations minix_file_operations = {
+const struct file_operations minix_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		generic_file_read,
 	write:		generic_file_write,
@@ -23,7 +23,7 @@ struct file_operations minix_file_operations = {
 	fsync:		minix_sync_file,
 };
 
-struct inode_operations minix_file_inode_operations = {
+const struct inode_operations minix_file_inode_operations = {
 	truncate:	minix_truncate,
 };
 

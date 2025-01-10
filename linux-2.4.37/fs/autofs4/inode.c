@@ -92,7 +92,7 @@ static void autofs4_put_super(struct super_block *sb)
 
 static int autofs4_statfs(struct super_block *sb, struct statfs *buf);
 
-static struct super_operations autofs4_sops = {
+static const struct super_operations autofs4_sops = {
 	put_super:	autofs4_put_super,
 	statfs:		autofs4_statfs,
 };

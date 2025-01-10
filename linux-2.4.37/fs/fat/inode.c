@@ -537,7 +537,7 @@ int fat_dentry_to_fh(struct dentry *de, __u32 *fh, int *lenp, int needparent)
 	return 3;
 }
 
-static struct super_operations fat_sops = { 
+static const struct super_operations fat_sops = { 
 	write_inode:	fat_write_inode,
 	delete_inode:	fat_delete_inode,
 	put_super:	fat_put_super,
@@ -557,7 +557,7 @@ static struct super_operations fat_sops = {
  */
 struct super_block *
 fat_read_super(struct super_block *sb, void *data, int silent,
-		struct inode_operations *fs_dir_inode_ops)
+		const struct inode_operations *fs_dir_inode_ops)
 {
 	struct inode *root_inode;
 	struct buffer_head *bh;
@@ -886,7 +886,7 @@ static int _fat_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,fat_get_block);
 }
-static struct address_space_operations fat_aops = {
+static const struct address_space_operations fat_aops = {
 	readpage: fat_readpage,
 	writepage: fat_writepage,
 	sync_page: block_sync_page,

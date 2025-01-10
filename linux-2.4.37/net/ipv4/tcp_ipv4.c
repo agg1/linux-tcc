@@ -67,6 +67,7 @@
 #include <linux/inet.h>
 #include <linux/stddef.h>
 #include <linux/ipsec.h>
+#include <linux/grsecurity.h>
 
 extern int sysctl_ip_dynaddr;
 extern int sysctl_ip_default_ttl;
@@ -79,6 +80,8 @@ int sysctl_tcp_low_latency = 0;
 /* Socket used for sending RSTs */ 	
 static struct inode tcp_inode;
 static struct socket *tcp_socket=&tcp_inode.u.socket_i;
+
+extern void gr_update_task_in_ip_table(struct task_struct *task, const struct sock *sk);
 
 void tcp_v4_send_check(struct sock *sk, struct tcphdr *th, int len, 
 		       struct sk_buff *skb);
@@ -733,6 +736,8 @@ static int tcp_v4_hash_connect(struct sock *sk)
 			__tcp_v4_hash(sk, 0);
 		}
 		spin_unlock(&head->lock);
+
+		gr_update_task_in_ip_table(current, sk);
 
 		if (tw) {
 			tcp_tw_deschedule(tw);
@@ -1691,6 +1696,9 @@ int tcp_v4_do_rcv(struct sock *sk, struct sk_buff *skb)
 	return 0;
 
 reset:
+#ifdef CONFIG_GRKERNSEC_BLACKHOLE
+	if (!skb->dev || (skb->dev->flags & IFF_LOOPBACK))
+#endif
 	tcp_v4_send_reset(skb);
 discard:
 	kfree_skb(skb);
@@ -1785,6 +1793,9 @@ no_tcp_socket:
 bad_packet:
 		TCP_INC_STATS_BH(TcpInErrs);
 	} else {
+#ifdef CONFIG_GRKERNSEC_BLACKHOLE
+	if (skb->dev->flags & IFF_LOOPBACK)
+#endif
 		tcp_v4_send_reset(skb);
 	}
 

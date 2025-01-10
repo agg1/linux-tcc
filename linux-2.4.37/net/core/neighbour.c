@@ -63,7 +63,7 @@ void neigh_changeaddr(struct neigh_table *tbl, struct net_device *dev);
 
 static int neigh_glbl_allocs;
 static struct neigh_table *neigh_tables;
-static struct file_operations neigh_stat_seq_fops;
+static const struct file_operations neigh_stat_seq_fops;
 
 /*
    Neighbour hash table buckets are protected with rwlock tbl->lock.
@@ -1914,7 +1914,7 @@ static int neigh_stat_seq_show(struct seq_file *seq, void *v)
 	return 0;
 }
 
-static struct seq_operations neigh_stat_seq_ops = {
+static const struct seq_operations neigh_stat_seq_ops = {
 	.start	= neigh_stat_seq_start,
 	.next	= neigh_stat_seq_next,
 	.stop	= neigh_stat_seq_stop,
@@ -1932,7 +1932,7 @@ static int neigh_stat_seq_open(struct inode *inode, struct file *file)
 	return ret;
 };
 
-static struct file_operations neigh_stat_seq_fops = {
+static const struct file_operations neigh_stat_seq_fops = {
 	.owner	 = THIS_MODULE,
 	.open 	 = neigh_stat_seq_open,
 	.read	 = seq_read,

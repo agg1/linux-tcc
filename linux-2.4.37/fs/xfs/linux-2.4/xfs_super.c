@@ -70,7 +70,7 @@
 #include <linux/init.h>
 
 STATIC struct quotactl_ops linvfs_qops;
-STATIC struct super_operations linvfs_sops;
+STATIC const struct super_operations linvfs_sops;
 STATIC kmem_zone_t *linvfs_inode_zone;
 STATIC kmem_shaker_t xfs_inode_shaker;
 
@@ -958,7 +958,7 @@ fail_vfsop:
 }
 
 
-STATIC struct super_operations linvfs_sops = {
+STATIC const struct super_operations linvfs_sops = {
 	.alloc_inode		= linvfs_alloc_inode,
 	.destroy_inode		= linvfs_destroy_inode,
 	.write_inode		= linvfs_write_inode,

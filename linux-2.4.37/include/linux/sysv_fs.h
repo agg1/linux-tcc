@@ -324,14 +324,14 @@ extern void sysv_set_link(struct sysv_dir_entry*, struct page*, struct inode*);
 extern struct sysv_dir_entry *sysv_dotdot(struct inode*, struct page**);
 extern ino_t sysv_inode_by_name(struct dentry*);
 
-extern struct inode_operations sysv_file_inode_operations;
-extern struct inode_operations sysv_dir_inode_operations;
-extern struct inode_operations sysv_fast_symlink_inode_operations;
-extern struct file_operations sysv_file_operations;
-extern struct file_operations sysv_dir_operations;
-extern struct address_space_operations sysv_aops;
-extern struct super_operations sysv_sops;
-extern struct dentry_operations sysv_dentry_operations;
+extern const struct inode_operations sysv_file_inode_operations;
+extern const struct inode_operations sysv_dir_inode_operations;
+extern const struct inode_operations sysv_fast_symlink_inode_operations;
+extern const struct file_operations sysv_file_operations;
+extern const struct file_operations sysv_dir_operations;
+extern const struct address_space_operations sysv_aops;
+extern const struct super_operations sysv_sops;
+extern const struct dentry_operations sysv_dentry_operations;
 
 extern struct sysv_inode *sysv_raw_inode(struct super_block *, unsigned, struct buffer_head **);
 

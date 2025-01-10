@@ -197,8 +197,7 @@ static int mixcomwd_ioctl(struct inode *inode, struct file *file,
 	return 0;
 }
 
-static struct file_operations mixcomwd_fops=
-{
+static const struct file_operations mixcomwd_fops = {
 	owner:		THIS_MODULE,
 	write:		mixcomwd_write,
 	ioctl:		mixcomwd_ioctl,

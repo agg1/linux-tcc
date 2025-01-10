@@ -65,7 +65,7 @@ static int DRM(stub_open)(struct inode *inode, struct file *filp)
 	return err;
 }
 
-static struct file_operations DRM(stub_fops) = {
+static const struct file_operations DRM(stub_fops) = {
 	.owner = THIS_MODULE,
 	.open  = DRM(stub_open)
 };

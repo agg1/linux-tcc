@@ -45,8 +45,7 @@
 int jffs2_readlink(struct dentry *dentry, char *buffer, int buflen);
 int jffs2_follow_link(struct dentry *dentry, struct nameidata *nd);
 
-struct inode_operations jffs2_symlink_inode_operations =
-{	
+const struct inode_operations jffs2_symlink_inode_operations = {	
 	readlink:	jffs2_readlink,
 	follow_link:	jffs2_follow_link,
 	setattr:	jffs2_setattr

@@ -8350,7 +8350,7 @@ chan_subch_read (struct file *file, char *user_buf, size_t user_len,
 	}
 }
 
-static struct file_operations chan_subch_file_ops = {
+static const struct file_operations chan_subch_file_ops = {
 	read:chan_subch_read, open:chan_subch_open, release:chan_subch_close,
 };
 
@@ -8597,17 +8597,17 @@ cio_chpid_entry_open (struct inode *inode, struct file *file)
 	return rc;
 }
 
-static struct file_operations cio_sensedata_entry_file_ops = {
+static const struct file_operations cio_sensedata_entry_file_ops = {
 	read:cio_device_entry_read, open:cio_sensedata_entry_open,
 	release:cio_device_entry_close,
 };
 
-static struct file_operations cio_in_use_entry_file_ops = {
+static const struct file_operations cio_in_use_entry_file_ops = {
 	read:cio_device_entry_read, open:cio_in_use_entry_open,
 	release:cio_device_entry_close,
 };
 
-static struct file_operations cio_chpid_entry_file_ops = {
+static const struct file_operations cio_chpid_entry_file_ops = {
 	read:cio_device_entry_read, open:cio_chpid_entry_open,
 	release:cio_device_entry_close,
 };
@@ -8926,7 +8926,7 @@ cio_ignore_proc_write (struct file *file, const char *user_buf,
 	return user_len;
 }
 
-static struct file_operations cio_ignore_proc_file_ops = {
+static const struct file_operations cio_ignore_proc_file_ops = {
 	read:cio_ignore_proc_read, open:cio_ignore_proc_open,
 	write:cio_ignore_proc_write, release:cio_ignore_proc_close,
 };
@@ -9019,7 +9019,7 @@ cio_irq_proc_read (struct file *file, char *user_buf, size_t user_len,
 	}
 }
 
-static struct file_operations cio_irq_proc_file_ops = {
+static const struct file_operations cio_irq_proc_file_ops = {
 	read:cio_irq_proc_read, open:cio_irq_proc_open,
 	release:cio_irq_proc_close,
 };
@@ -9177,7 +9177,7 @@ cio_chpids_proc_write (struct file *file, const char *user_buf,
 	return user_len;
 }
 
-static struct file_operations cio_chpids_proc_file_ops =
+static const struct file_operations cio_chpids_proc_file_ops =
 {
 	read:cio_chpids_proc_read,
 	open:cio_chpids_proc_open,

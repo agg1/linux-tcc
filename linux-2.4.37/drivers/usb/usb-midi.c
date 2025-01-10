@@ -989,7 +989,7 @@ static int usb_midi_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static struct file_operations usb_midi_fops = {
+static const struct file_operations usb_midi_fops = {
 	llseek:		usb_midi_llseek,
 	read:		usb_midi_read,
 	write:		usb_midi_write,

@@ -26,6 +26,7 @@
 #include <linux/seq_file.h>
 #include <linux/namespace.h>
 #include <linux/ptrace.h>
+#include <linux/grsecurity.h>
 
 /*
  * For hysterical raisins we keep the same inumbers as in the old procfs.
@@ -41,6 +42,9 @@ int proc_pid_stat(struct task_struct*,char*);
 int proc_pid_status(struct task_struct*,char*);
 int proc_pid_statm(struct task_struct*,char*);
 int proc_pid_cpu(struct task_struct*,char*);
+#ifdef CONFIG_GRKERNSEC_PROC_IPADDR
+int proc_pid_ipaddr(struct task_struct*,char*);
+#endif
 
 static int proc_fd_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
 {
@@ -159,6 +163,9 @@ static int proc_pid_environ(struct task_struct *task, char * buffer)
 	struct mm_struct *mm;
 	int res = 0;
 
+	if (gr_acl_handle_procpidmem(task))
+		return -ESRCH;
+
 	if (!may_ptrace_attach(task))
 		return -ESRCH;
 
@@ -186,6 +193,10 @@ static int proc_pid_cmdline(struct task_struct *task, char * buffer)
 	int res = 0;
 	task_lock(task);
 	mm = task->mm;
+
+	if (gr_acl_handle_procpidmem(task))
+		mm = NULL;
+
 	if (mm) {
 		if (mm->arg_end)
 			atomic_inc(&mm->mm_users);
@@ -268,12 +279,25 @@ out:
 
 static int proc_permission(struct inode *inode, int mask)
 {
+	int ret;
+	struct task_struct *task;
+
 	if (vfs_permission(inode, mask) != 0)
 		return -EACCES;
-	return proc_check_root(inode);
+	ret = proc_check_root(inode);
+
+	if (ret)
+		return ret;
+
+	task = inode->u.proc_i.task;
+
+	if (!task)
+		return 0;
+
+	return gr_acl_handle_procpidmem(task);
 }
 
-extern struct seq_operations proc_pid_maps_op;
+extern const struct seq_operations proc_pid_maps_op;
 static int maps_open(struct inode *inode, struct file *file)
 {
 	struct task_struct *task = inode->u.proc_i.task;
@@ -285,14 +309,14 @@ static int maps_open(struct inode *inode, struct file *file)
 	return ret;
 }
 
-static struct file_operations proc_maps_operations = {
+static const struct file_operations proc_maps_operations = {
 	.open		= maps_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= seq_release,
 };
 
-extern struct seq_operations mounts_op;
+extern const struct seq_operations mounts_op;
 static int mounts_open(struct inode *inode, struct file *file)
 {
 	struct task_struct *task = inode->u.proc_i.task;
@@ -325,7 +349,7 @@ static int mounts_release(struct inode *inode, struct file *file)
 	return seq_release(inode, file);
 }
 
-static struct file_operations proc_mounts_operations = {
+static const struct file_operations proc_mounts_operations = {
 	open:		mounts_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -369,7 +393,7 @@ static ssize_t proc_info_read(struct file * file, char * buf,
 	return count;
 }
 
-static struct file_operations proc_info_file_operations = {
+static const struct file_operations proc_info_file_operations = {
 	read:		proc_info_read,
 };
 
@@ -498,14 +522,14 @@ static loff_t mem_lseek(struct file * file, loff_t offset, int orig)
 	return file->f_pos;
 }
 
-static struct file_operations proc_mem_operations = {
+static const struct file_operations proc_mem_operations = {
 	llseek:		mem_lseek,
 	read:		mem_read,
 	write:		mem_write,
 	open:		mem_open,
 };
 
-static struct inode_operations proc_mem_inode_operations = {
+static const struct inode_operations proc_mem_inode_operations = {
 	permission:	proc_permission,
 };
 
@@ -578,7 +602,7 @@ out:
 	return error;
 }
 
-static struct inode_operations proc_pid_link_inode_operations = {
+static const struct inode_operations proc_pid_link_inode_operations = {
 	readlink:	proc_pid_readlink,
 	follow_link:	proc_pid_follow_link
 };
@@ -604,6 +628,9 @@ enum pid_directory_inos {
 	PROC_PID_STATM,
 	PROC_PID_MAPS,
 	PROC_PID_CPU,
+#ifdef CONFIG_GRKERNSEC_PROC_IPADDR
+	PROC_PID_IPADDR,
+#endif
 	PROC_PID_MOUNTS,
 	PROC_PID_FD_DIR = 1 << (PROC_INODE_SHIFT - 1), /* 0x8000-0xffff */
 };
@@ -618,6 +645,9 @@ static struct pid_entry base_stuff[] = {
   E(PROC_PID_STATM,	"statm",	S_IFREG|S_IRUGO),
 #ifdef CONFIG_SMP
   E(PROC_PID_CPU,	"cpu",		S_IFREG|S_IRUGO),
+#endif
+#ifdef CONFIG_GRKERNSEC_PROC_IPADDR
+  E(PROC_PID_IPADDR,	"ipaddr",	S_IFREG|S_IRUSR),
 #endif
   E(PROC_PID_MAPS,	"maps",		S_IFREG|S_IRUGO),
   E(PROC_PID_MEM,	"mem",		S_IFREG|S_IRUSR|S_IWUSR),
@@ -774,9 +804,9 @@ static struct inode *proc_pid_make_inode(struct super_block * sb, struct task_st
 	inode->u.proc_i.task = task;
 	inode->i_uid = 0;
 	inode->i_gid = 0;
+
 	if (ino == PROC_PID_INO || task_dumpable(task)) {
 		inode->i_uid = task->euid;
-		inode->i_gid = task->egid;
 	}
 
 out:
@@ -813,19 +843,16 @@ static int pid_delete_dentry(struct dentry * dentry)
 	return 1;
 }
 
-static struct dentry_operations pid_fd_dentry_operations =
-{
+static const struct dentry_operations pid_fd_dentry_operations = {
 	d_revalidate:	pid_fd_revalidate,
 	d_delete:	pid_delete_dentry,
 };
 
-static struct dentry_operations pid_dentry_operations =
-{
+static const struct dentry_operations pid_dentry_operations = {
 	d_delete:	pid_delete_dentry,
 };
 
-static struct dentry_operations pid_base_dentry_operations =
-{
+static const struct dentry_operations pid_base_dentry_operations = {
 	d_revalidate:	pid_base_revalidate,
 	d_delete:	pid_delete_dentry,
 };
@@ -896,7 +923,7 @@ out:
 	return ERR_PTR(-ENOENT);
 }
 
-static struct file_operations proc_fd_operations = {
+static const struct file_operations proc_fd_operations = {
 	read:		generic_read_dir,
 	readdir:	proc_readfd,
 };
@@ -904,7 +931,7 @@ static struct file_operations proc_fd_operations = {
 /*
  * proc directories can do almost nothing..
  */
-static struct inode_operations proc_fd_inode_operations = {
+static const struct inode_operations proc_fd_inode_operations = {
 	lookup:		proc_lookupfd,
 	permission:	proc_permission,
 };
@@ -985,6 +1012,12 @@ static struct dentry *proc_base_lookup(struct inode *dir, struct dentry *dentry)
 			inode->u.proc_i.op.proc_read = proc_pid_cpu;
 			break;
 #endif
+#ifdef CONFIG_GRKERNSEC_PROC_IPADDR
+		case PROC_PID_IPADDR:
+			inode->i_fop = &proc_info_file_operations;
+			inode->u.proc_i.op.proc_read = proc_pid_ipaddr;
+			break;
+#endif
 		case PROC_PID_MEM:
 			inode->i_op = &proc_mem_inode_operations;
 			inode->i_fop = &proc_mem_operations;
@@ -1005,12 +1038,12 @@ out:
 	return ERR_PTR(error);
 }
 
-static struct file_operations proc_base_operations = {
+static const struct file_operations proc_base_operations = {
 	read:		generic_read_dir,
 	readdir:	proc_base_readdir,
 };
 
-static struct inode_operations proc_base_inode_operations = {
+static const struct inode_operations proc_base_inode_operations = {
 	lookup:		proc_base_lookup,
 };
 
@@ -1031,7 +1064,7 @@ static int proc_self_follow_link(struct dentry *dentry, struct nameidata *nd)
 	return vfs_follow_link(nd,tmp);
 }	
 
-static struct inode_operations proc_self_inode_operations = {
+static const struct inode_operations proc_self_inode_operations = {
 	readlink:	proc_self_readlink,
 	follow_link:	proc_self_follow_link,
 };
@@ -1090,13 +1123,26 @@ struct dentry *proc_pid_lookup(struct inode *dir, struct dentry * dentry)
 	if (!task)
 		goto out;
 
+	if(gr_check_hidden_task(task)) {
+		goto out;
+	}
+
+#if defined(CONFIG_GRKERNSEC_PROC_USER)
+	if (current->uid && (task->uid != current->uid)) {
+		goto out;
+	}
+#endif
+
 	inode = proc_pid_make_inode(dir->i_sb, task, PROC_PID_INO);
 
 	put_task_struct(task);
 
 	if (!inode)
 		goto out;
+#ifdef CONFIG_GRKERNSEC_PROC_USER
+	inode->i_mode = S_IFDIR|S_IRUSR|S_IXUSR;
 	inode->i_mode = S_IFDIR|S_IRUGO|S_IXUGO;
+#endif
 	inode->i_op = &proc_base_inode_operations;
 	inode->i_fop = &proc_base_operations;
 	inode->i_nlink = 3;
@@ -1144,7 +1190,15 @@ static int get_pid_list(int index, int *pids, struct file *filp)
 			continue;
 		pid = p->pid;
 		if (!pid)
-			BUG();
+			continue; // BUG();
+		if(gr_pid_is_chrooted(p))
+			continue;
+		if(gr_check_hidden_task(p))
+			continue;
+#if defined(CONFIG_GRKERNSEC_PROC_USER)
+		if (current->uid && (p->uid != current->uid))
+			continue;
+#endif
 		if (p->tgid != p->pid)
 			pids[nr_pids] = -pid;
 		else

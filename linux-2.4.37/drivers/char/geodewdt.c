@@ -183,7 +183,7 @@ static int geodewdt_notify_sys(struct notifier_block *this,
         return NOTIFY_DONE;
 }
 
-static struct file_operations geodewdt_fops = {
+static const struct file_operations geodewdt_fops = {
         .owner          = THIS_MODULE,
         .llseek         = no_llseek,
         .write          = geodewdt_write,

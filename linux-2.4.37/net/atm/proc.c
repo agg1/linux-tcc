@@ -54,11 +54,11 @@ static ssize_t proc_dev_atm_read(struct file *file,char *buf,size_t count,
 static ssize_t proc_spec_atm_read(struct file *file,char *buf,size_t count,
     loff_t *pos);
 
-static struct file_operations proc_dev_atm_operations = {
+static const struct file_operations proc_dev_atm_operations = {
 	read:		proc_dev_atm_read,
 };
 
-static struct file_operations proc_spec_atm_operations = {
+static const struct file_operations proc_spec_atm_operations = {
 	read:		proc_spec_atm_read,
 };
 
@@ -244,7 +244,7 @@ static int clip_seq_show(struct seq_file *seq, void *v)
 	return 0;
 }
 
-static struct seq_operations arp_seq_ops = {
+static const struct seq_operations arp_seq_ops = {
 	.start	= clip_seq_start,
 	.next	= neigh_seq_next,
 	.stop	= neigh_seq_stop,
@@ -282,7 +282,7 @@ out_kfree:
 	goto out;
 }
 
-static struct file_operations arp_seq_fops = {
+static const struct file_operations arp_seq_fops = {
 	.open		= arp_seq_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

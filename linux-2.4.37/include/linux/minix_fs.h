@@ -123,11 +123,11 @@ extern ino_t minix_inode_by_name(struct dentry*);
 
 extern int minix_sync_file(struct file *, struct dentry *, int);
 
-extern struct inode_operations minix_file_inode_operations;
-extern struct inode_operations minix_dir_inode_operations;
-extern struct file_operations minix_file_operations;
-extern struct file_operations minix_dir_operations;
-extern struct dentry_operations minix_dentry_operations;
+extern const struct inode_operations minix_file_inode_operations;
+extern const struct inode_operations minix_dir_inode_operations;
+extern const struct file_operations minix_file_operations;
+extern const struct file_operations minix_dir_operations;
+extern const struct dentry_operations minix_dentry_operations;
 
 #endif /* __KERNEL__ */
 

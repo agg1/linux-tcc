@@ -2703,7 +2703,7 @@ static int qic02_tape_ioctl(struct inode *inode, struct file *filp,
 
 
 /* These are (most) of the interface functions: */
-static struct file_operations qic02_tape_fops = {
+static const struct file_operations qic02_tape_fops = {
 	owner:THIS_MODULE,
 	llseek:no_llseek,
 	read:qic02_tape_read,

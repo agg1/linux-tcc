@@ -409,7 +409,7 @@ static int joydev_ioctl(struct inode *inode, struct file *file, unsigned int cmd
 	return -EINVAL;
 }
 
-static struct file_operations joydev_fops = {
+static const struct file_operations joydev_fops = {
 	owner:		THIS_MODULE,
 	read:		joydev_read,
 	write:		joydev_write,

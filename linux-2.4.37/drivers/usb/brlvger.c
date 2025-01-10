@@ -228,8 +228,7 @@ static struct usb_device_id brlvger_ids [] = {
 };
 MODULE_DEVICE_TABLE (usb, brlvger_ids);
 
-static struct file_operations brlvger_fops =
-{
+static const struct file_operations brlvger_fops = {
 	owner:		THIS_MODULE,
 	llseek:		brlvger_llseek,
 	read:		brlvger_read,

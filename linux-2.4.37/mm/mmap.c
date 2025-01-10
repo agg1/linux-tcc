@@ -15,6 +15,8 @@
 #include <linux/fs.h>
 #include <linux/personality.h>
 #include <linux/mount.h>
+#include <linux/random.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 #include <asm/pgalloc.h>
@@ -631,6 +633,10 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
 	if (len > TASK_SIZE)
 		return -ENOMEM;
 
+#ifdef CONFIG_PAX_RANDMMAP
+//	if (!(current->mm->pax_flags & MF_PAX_RANDMMAP) || !filp)
+	if (!filp)
+#endif
 	if (addr) {
 		addr = PAGE_ALIGN(addr);
 		vma = find_vma(mm, addr);
@@ -639,6 +645,12 @@ arch_get_unmapped_area(struct file *filp, unsigned long addr,
 			return addr;
 	}
 	addr = mm->free_area_cache;
+
+#ifdef CONFIG_PAX_RANDMMAP
+	/* PaX: randomize base address if requested */
+//	if (current->mm->pax_flags & MF_PAX_RANDMMAP)
+		addr += current->mm->delta_mmap;
+#endif
 
 	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
 		/* At this point:  (!vma || addr < vma->vm_end). */

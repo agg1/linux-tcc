@@ -78,7 +78,7 @@ kiobuf_read(struct file *filp, char *buf, size_t len, loff_t *ppos)
 }
 
 
-static struct file_operations kiobuf_fops = {
+static const struct file_operations kiobuf_fops = {
 	owner:    THIS_MODULE,
 	read:     kiobuf_read
 };

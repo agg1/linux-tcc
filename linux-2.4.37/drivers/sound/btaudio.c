@@ -425,7 +425,7 @@ static int btaudio_mixer_ioctl(struct inode *inode, struct file *file,
 	return 0;
 }
 
-static struct file_operations btaudio_mixer_fops = {
+static const struct file_operations btaudio_mixer_fops = {
 	owner:   THIS_MODULE,
 	llseek:  no_llseek,
 	open:    btaudio_mixer_open,
@@ -790,7 +790,7 @@ static unsigned int btaudio_dsp_poll(struct file *file, struct poll_table_struct
 	return mask;
 }
 
-static struct file_operations btaudio_digital_dsp_fops = {
+static const struct file_operations btaudio_digital_dsp_fops = {
 	owner:   THIS_MODULE,
 	llseek:  no_llseek,
 	open:    btaudio_dsp_open_digital,
@@ -801,7 +801,7 @@ static struct file_operations btaudio_digital_dsp_fops = {
 	poll:    btaudio_dsp_poll,
 };
 
-static struct file_operations btaudio_analog_dsp_fops = {
+static const struct file_operations btaudio_analog_dsp_fops = {
 	owner:   THIS_MODULE,
 	llseek:  no_llseek,
 	open:    btaudio_dsp_open_analog,

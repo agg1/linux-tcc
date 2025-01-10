@@ -60,7 +60,7 @@ static int sysv_hash(struct dentry *dentry, struct qstr *qstr)
 	return 0;
 }
 
-struct dentry_operations sysv_dentry_operations = {
+const struct dentry_operations sysv_dentry_operations = {
 	d_hash:		sysv_hash,
 };
 
@@ -310,7 +310,7 @@ out:
 /*
  * directories can handle most operations...
  */
-struct inode_operations sysv_dir_inode_operations = {
+const struct inode_operations sysv_dir_inode_operations = {
 	create:		sysv_create,
 	lookup:		sysv_lookup,
 	link:		sysv_link,

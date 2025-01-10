@@ -72,8 +72,15 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
 	unsigned long end = TASK_SIZE;
 
 	if (current->thread.flags & THREAD_IA32) {
+#ifdef CONFIG_PAX_RANDMMAP
+//		if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+		if (!addr || filp)
+			addr = TASK_UNMAPPED_32 + current->mm->delta_mmap;
+		else
+#endif
 		if (!addr) 
 			addr = TASK_UNMAPPED_32;
+
 		end = 0xffff0000;
 	} else if (flags & MAP_32BIT) { 
 		/* This is usually used needed to map code in small
@@ -82,14 +89,30 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
 		   base down for this case.  This may give conflicts
 		   with the heap, but we assume that malloc falls back
 		   to mmap. Give it 1GB of playground for now. -AK */ 
+
+#ifdef CONFIG_PAX_RANDMMAP
+//		if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+		if (!addr || filp)
+			addr = 0x40000000 + (current->mm->delta_mmap & 0x0FFFFFFFU);
+		else
+#endif
 		if (!addr) 
 			addr = 0x40000000; 
+
 		end = 0x80000000;		
-	} else { 
+	} else {
+
+#ifdef CONFIG_PAX_RANDMMAP
+//		if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+		if (!addr || filp)
+			addr = TASK_UNMAPPED_64 + current->mm->delta_mmap;
+		else
+#endif
 		if (!addr) 
 			addr = TASK_UNMAPPED_64; 
+
 		end = TASK_SIZE; 
-		}
+	}
 
 	if (len > end)
 		return -ENOMEM;

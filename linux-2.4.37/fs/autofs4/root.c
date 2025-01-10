@@ -26,7 +26,7 @@ static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
 static int autofs4_root_ioctl(struct inode *, struct file *,unsigned int,unsigned long);
 static struct dentry *autofs4_root_lookup(struct inode *,struct dentry *);
 
-struct file_operations autofs4_root_operations = {
+const struct file_operations autofs4_root_operations = {
 	open:		dcache_dir_open,
 	release:	dcache_dir_close,
 	llseek:		dcache_dir_lseek,
@@ -36,7 +36,7 @@ struct file_operations autofs4_root_operations = {
 	ioctl:		autofs4_root_ioctl,
 };
 
-struct inode_operations autofs4_root_inode_operations = {
+const struct inode_operations autofs4_root_inode_operations = {
 	lookup:		autofs4_root_lookup,
 	unlink:		autofs4_dir_unlink,
 	symlink:	autofs4_dir_symlink,
@@ -44,7 +44,7 @@ struct inode_operations autofs4_root_inode_operations = {
 	rmdir:		autofs4_dir_rmdir,
 };
 
-struct inode_operations autofs4_dir_inode_operations = {
+const struct inode_operations autofs4_dir_inode_operations = {
 	lookup:		autofs4_dir_lookup,
 	unlink:		autofs4_dir_unlink,
 	symlink:	autofs4_dir_symlink,
@@ -216,13 +216,13 @@ static void autofs4_dentry_release(struct dentry *de)
 }
 
 /* For dentries of directories in the root dir */
-static struct dentry_operations autofs4_root_dentry_operations = {
+static const struct dentry_operations autofs4_root_dentry_operations = {
 	d_revalidate:	autofs4_root_revalidate,
 	d_release:	autofs4_dentry_release,
 };
 
 /* For other dentries */
-static struct dentry_operations autofs4_dentry_operations = {
+static const struct dentry_operations autofs4_dentry_operations = {
 	d_revalidate:	autofs4_revalidate,
 	d_release:	autofs4_dentry_release,
 };

@@ -23,7 +23,7 @@
 #define PRINTK(x)
 #define Printk(x) printk x
 
-struct file_operations fat_file_operations = {
+const struct file_operations fat_file_operations = {
 	llseek:		generic_file_llseek,
 	read:		fat_file_read,
 	write:		fat_file_write,
@@ -31,7 +31,7 @@ struct file_operations fat_file_operations = {
 	fsync:		file_fsync,
 };
 
-struct inode_operations fat_file_inode_operations = {
+const struct inode_operations fat_file_inode_operations = {
 	truncate:	fat_truncate,
 	setattr:	fat_notify_change,
 };

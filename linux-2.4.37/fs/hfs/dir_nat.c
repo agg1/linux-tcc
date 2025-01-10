@@ -62,13 +62,13 @@ const struct hfs_name hfs_nat_reserved2[] = {
 #define DOT_PARENT	(&hfs_nat_reserved1[3])
 #define ROOTINFO        (&hfs_nat_reserved2[0])
 
-struct file_operations hfs_nat_dir_operations = {
+const struct file_operations hfs_nat_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	nat_readdir,
 	fsync:		file_fsync,
 };
 
-struct inode_operations hfs_nat_ndir_inode_operations = {
+const struct inode_operations hfs_nat_ndir_inode_operations = {
 	create:		hfs_create,
 	lookup:		nat_lookup,
 	unlink:		hfs_unlink,
@@ -78,7 +78,7 @@ struct inode_operations hfs_nat_ndir_inode_operations = {
 	setattr:	hfs_notify_change,
 };
 
-struct inode_operations hfs_nat_hdir_inode_operations = {
+const struct inode_operations hfs_nat_hdir_inode_operations = {
 	create:		hfs_create,
 	lookup:		nat_lookup,
 	unlink:		nat_hdr_unlink,

@@ -370,7 +370,7 @@ acpi_scan_rsdp (
 	 * RSDP signature.
 	 */
 	for (offset = 0; offset < length; offset += 16) {
-		if (strncmp((char *) (start + offset), "RSD PTR ", sig_len))
+		if (strncmp((char *) (phys_to_virt(start) + offset), "RSD PTR ", sig_len))
 			continue;
 		return (start + offset);
 	}
@@ -708,7 +708,7 @@ static void acpi_create_identity_pmd (void)
 	saved_pmd = *pmd;
 
 	/* set the new one */
-	set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(ptep)));
+	set_pmd(pmd, __pmd(_KERNPG_TABLE + __pa(ptep)));
 
 	/* flush the TLB */
 	local_flush_tlb();

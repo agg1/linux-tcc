@@ -248,7 +248,7 @@ void cleanup_module(void)
   </para>
 
   <programlisting>
-struct file_operations our_mouse_fops = {
+const struct file_operations our_mouse_fops = {
         owner: THIS_MODULE,            /* Automatic usage management */
         read:  read_mouse,             /* You can read a mouse */
         write: write_mouse,            /* This won't do a lot */
@@ -894,7 +894,7 @@ static void ourmouse_interrupt(int irq, void *dev_id, struct pt_regs *regs)
   </para>
 
   <programlisting>
-struct file_operations our_mouse_fops = {
+const struct file_operations our_mouse_fops = {
         owner: THIS_MODULE
         read:  read_mouse,      /* You can read a mouse */
         write: write_mouse,     /* This won't do a lot */

@@ -284,7 +284,7 @@ void hfsplus_cat_write_inode(struct inode *);
 struct inode *hfsplus_new_inode(struct super_block *, int);
 void hfsplus_delete_inode(struct inode *);
 
-extern struct address_space_operations hfsplus_btree_aops;
+extern const struct address_space_operations hfsplus_btree_aops;
 
 /* options.c */
 int parse_options(char *, struct hfsplus_sb_info *);

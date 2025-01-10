@@ -256,7 +256,7 @@ extern int fat_get_cluster(struct inode *inode, int cluster);
 extern int fat_free(struct inode *inode, int skip);
 
 /* fat/dir.c */
-extern struct file_operations fat_dir_operations;
+extern const struct file_operations fat_dir_operations;
 extern int fat_search_long(struct inode *inode, const char *name, int name_len,
 			   int anycase, loff_t *spos, loff_t *lpos);
 extern int fat_readdir(struct file *filp, void *dirent, filldir_t filldir);
@@ -268,8 +268,8 @@ extern int fat_add_entries(struct inode *dir, int slots, struct buffer_head **bh
 extern int fat_new_dir(struct inode *dir, struct inode *parent, int is_vfat);
 
 /* fat/file.c */
-extern struct file_operations fat_file_operations;
-extern struct inode_operations fat_file_inode_operations;
+extern const struct file_operations fat_file_operations;
+extern const struct inode_operations fat_file_inode_operations;
 extern ssize_t fat_file_read(struct file *filp, char *buf, size_t count,
 			     loff_t *ppos);
 extern int fat_get_block(struct inode *inode, long iblock,
@@ -290,7 +290,7 @@ extern void fat_clear_inode(struct inode *inode);
 extern void fat_put_super(struct super_block *sb);
 extern struct super_block *
 fat_read_super(struct super_block *sb, void *data, int silent,
-	       struct inode_operations *fs_dir_inode_ops);
+	       const struct inode_operations *fs_dir_inode_ops);
 extern int fat_statfs(struct super_block *sb, struct statfs *buf);
 extern void fat_write_inode(struct inode *inode, int wait);
 extern int fat_notify_change(struct dentry * dentry, struct iattr * attr);

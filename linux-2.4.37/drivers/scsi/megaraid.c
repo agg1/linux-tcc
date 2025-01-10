@@ -873,7 +873,7 @@ struct mega_hbas mega_hbas[MAX_CONTROLLERS];
  */
 /* For controller re-ordering */ 
 
-static struct file_operations megadev_fops = {
+static const struct file_operations megadev_fops = {
 	ioctl:megadev_ioctl_entry,
 	open:megadev_open,
 	release:megadev_close,

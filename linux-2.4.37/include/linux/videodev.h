@@ -20,7 +20,7 @@ struct video_device
 	int minor;
 
 	/* device ops + callbacks */
-	struct file_operations *fops;
+	const struct file_operations *fops;
 	void (*release)(struct video_device *vfd);
 
 	/* old, obsolete interface -- dropped in 2.5.x, don't use it */

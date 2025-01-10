@@ -176,30 +176,30 @@ static ssize_t ppc_rtas_errinjct_write(struct file * file, const char * buf,
 static ssize_t ppc_rtas_errinjct_read(struct file *file, char *buf,
 				      size_t count, loff_t *ppos);
 
-struct file_operations ppc_rtas_poweron_operations = {
+const struct file_operations ppc_rtas_poweron_operations = {
 	.read =		ppc_rtas_poweron_read,
 	.write =	ppc_rtas_poweron_write
 };
-struct file_operations ppc_rtas_progress_operations = {
+const struct file_operations ppc_rtas_progress_operations = {
 	.read =		ppc_rtas_progress_read,
 	.write =	ppc_rtas_progress_write
 };
 
-struct file_operations ppc_rtas_clock_operations = {
+const struct file_operations ppc_rtas_clock_operations = {
 	.read =		ppc_rtas_clock_read,
 	.write =	ppc_rtas_clock_write
 };
 
-struct file_operations ppc_rtas_tone_freq_operations = {
+const struct file_operations ppc_rtas_tone_freq_operations = {
 	.read =		ppc_rtas_tone_freq_read,
 	.write =	ppc_rtas_tone_freq_write
 };
-struct file_operations ppc_rtas_tone_volume_operations = {
+const struct file_operations ppc_rtas_tone_volume_operations = {
 	.read =		ppc_rtas_tone_volume_read,
 	.write =	ppc_rtas_tone_volume_write
 };
 
-struct file_operations ppc_rtas_errinjct_operations = {
+const struct file_operations ppc_rtas_errinjct_operations = {
     .open =		ppc_rtas_errinjct_open,
     .read = 		ppc_rtas_errinjct_read,
     .write = 		ppc_rtas_errinjct_write,

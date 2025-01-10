@@ -1013,7 +1013,7 @@ static int ibmveth_seq_show(struct seq_file *seq, void *v)
 	
 	return 0;
 }
-static struct seq_operations ibmveth_seq_ops = {
+static const struct seq_operations ibmveth_seq_ops = {
 	.start = ibmveth_seq_start,
 	.next  = ibmveth_seq_next,
 	.stop  = ibmveth_seq_stop,
@@ -1036,7 +1036,7 @@ static int ibmveth_proc_open(struct inode *inode, struct file *file)
 	return rc;
 }
 
-static struct file_operations ibmveth_proc_fops = {
+static const struct file_operations ibmveth_proc_fops = {
 	.owner	 = THIS_MODULE,
 	.open    = ibmveth_proc_open,
 	.read    = seq_read,

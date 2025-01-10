@@ -231,7 +231,7 @@ static int ftl_reread_partitions(int minor);
 static void ftl_erase_callback(struct erase_info *done);
 
 #if LINUX_VERSION_CODE < 0x20326
-static struct file_operations ftl_blk_fops = {
+static const struct file_operations ftl_blk_fops = {
     open:	ftl_open,
     release:	ftl_close,
     ioctl:	ftl_ioctl,

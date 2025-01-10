@@ -57,7 +57,7 @@ static int  nfs_statfs64(struct super_block *, struct statfs64 *);
 #endif
 static int  nfs_show_options(struct seq_file *, struct vfsmount *);
 
-static struct super_operations nfs_sops = { 
+static const struct super_operations nfs_sops = { 
 	read_inode:	nfs_read_inode,
 	write_inode:	nfs_write_inode,
 	delete_inode:	nfs_delete_inode,

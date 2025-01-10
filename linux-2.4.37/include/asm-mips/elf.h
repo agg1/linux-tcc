@@ -107,6 +107,13 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
 #define ELF_ET_DYN_BASE         (TASK_SIZE / 3 * 2)
 
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	0x00400000UL
+
+#define PAX_DELTA_MMAP_LEN	(27 - PAGE_SHIFT)
+#define PAX_DELTA_STACK_LEN	(27 - PAGE_SHIFT)
+#endif
+
 #ifdef __KERNEL__
 #define SET_PERSONALITY(ex, ibcs2) set_personality((ibcs2)?PER_SVR4:PER_LINUX)
 #endif

@@ -688,7 +688,7 @@ struct input_handler {
 	struct input_handle* (*connect)(struct input_handler *handler, struct input_dev *dev);
 	void (*disconnect)(struct input_handle *handle);
 
-	struct file_operations *fops;
+	const struct file_operations *fops;
 	int minor;
 
 	struct input_handle *handle;

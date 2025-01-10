@@ -32,7 +32,7 @@ struct tty_driver *get_tty_driver(kdev_t device);
 
 struct device_struct {
 	const char * name;
-	struct file_operations * fops;
+	const struct file_operations * fops;
 };
 
 static rwlock_t chrdevs_lock = RW_LOCK_UNLOCKED;
@@ -62,9 +62,9 @@ int get_device_list(char * page)
 	Load the driver if needed.
 	Increment the reference count of module in question.
 */
-static struct file_operations * get_chrfops(unsigned int major, unsigned int minor)
+static const struct file_operations * get_chrfops(unsigned int major, unsigned int minor)
 {
-	struct file_operations *ret = NULL;
+	const struct file_operations *ret = NULL;
 
 	if (!major || major >= MAX_CHRDEV)
 		return NULL;
@@ -95,7 +95,7 @@ static struct file_operations * get_chrfops(unsigned int major, unsigned int min
 	return ret;
 }
 
-int register_chrdev(unsigned int major, const char * name, struct file_operations *fops)
+int register_chrdev(unsigned int major, const char * name, const struct file_operations *fops)
 {
 	if (major == 0) {
 		write_lock(&chrdevs_lock);
@@ -162,7 +162,7 @@ int chrdev_open(struct inode * inode, struct file * filp)
  * is contain the open that then fills in the correct operations
  * depending on the special file...
  */
-static struct file_operations def_chr_fops = {
+static const struct file_operations def_chr_fops = {
 	open:		chrdev_open,
 };
 
@@ -193,7 +193,7 @@ static int sock_no_open(struct inode *irrelevant, struct file *dontcare)
 	return -ENXIO;
 }
 
-static struct file_operations bad_sock_fops = {
+static const struct file_operations bad_sock_fops = {
 	open:		sock_no_open
 };
 

@@ -34,7 +34,7 @@ extern void dump_thread(struct pt_regs *, struct user *);
 extern spinlock_t rtc_lock;
 
 #if defined(CONFIG_APM) || defined(CONFIG_APM_MODULE)
-extern void machine_real_restart(unsigned char *, int);
+extern void machine_real_restart(const unsigned char *, unsigned int);
 EXPORT_SYMBOL(machine_real_restart);
 extern void default_idle(void);
 EXPORT_SYMBOL(default_idle);
@@ -86,6 +86,8 @@ EXPORT_SYMBOL_NOVERS(__down_failed_trylock);
 EXPORT_SYMBOL_NOVERS(__up_wakeup);
 /* Networking helper routines. */
 EXPORT_SYMBOL(csum_partial_copy_generic);
+EXPORT_SYMBOL(csum_partial_copy_generic_to_user);
+EXPORT_SYMBOL(csum_partial_copy_generic_from_user);
 /* Delay loops */
 EXPORT_SYMBOL(__ndelay);
 EXPORT_SYMBOL(__udelay);

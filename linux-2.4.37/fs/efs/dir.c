@@ -8,12 +8,12 @@
 
 static int efs_readdir(struct file *, void *, filldir_t);
 
-struct file_operations efs_dir_operations = {
+const struct file_operations efs_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	efs_readdir,
 };
 
-struct inode_operations efs_dir_inode_operations = {
+const struct inode_operations efs_dir_inode_operations = {
 	lookup:		efs_lookup,
 };
 

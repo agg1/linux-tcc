@@ -405,7 +405,7 @@ static struct buffer_head *_pe_requests;
 static DECLARE_RWSEM(_pe_lock);
 
 
-struct file_operations lvm_chr_fops = {
+const struct file_operations lvm_chr_fops = {
 	owner:THIS_MODULE,
 	open:lvm_chr_open,
 	release:lvm_chr_close,

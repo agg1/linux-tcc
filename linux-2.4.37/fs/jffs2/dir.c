@@ -58,8 +58,7 @@ static int jffs2_mknod (struct inode *,struct dentry *,int,int);
 static int jffs2_rename (struct inode *, struct dentry *,
                         struct inode *, struct dentry *);
 
-struct file_operations jffs2_dir_operations =
-{
+const struct file_operations jffs2_dir_operations = {
 	read:		generic_read_dir,
 	readdir:	jffs2_readdir,
 	ioctl:		jffs2_ioctl,
@@ -67,8 +66,7 @@ struct file_operations jffs2_dir_operations =
 };
 
 
-struct inode_operations jffs2_dir_inode_operations =
-{
+const struct inode_operations jffs2_dir_inode_operations = {
 	create:		jffs2_create,
 	lookup:		jffs2_lookup,
 	link:		jffs2_link,

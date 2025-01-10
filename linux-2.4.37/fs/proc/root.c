@@ -37,7 +37,11 @@ void __init proc_root_init(void)
 		return;
 	}
 	proc_misc_init();
-	proc_net = proc_mkdir("net", 0);
+#ifdef CONFIG_GRKERNSEC_PROC_USER
+	proc_net = proc_mkdir_mode("net", S_IRUSR | S_IXUSR, NULL);
+#else
+	proc_net = proc_mkdir("net", NULL);
+#endif
 	proc_net_stat = proc_mkdir("net/stat", NULL);
 
 #ifdef CONFIG_SYSVIPC
@@ -69,7 +73,14 @@ void __init proc_root_init(void)
 #ifdef CONFIG_PPC_RTAS
 	proc_rtas_init();
 #endif
-	proc_bus = proc_mkdir("bus", 0);
+
+#ifdef CONFIG_GRKERNSEC_PROC_ADD
+#ifdef CONFIG_GRKERNSEC_PROC_USER
+	proc_bus = proc_mkdir_mode("bus", S_IRUSR | S_IXUSR, NULL);
+#endif
+#else
+	proc_bus = proc_mkdir("bus", NULL);
+#endif
 }
 
 static struct dentry *proc_root_lookup(struct inode * dir, struct dentry * dentry)
@@ -108,7 +119,7 @@ static int proc_root_readdir(struct file * filp,
  * <pid> directories. Thus we don't use the generic
  * directory handling functions for that..
  */
-static struct file_operations proc_root_operations = {
+static const struct file_operations proc_root_operations = {
 	read:		 generic_read_dir,
 	readdir:	 proc_root_readdir,
 };
@@ -116,7 +127,7 @@ static struct file_operations proc_root_operations = {
 /*
  * proc root can do almost nothing..
  */
-static struct inode_operations proc_root_inode_operations = {
+static const struct inode_operations proc_root_inode_operations = {
 	lookup:		proc_root_lookup,
 };
 

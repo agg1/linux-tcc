@@ -117,7 +117,7 @@ int hfsplus_releasepage(struct page *page, int mask)
 	return res;
 }
 
-struct address_space_operations hfsplus_btree_aops = {
+const struct address_space_operations hfsplus_btree_aops = {
 	.readpage	= hfsplus_readpage,
 	.writepage	= hfsplus_writepage,
 	.sync_page	= block_sync_page,
@@ -127,7 +127,7 @@ struct address_space_operations hfsplus_btree_aops = {
 	.releasepage	= hfsplus_releasepage,
 };
 
-struct address_space_operations hfsplus_aops = {
+const struct address_space_operations hfsplus_aops = {
 	.readpage	= hfsplus_readpage,
 	.writepage	= hfsplus_writepage,
 	.sync_page	= block_sync_page,
@@ -247,15 +247,15 @@ static int hfsplus_file_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-extern struct inode_operations hfsplus_dir_inode_operations;
-extern struct file_operations hfsplus_dir_operations;
+extern const struct inode_operations hfsplus_dir_inode_operations;
+extern const struct file_operations hfsplus_dir_operations;
 
-struct inode_operations hfsplus_file_inode_operations = {
+const struct inode_operations hfsplus_file_inode_operations = {
 	.lookup		= hfsplus_file_lookup,
 	.truncate	= hfsplus_truncate,
 };
 
-struct file_operations hfsplus_file_operations = {
+const struct file_operations hfsplus_file_operations = {
 	.llseek 	= generic_file_llseek,
 	.read		= generic_file_read,
 	//.write	= hfsplus_file_write,

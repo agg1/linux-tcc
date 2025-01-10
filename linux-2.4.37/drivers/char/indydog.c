@@ -137,7 +137,7 @@ static int indydog_ioctl(struct inode *inode, struct file *file,
 	}
 }
 
-static struct file_operations indydog_fops = {
+static const struct file_operations indydog_fops = {
 	owner:		THIS_MODULE,
 	write:		indydog_write,
 	ioctl:		indydog_ioctl,

@@ -77,7 +77,7 @@ struct dentry {
 	int d_mounted;
 	struct qstr d_name;
 	unsigned long d_time;		/* used by d_revalidate */
-	struct dentry_operations  *d_op;
+	const struct dentry_operations  *d_op;
 	struct super_block * d_sb;	/* The root of the dentry tree */
 	unsigned long d_vfs_flags;
 	void * d_fsdata;		/* fs-specific data */

@@ -43,7 +43,7 @@ struct miscdevice
 {
 	int minor;
 	const char *name;
-	struct file_operations *fops;
+	const struct file_operations *fops;
 	struct miscdevice * next, * prev;
 	devfs_handle_t devfs_handle;
 };

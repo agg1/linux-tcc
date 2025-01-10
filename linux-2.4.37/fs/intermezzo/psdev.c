@@ -364,7 +364,7 @@ static int presto_psdev_release(struct inode * inode, struct file * file)
         return 0;
 }
 
-static struct file_operations presto_psdev_fops = {
+static const struct file_operations presto_psdev_fops = {
         .read    = presto_psdev_read,
         .write   = presto_psdev_write,
         .poll    = presto_psdev_poll,

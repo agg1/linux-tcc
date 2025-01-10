@@ -1968,8 +1968,8 @@ int reiserfs_journal_in_proc( char *buffer, char **start, off_t offset,
 #endif
 
 /* dir.c */
-extern struct inode_operations reiserfs_dir_inode_operations;
-extern struct file_operations reiserfs_dir_operations;
+extern const struct inode_operations reiserfs_dir_inode_operations;
+extern const struct file_operations reiserfs_dir_operations;
 
 /* tail_conversion.c */
 int direct2indirect (struct reiserfs_transaction_handle *, struct inode *, struct path *, struct buffer_head *, loff_t);
@@ -1978,9 +1978,9 @@ void reiserfs_unmap_buffer(struct buffer_head *) ;
 
 
 /* file.c */
-extern struct inode_operations reiserfs_file_inode_operations;
-extern struct file_operations reiserfs_file_operations;
-extern struct address_space_operations reiserfs_address_space_operations ;
+extern const struct inode_operations reiserfs_file_inode_operations;
+extern const struct file_operations reiserfs_file_operations;
+extern const struct address_space_operations reiserfs_address_space_operations ;
 int get_new_buffer (struct reiserfs_transaction_handle *th, struct buffer_head *,
 		    struct buffer_head **, struct path *);
 

@@ -31,7 +31,7 @@ static loff_t lseek_kcore(struct file * file, loff_t offset, int origin);
 
 static ssize_t read_kcore(struct file *, char *, size_t, loff_t *);
 
-struct file_operations proc_kcore_operations = {
+const struct file_operations proc_kcore_operations = {
 	read:		read_kcore,
 	open:		open_kcore,
 	llseek:		lseek_kcore,

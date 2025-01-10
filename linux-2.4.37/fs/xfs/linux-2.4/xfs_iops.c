@@ -647,7 +647,7 @@ linvfs_removexattr(
 }
 
 
-struct inode_operations linvfs_file_inode_operations = {
+const struct inode_operations linvfs_file_inode_operations = {
 	.permission		= linvfs_permission,
 	.truncate		= linvfs_truncate,
 	.revalidate		= linvfs_revalidate,
@@ -658,7 +658,7 @@ struct inode_operations linvfs_file_inode_operations = {
 	.removexattr		= linvfs_removexattr,
 };
 
-struct inode_operations linvfs_dir_inode_operations = {
+const struct inode_operations linvfs_dir_inode_operations = {
 	.create			= linvfs_create,
 	.lookup			= linvfs_lookup,
 	.link			= linvfs_link,
@@ -677,7 +677,7 @@ struct inode_operations linvfs_dir_inode_operations = {
 	.removexattr		= linvfs_removexattr,
 };
 
-struct inode_operations linvfs_symlink_inode_operations = {
+const struct inode_operations linvfs_symlink_inode_operations = {
 	.readlink		= linvfs_readlink,
 	.follow_link		= linvfs_follow_link,
 	.permission		= linvfs_permission,

@@ -41,8 +41,8 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/uaccess.h>
 
-static struct inode_operations usbdevfs_bus_inode_operations;
-static struct file_operations usbdevfs_bus_file_operations;
+static const struct inode_operations usbdevfs_bus_inode_operations;
+static const struct file_operations usbdevfs_bus_file_operations;
 
 /* --------------------------------------------------------------------- */
 
@@ -55,7 +55,7 @@ static LIST_HEAD(superlist);
 
 struct special {
 	const char *name;
-	struct file_operations *fops;
+	const struct file_operations *fops;
 	struct inode *inode;
 	struct list_head inodes;
 };
@@ -313,7 +313,7 @@ static int usbdevfs_revalidate(struct dentry *dentry, int flags)
 	return 1;
 }
 
-static struct dentry_operations usbdevfs_dentry_operations = {
+static const struct dentry_operations usbdevfs_dentry_operations = {
 	d_revalidate:	usbdevfs_revalidate,
 };
 
@@ -490,19 +490,19 @@ static int usbdevfs_bus_readdir(struct file *filp, void *dirent, filldir_t filld
 	}
 }
 
-static struct file_operations usbdevfs_root_file_operations = {
+static const struct file_operations usbdevfs_root_file_operations = {
 	readdir: usbdevfs_root_readdir,
 };
 
-static struct inode_operations usbdevfs_root_inode_operations = {
+static const struct inode_operations usbdevfs_root_inode_operations = {
 	lookup: usbdevfs_root_lookup,
 };
 
-static struct file_operations usbdevfs_bus_file_operations = {
+static const struct file_operations usbdevfs_bus_file_operations = {
 	readdir: usbdevfs_bus_readdir,
 };
 
-static struct inode_operations usbdevfs_bus_inode_operations = {
+static const struct inode_operations usbdevfs_bus_inode_operations = {
 	lookup: usbdevfs_bus_lookup,
 };
 
@@ -595,7 +595,7 @@ static int usbdevfs_remount(struct super_block *s, int *flags, char *data)
 	return 0;
 }
 
-static struct super_operations usbdevfs_sops = { 
+static const struct super_operations usbdevfs_sops = { 
 	read_inode:	usbdevfs_read_inode,
 	put_super:	usbdevfs_put_super,
 	statfs:		usbdevfs_statfs,

@@ -68,7 +68,7 @@
 /*
  * external references
  */
-extern struct address_space_operations jfs_aops;
+extern const struct address_space_operations jfs_aops;
 
 /*
  * forward references

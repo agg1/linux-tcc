@@ -702,20 +702,20 @@ extern const char *ext3_decode_error(struct super_block *sb, int errno, char nbu
  */
 
 /* dir.c */
-extern struct file_operations ext3_dir_operations;
+extern const struct file_operations ext3_dir_operations;
 
 /* file.c */
-extern struct inode_operations ext3_file_inode_operations;
-extern struct file_operations ext3_file_operations;
+extern const struct inode_operations ext3_file_inode_operations;
+extern const struct file_operations ext3_file_operations;
 
 /* inode.c */
-extern struct address_space_operations ext3_aops;
+extern const struct address_space_operations ext3_aops;
 
 /* namei.c */
-extern struct inode_operations ext3_dir_inode_operations;
+extern const struct inode_operations ext3_dir_inode_operations;
 
 /* symlink.c */
-extern struct inode_operations ext3_fast_symlink_inode_operations;
+extern const struct inode_operations ext3_fast_symlink_inode_operations;
 
 
 #endif	/* __KERNEL__ */

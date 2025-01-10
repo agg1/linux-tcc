@@ -262,9 +262,15 @@
 /*
  * Configuration information
  */
+#ifdef CONFIG_GRKERNSEC_RANDNET
+#define DEFAULT_POOL_SIZE 1024
+#define SECONDARY_POOL_SIZE 256
+#define BATCH_ENTROPY_SIZE 512
+#else
 #define DEFAULT_POOL_SIZE 512
 #define SECONDARY_POOL_SIZE 128
 #define BATCH_ENTROPY_SIZE 256
+#endif
 #define USE_SHA
 
 /*
@@ -1699,14 +1705,14 @@ random_ioctl(struct inode * inode, struct file * file,
 	}
 }
 
-struct file_operations random_fops = {
+const struct file_operations random_fops = {
 	read:		random_read,
 	write:		random_write,
 	poll:		random_poll,
 	ioctl:		random_ioctl,
 };
 
-struct file_operations urandom_fops = {
+const struct file_operations urandom_fops = {
 	read:		urandom_read,
 	write:		random_write,
 	ioctl:		random_ioctl,

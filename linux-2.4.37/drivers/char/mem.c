@@ -22,6 +22,7 @@
 #include <linux/tty.h>
 #include <linux/capability.h>
 #include <linux/ptrace.h>
+#include <linux/grsecurity.h>
 
 #include <asm/uaccess.h>
 #include <asm/io.h>
@@ -115,6 +116,11 @@ static ssize_t write_mem(struct file * file, const char * buf,
 	unsigned long p = *ppos;
 	unsigned long end_mem;
 
+#ifdef CONFIG_GRKERNSEC_KMEM
+	gr_handle_mem_write();
+	return -EPERM;
+#endif
+
 	end_mem = __pa(high_memory);
 	if (p >= end_mem)
 		return 0;
@@ -186,6 +192,12 @@ static inline int noncached_address(unsigned long addr)
 static int mmap_mem(struct file * file, struct vm_area_struct * vma)
 {
 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+
+#ifdef CONFIG_GRKERNSEC_KMEM
+	if (gr_handle_mem_mmap(offset, vma))
+		return -EPERM;
+#endif
+
 
 	/*
 	 * Accessing memory above the top the kernel knows about or
@@ -285,6 +297,11 @@ static ssize_t write_kmem(struct file * file, const char * buf,
 	ssize_t wrote = 0;
 	ssize_t virtr = 0;
 	char * kbuf; /* k-addr because vwrite() takes vmlist_lock rwlock */
+
+#ifdef CONFIG_GRKERNSEC_KMEM
+	gr_handle_kmem_write();
+	return -EPERM;
+#endif
 
 	if (p < (unsigned long) high_memory) {
 		wrote = count;
@@ -402,7 +419,7 @@ static inline size_t read_zero_pagealigned(char * buf, size_t size)
 			count = size;
 
 		zap_page_range(mm, addr, count);
-        	if (zeromap_page_range(addr, count, PAGE_COPY))
+        	if (zeromap_page_range(addr, count, vma->vm_page_prot))
 			break;
 
 		size -= count;
@@ -526,6 +543,15 @@ static loff_t memory_lseek(struct file * file, loff_t offset, int orig)
 
 static int open_port(struct inode * inode, struct file * filp)
 {
+#ifdef CONFIG_GRKERNSEC_KMEM
+	gr_handle_open_port();
+	return -EPERM;
+#endif
+	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+}
+
+static int open_mem(struct inode * inode, struct file * filp)
+{
 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
 }
 
@@ -574,7 +600,7 @@ out:
 	return page;
 }
 
-struct vm_operations_struct kmem_vm_ops = {
+const struct vm_operations_struct kmem_vm_ops = {
 	nopage:		kmem_vm_nopage,
 };
 
@@ -582,6 +608,11 @@ static int mmap_kmem(struct file * file, struct vm_area_struct * vma)
 {
 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
 	unsigned long size = vma->vm_end - vma->vm_start;
+
+#ifdef CONFIG_GRKERNSEC_KMEM
+	if (gr_handle_mem_mmap(offset, vma))
+		return -EPERM;
+#endif
 
 	/*
 	 * If the user is not attempting to mmap a high memory address then
@@ -618,10 +649,9 @@ static int mmap_kmem(struct file * file, struct vm_area_struct * vma)
 #define full_lseek      null_lseek
 #define write_zero	write_null
 #define read_full       read_zero
-#define open_mem	open_port
 #define open_kmem	open_mem
 
-static struct file_operations mem_fops = {
+static const struct file_operations mem_fops = {
 	llseek:		memory_lseek,
 	read:		read_mem,
 	write:		write_mem,
@@ -629,7 +659,7 @@ static struct file_operations mem_fops = {
 	open:		open_mem,
 };
 
-static struct file_operations kmem_fops = {
+static const struct file_operations kmem_fops = {
 	llseek:		memory_lseek,
 	read:		read_kmem,
 	write:		write_kmem,
@@ -637,14 +667,14 @@ static struct file_operations kmem_fops = {
 	open:		open_kmem,
 };
 
-static struct file_operations null_fops = {
+static const struct file_operations null_fops = {
 	llseek:		null_lseek,
 	read:		read_null,
 	write:		write_null,
 };
 
 #if defined(CONFIG_ISA) || !defined(__mc68000__)
-static struct file_operations port_fops = {
+static const struct file_operations port_fops = {
 	llseek:		memory_lseek,
 	read:		read_port,
 	write:		write_port,
@@ -652,14 +682,14 @@ static struct file_operations port_fops = {
 };
 #endif
 
-static struct file_operations zero_fops = {
+static const struct file_operations zero_fops = {
 	llseek:		zero_lseek,
 	read:		read_zero,
 	write:		write_zero,
 	mmap:		mmap_zero,
 };
 
-static struct file_operations full_fops = {
+static const struct file_operations full_fops = {
 	llseek:		full_lseek,
 	read:		read_full,
 	write:		write_full,
@@ -709,7 +739,7 @@ void __init memory_devfs_register (void)
 	unsigned short minor;
 	char *name;
 	umode_t mode;
-	struct file_operations *fops;
+	const struct file_operations *fops;
     } list[] = { /* list of minor devices */
 	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
 	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
@@ -720,7 +750,7 @@ void __init memory_devfs_register (void)
 	{5, "zero",    S_IRUGO | S_IWUGO,           &zero_fops},
 	{7, "full",    S_IRUGO | S_IWUGO,           &full_fops},
 	{8, "random",  S_IRUGO | S_IWUSR,           &random_fops},
-	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops}
+	{9, "urandom", S_IRUGO | S_IWUSR,           &urandom_fops},
     };
     int i;
 
@@ -731,7 +761,7 @@ void __init memory_devfs_register (void)
 			list[i].fops, NULL);
 }
 
-static struct file_operations memory_fops = {
+static const struct file_operations memory_fops = {
 	open:		memory_open,	/* just a selector for the real open */
 };
 

@@ -55,7 +55,7 @@ MODULE_LICENSE("Dual BSD/GPL");
 static void		vxfs_put_super(struct super_block *);
 static int		vxfs_statfs(struct super_block *, struct statfs *);
 
-static struct super_operations vxfs_super_ops = {
+static const struct super_operations vxfs_super_ops = {
 	.read_inode =		vxfs_read_inode,
 	.put_inode =		vxfs_put_inode,
 	.put_super =		vxfs_put_super,

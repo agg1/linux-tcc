@@ -406,7 +406,7 @@ struct thread_struct {
 
 #define INIT_TSS  {						\
 	0,0, /* back_link, __blh */				\
-	sizeof(init_stack) + (long) &init_stack, /* esp0 */	\
+	sizeof(init_stack) + (long) &init_stack - 8, /* grsecurity -8? esp0 */	\
 	__KERNEL_DS, 0, /* ss0 */				\
 	0,0,0,0,0,0, /* stack1, stack2 */			\
 	0, /* cr3 */						\
@@ -454,12 +454,21 @@ static inline void release_segments(struct mm_struct * mm) { }
  */
 static inline unsigned long thread_saved_pc(struct thread_struct *t)
 {
-	return ((unsigned long *)t->esp)[3];
+	//return ((unsigned long *)t->esp)[3];
+	return t->eip; // grsecurity ?
 }
 
 unsigned long get_wchan(struct task_struct *p);
-#define KSTK_EIP(tsk)	(((unsigned long *)(4096+(unsigned long)(tsk)))[1019])
-#define KSTK_ESP(tsk)	(((unsigned long *)(4096+(unsigned long)(tsk)))[1022])
+
+#define task_pt_regs(task)					\
+({								\
+	struct pt_regs *__regs__;				\
+	__regs__ = (struct pt_regs *)((task)->thread.esp0);	\
+	__regs__ - 1;						\
+})
+
+#define KSTK_EIP(tsk) (task_pt_regs(tsk)->eip)
+#define KSTK_ESP(tsk) (task_pt_regs(tsk)->esp)	
 
 #define THREAD_SIZE (2*PAGE_SIZE)
 #define __alloc_task_struct() ((struct task_struct *) __get_free_pages(GFP_KERNEL,1))

@@ -181,10 +181,10 @@ struct dev_state {
 
 /* internal methods & data */
 extern struct usb_driver usbdevfs_driver;
-extern struct file_operations usbdevfs_drivers_fops;
-extern struct file_operations usbdevfs_devices_fops;
-extern struct file_operations usbdevfs_device_file_operations;
-extern struct inode_operations usbdevfs_device_inode_operations;
+extern const struct file_operations usbdevfs_drivers_fops;
+extern const struct file_operations usbdevfs_devices_fops;
+extern const struct file_operations usbdevfs_device_file_operations;
+extern const struct inode_operations usbdevfs_device_inode_operations;
 extern void usbdevfs_conn_disc_event(void);
 
 #endif /* __KERNEL__ */

@@ -20,7 +20,7 @@
 #include <linux/list.h>
 #include <linux/pagemap.h>
 
-extern struct dentry_operations umsdos_dentry_operations;
+extern const struct dentry_operations umsdos_dentry_operations;
 
 struct dentry *saved_root;	/* Original root if changed */
 struct inode *pseudo_root;	/* Useful to simulate the pseudo DOS */
@@ -106,12 +106,12 @@ void umsdos_set_dirinfo_new (struct dentry *dentry, off_t f_pos)
 	return;
 }
 
-static struct inode_operations umsdos_file_inode_operations = {
+static const struct inode_operations umsdos_file_inode_operations = {
 	truncate:	fat_truncate,
 	setattr:	UMSDOS_notify_change,
 };
 
-static struct inode_operations umsdos_symlink_inode_operations = {
+static const struct inode_operations umsdos_symlink_inode_operations = {
 	readlink:	page_readlink,
 	follow_link:	page_follow_link,
 	setattr:	UMSDOS_notify_change,
@@ -331,8 +331,7 @@ void UMSDOS_write_inode (struct inode *inode, int wait)
 }
 
 
-static struct super_operations umsdos_sops =
-{
+static const struct super_operations umsdos_sops = {
 	write_inode:	UMSDOS_write_inode,
 	put_inode:	UMSDOS_put_inode,
 	delete_inode:	fat_delete_inode,

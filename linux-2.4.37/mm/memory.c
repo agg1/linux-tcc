@@ -470,9 +470,9 @@ int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long 
 	do {
 		struct vm_area_struct *	vma;
 
-		vma = find_extend_vma(mm, start);
+		vma = find_vma(mm, start);
 
-		if ( !vma || (pages && vma->vm_flags & VM_IO) || !(flags & vma->vm_flags) )
+		if ( !vma || start < vma->vm_start || (pages && vma->vm_flags & VM_IO) || !(flags & vma->vm_flags) )
 			return i ? : -EFAULT;
 
 		spin_lock(&mm->page_table_lock);
@@ -1465,6 +1465,40 @@ pte_t fastcall *pte_alloc(struct mm_struct *mm, pmd_t *pmd, unsigned long addres
 			}
 		}
 		pmd_populate(mm, pmd, new);
+	}
+out:
+	return pte_offset(pmd, address);
+}
+
+#ifndef pmd_populate_kernel
+#define pmd_populate_kernel(mm,pmd,new) pmd_populate(mm,pmd,new)
+#endif
+
+pte_t fastcall *pte_alloc_kernel(struct mm_struct *mm, pmd_t *pmd, unsigned long address)
+{
+	if (pmd_none(*pmd)) {
+		pte_t *new;
+
+		/* "fast" allocation can happen without dropping the lock.. */
+		new = pte_alloc_one_fast(mm, address);
+		if (!new) {
+			spin_unlock(&mm->page_table_lock);
+			new = pte_alloc_one(mm, address);
+			spin_lock(&mm->page_table_lock);
+			if (!new)
+				return NULL;
+
+			/*
+			 * Because we dropped the lock, we should re-check the
+			 * entry, as somebody else could have populated it..
+			 */
+			if (!pmd_none(*pmd)) {
+				pte_free(new);
+				check_pgt_cache();
+				goto out;
+			}
+		}
+		pmd_populate_kernel(mm, pmd, new);
 	}
 out:
 	return pte_offset(pmd, address);

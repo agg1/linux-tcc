@@ -220,7 +220,7 @@ static int block_fsync(struct file *filp, struct dentry *dentry, int datasync)
 
 static struct super_block *bd_read_super(struct super_block *sb, void *data, int silent)
 {
-	static struct super_operations sops = {};
+	static const struct super_operations sops = {};
 	struct inode *root = new_inode(sb);
 	if (!root)
 		return NULL;
@@ -662,7 +662,7 @@ static int blkdev_ioctl(struct inode *inode, struct file *file, unsigned cmd,
 	return -EINVAL;
 }
 
-struct address_space_operations def_blk_aops = {
+const struct address_space_operations def_blk_aops = {
 	readpage: blkdev_readpage,
 	writepage: blkdev_writepage,
 	sync_page: block_sync_page,
@@ -671,7 +671,7 @@ struct address_space_operations def_blk_aops = {
 	direct_IO: blkdev_direct_IO,
 };
 
-struct file_operations def_blk_fops = {
+const struct file_operations def_blk_fops = {
 	open:		blkdev_open,
 	release:	blkdev_close,
 	llseek:		block_llseek,

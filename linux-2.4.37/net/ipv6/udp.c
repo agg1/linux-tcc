@@ -685,6 +685,9 @@ int udpv6_rcv(struct sk_buff *skb)
 			goto discard;
 		UDP6_INC_STATS_BH(UdpNoPorts);
 
+#ifdef CONFIG_GRKERNSEC_BLACKHOLE
+		if (skb->dev->flags & IFF_LOOPBACK)
+#endif
 		icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0, dev);
 
 		kfree_skb(skb);

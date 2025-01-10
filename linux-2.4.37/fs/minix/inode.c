@@ -75,7 +75,7 @@ static void minix_put_super(struct super_block *sb)
 	return;
 }
 
-static struct super_operations minix_sops = {
+static const struct super_operations minix_sops = {
 	read_inode:	minix_read_inode,
 	write_inode:	minix_write_inode,
 	delete_inode:	minix_delete_inode,
@@ -317,7 +317,7 @@ static int minix_bmap(struct address_space *mapping, long block)
 {
 	return generic_block_bmap(mapping,block,minix_get_block);
 }
-static struct address_space_operations minix_aops = {
+static const struct address_space_operations minix_aops = {
 	readpage: minix_readpage,
 	writepage: minix_writepage,
 	sync_page: block_sync_page,

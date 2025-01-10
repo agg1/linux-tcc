@@ -118,7 +118,7 @@ static int ac_ioctl(struct inode *, struct file *, unsigned int,
 		    unsigned long);
 static void ac_interrupt(int, void *, struct pt_regs *);
 
-static struct file_operations ac_fops = {
+static const struct file_operations ac_fops = {
 	owner:THIS_MODULE,
 	llseek:no_llseek,
 	read:ac_read,

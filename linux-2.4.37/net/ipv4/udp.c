@@ -91,12 +91,16 @@
 #include <net/ipv6.h>
 #include <net/protocol.h>
 #include <linux/skbuff.h>
+#include <linux/grsecurity.h>
 #include <net/sock.h>
 #include <net/udp.h>
 #include <net/icmp.h>
 #include <net/route.h>
 #include <net/inet_common.h>
 #include <net/checksum.h>
+
+extern int gr_search_udp_recvmsg(struct sock *sk, const struct sk_buff *skb);
+extern int gr_search_udp_sendmsg(struct sock *sk, struct sockaddr_in *addr);
 
 /*
  *	Snmp MIB for the UDP layer
@@ -481,9 +485,18 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 		ufh.uh.dest = usin->sin_port;
 		if (ufh.uh.dest == 0)
 			return -EINVAL;
+
+		err = gr_search_udp_sendmsg(sk, usin);
+		if (err)
+			return err;
 	} else {
 		if (sk->state != TCP_ESTABLISHED)
 			return -EDESTADDRREQ;
+
+		err = gr_search_udp_sendmsg(sk, NULL);
+		if (err)
+			return err;
+
 		ufh.daddr = sk->daddr;
 		ufh.uh.dest = sk->dport;
 		/* Open fast path for connected socket.
@@ -712,6 +725,10 @@ try_again:
 	if (!skb)
 		goto out;
   
+	err = gr_search_udp_recvmsg(sk, skb);
+	if (err)
+		goto out_free;
+
   	copied = skb->len - sizeof(struct udphdr);
 	if (copied > len) {
 		copied = len;
@@ -1001,6 +1018,9 @@ int udp_rcv(struct sk_buff *skb)
 		goto csum_error;
 
 	UDP_INC_STATS_BH(UdpNoPorts);
+#ifdef CONFIG_GRKERNSEC_BLACKHOLE
+	if (skb->dev->flags & IFF_LOOPBACK)
+#endif
 	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, 0);
 
 	/*

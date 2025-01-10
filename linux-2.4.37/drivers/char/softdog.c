@@ -198,7 +198,7 @@ static int softdog_ioctl(struct inode *inode, struct file *file,
 	}
 }
 
-static struct file_operations softdog_fops = {
+static const struct file_operations softdog_fops = {
 	owner:		THIS_MODULE,
 	write:		softdog_write,
 	ioctl:		softdog_ioctl,

@@ -423,7 +423,7 @@ static int acpi_system_close_event(struct inode *inode, struct file *file);
 static unsigned int acpi_system_poll_event(struct file *file, poll_table *wait);
 
 
-static struct file_operations acpi_system_event_ops = {
+static const struct file_operations acpi_system_event_ops = {
 	.open =		acpi_system_open_event,
 	.read =		acpi_system_read_event,
 	.release =	acpi_system_close_event,
@@ -519,7 +519,7 @@ acpi_system_poll_event(
 
 static ssize_t acpi_system_read_dsdt (struct file*, char*, size_t, loff_t*);
 
-static struct file_operations acpi_system_dsdt_ops = {
+static const struct file_operations acpi_system_dsdt_ops = {
 	.read =			acpi_system_read_dsdt,
 };
 
@@ -562,7 +562,7 @@ acpi_system_read_dsdt (
 
 static ssize_t acpi_system_read_fadt (struct file*, char*, size_t, loff_t*);
 
-static struct file_operations acpi_system_fadt_ops = {
+static const struct file_operations acpi_system_fadt_ops = {
 	.read =			acpi_system_read_fadt,
 };
 

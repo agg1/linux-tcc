@@ -43,7 +43,7 @@ static void hfs_write_super(struct super_block *);
 
 /*================ Global variables ================*/
 
-static struct super_operations hfs_super_operations = { 
+static const struct super_operations hfs_super_operations = { 
 	read_inode:	hfs_read_inode,
 	put_inode:	hfs_put_inode,
 	put_super:	hfs_put_super,

@@ -359,7 +359,7 @@ static int ioconfig_bus_close(struct inode * inode, struct file * filp)
         return(0);
 }
 
-struct file_operations ioconfig_bus_fops = {
+const struct file_operations ioconfig_bus_fops = {
 	ioctl:ioconfig_bus_ioctl,
 	open:ioconfig_bus_open,		/* open */
 	release:ioconfig_bus_close	/* release */

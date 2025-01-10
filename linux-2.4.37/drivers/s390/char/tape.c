@@ -203,15 +203,13 @@ tape_devices_release (struct inode *inode, struct file *file)
 	return rc;
 }
 
-static struct file_operations tape_devices_file_ops =
-{
+static const struct file_operations tape_devices_file_ops = {
 	read:tape_devices_read,	/* read */
 	open:tape_devices_open,	/* open */
 	release:tape_devices_release,	/* close */
 };
 
-static struct inode_operations tape_devices_inode_ops =
-{
+static const struct inode_operations tape_devices_inode_ops = {
 #if !(LINUX_VERSION_CODE > KERNEL_VERSION(2,3,98))
 	default_file_ops:&tape_devices_file_ops		/* file ops */
 #endif				/* LINUX_IS_24 */

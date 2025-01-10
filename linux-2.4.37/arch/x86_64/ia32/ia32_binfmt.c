@@ -28,7 +28,14 @@ struct elf_phdr;
 
 #define ELF_NAME "elf/i386"
 
-#define IA32_STACK_TOP IA32_PAGE_OFFSET
+#ifdef CONFIG_PAX_RANDUSTACK
+#define __IA32_DELTA_STACK (current->mm->delta_stack)
+#else
+#define __IA32_DELTA_STACK 0UL
+#endif
+
+#define IA32_STACK_TOP (IA32_PAGE_OFFSET - __IA32_DELTA_STACK)
+
 #define ELF_ET_DYN_BASE		(IA32_PAGE_OFFSET/3 + 0x1000000)
 
 #undef ELF_ARCH
@@ -150,6 +157,13 @@ static inline int elf_core_copy_task_regs(struct task_struct *t, elf_gregset_t* 
 #define __ASM_X86_64_ELF_H 1
 #include <asm/ia32.h>
 #include <linux/elf.h>
+
+#ifdef CONFIG_PAX_ASLR
+#define PAX_ELF_ET_DYN_BASE	0x08048000UL
+
+#define PAX_DELTA_MMAP_LEN	16
+#define PAX_DELTA_STACK_LEN	16
+#endif
 
 typedef struct user_i387_ia32_struct elf_fpregset_t;
 typedef struct user32_fxsr_struct elf_fpxregset_t;
@@ -282,16 +296,18 @@ int ia32_setup_arg_pages(struct linux_binprm *bprm)
 
 	for (i = 0 ; i < MAX_ARG_PAGES ; i++) {
 		struct page *page = bprm->page[i];
+		int retval;
 		if (page) {
 			bprm->page[i] = NULL;
-			current->mm->rss++;
-			put_dirty_page(current,page,stack_base);
+			retval = put_dirty_page(current,page,stack_base);
+			if (!ret)
+				ret = retval;
 		}
 		stack_base += PAGE_SIZE;
 	}
 	up_write(&current->mm->mmap_sem);
 	
-	return 0;
+	return ret;
 }
 static unsigned long
 elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type)

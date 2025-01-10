@@ -142,9 +142,10 @@ export SVGA_MODE = -DSVGA_MODE=NORMAL_VGA
 
 CORE_FILES	=kernel/kernel.o mm/mm.o fs/fs.o ipc/ipc.o
 NETWORKS	=net/network.o
+GRSECURITY	=grsecurity/grsec.o
 
 LIBS		=$(TOPDIR)/lib/lib.a
-SUBDIRS		=kernel drivers mm fs net ipc lib crypto
+SUBDIRS		=kernel drivers mm fs net ipc lib crypto grsecurity
 
 DRIVERS-n :=
 DRIVERS-y :=
@@ -288,7 +289,7 @@ export kbuild_2_4_nostdinc
 
 export	CPPFLAGS CFLAGS CFLAGS_KERNEL AFLAGS AFLAGS_KERNEL
 
-export	NETWORKS DRIVERS LIBS HEAD LDFLAGS LINKFLAGS MAKEBOOT ASFLAGS
+export	NETWORKS DRIVERS LIBS HEAD LDFLAGS LINKFLAGS MAKEBOOT ASFLAGS GRSECURITY
 
 .S.s:
 	$(CPP) $(AFLAGS) $(AFLAGS_KERNEL) -traditional -o $*.s $<
@@ -307,6 +308,7 @@ vmlinux: include/linux/version.h $(CONFIGURATION) init/main.o init/version.o ini
 		$(CORE_FILES) \
 		$(DRIVERS) \
 		$(NETWORKS) \
+		$(GRSECURITY) \
 		$(LIBS) \
 		--end-group \
 		-o vmlinux

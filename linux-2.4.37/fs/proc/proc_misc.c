@@ -226,12 +226,12 @@ static int version_read_proc(char *page, char **start, off_t off,
 	return proc_calc_metrics(page, start, off, count, eof, len);
 }
 
-extern struct seq_operations cpuinfo_op;
+extern const struct seq_operations cpuinfo_op;
 static int cpuinfo_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &cpuinfo_op);
 }
-static struct file_operations proc_cpuinfo_operations = {
+static const struct file_operations proc_cpuinfo_operations = {
 	open:		cpuinfo_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -256,12 +256,12 @@ static int stram_read_proc(char *page, char **start, off_t off,
 }
 #endif
 
-extern struct seq_operations partitions_op;
+extern const struct seq_operations partitions_op;
 static int partitions_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &partitions_op);
 }
-static struct file_operations proc_partitions_operations = {
+static const struct file_operations proc_partitions_operations = {
 	open:		partitions_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -276,12 +276,12 @@ static int modules_read_proc(char *page, char **start, off_t off,
 	return proc_calc_metrics(page, start, off, count, eof, len);
 }
 
-extern struct seq_operations ksyms_op;
+extern const struct seq_operations ksyms_op;
 static int ksyms_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &ksyms_op);
 }
-static struct file_operations proc_ksyms_operations = {
+static const struct file_operations proc_ksyms_operations = {
 	open:		ksyms_open,
 	read:		seq_read,
 	llseek:		seq_lseek,
@@ -289,13 +289,13 @@ static struct file_operations proc_ksyms_operations = {
 };
 #endif
 
-extern struct seq_operations slabinfo_op;
+extern const struct seq_operations slabinfo_op;
 extern ssize_t slabinfo_write(struct file *, const char *, size_t, loff_t *);
 static int slabinfo_open(struct inode *inode, struct file *file)
 {
 	return seq_open(file, &slabinfo_op);
 }
-static struct file_operations proc_slabinfo_operations = {
+static const struct file_operations proc_slabinfo_operations = {
 	open:		slabinfo_open,
 	read:		seq_read,
 	write:		slabinfo_write,
@@ -422,7 +422,7 @@ static int interrupts_open(struct inode *inode, struct file *file)
 		kfree(buf);
 	return res;
 }
-static struct file_operations proc_interrupts_operations = {
+static const struct file_operations proc_interrupts_operations = {
 	.open		= interrupts_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -430,8 +430,8 @@ static struct file_operations proc_interrupts_operations = {
 };
 #endif /* !CONFIG_X86 */
 
-extern struct file_operations proc_ioports_operations;
-extern struct file_operations proc_iomem_operations;
+extern const struct file_operations proc_ioports_operations;
+extern const struct file_operations proc_iomem_operations;
 
 static int filesystems_read_proc(char *page, char **start, off_t off,
 				 int count, int *eof, void *data)
@@ -551,7 +551,7 @@ static ssize_t write_profile(struct file * file, const char * buf,
 	return count;
 }
 
-static struct file_operations proc_profile_operations = {
+static const struct file_operations proc_profile_operations = {
 	read:		read_profile,
 	write:		write_profile,
 };
@@ -573,14 +573,14 @@ static ssize_t write_sysrq_trigger(struct file *file, const char *buf,
 	return count;
 }
 
-static struct file_operations proc_sysrq_trigger_operations = {
+static const struct file_operations proc_sysrq_trigger_operations = {
 	.write		= write_sysrq_trigger,
 };
 #endif
 
 struct proc_dir_entry *proc_root_kcore;
 
-static void create_seq_entry(char *name, mode_t mode, struct file_operations *f)
+static void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
 {
 	struct proc_dir_entry *entry;
 	entry = create_proc_entry(name, mode, NULL);
@@ -591,6 +591,7 @@ static void create_seq_entry(char *name, mode_t mode, struct file_operations *f)
 void __init proc_misc_init(void)
 {
 	struct proc_dir_entry *entry;
+	int gr_mode = 0;
 	static struct {
 		char *name;
 		int (*read_proc)(char*,char**,off_t,int,int*,void*);
@@ -605,17 +606,21 @@ void __init proc_misc_init(void)
 #ifdef CONFIG_STRAM_PROC
 		{"stram",	stram_read_proc},
 #endif
-#ifdef CONFIG_MODULES
+#if defined(CONFIG_MODULES) && !defined(CONFIG_GRKERNSEC_PROC)
 		{"modules",	modules_read_proc},
 #endif
 		{"stat",	kstat_read_proc},
+#ifndef CONFIG_GRKERNSEC_PROC_ADD
 		{"devices",	devices_read_proc},
-#if !defined(CONFIG_ARCH_S390) && !defined(CONFIG_X86)
+#endif
+#if !defined(CONFIG_ARCH_S390) && !defined(CONFIG_X86) && !defined(CONFIG_GRKERNSEC_PROC_ADD)
 		{"interrupts",	interrupts_read_proc},
 #endif
 		{"filesystems",	filesystems_read_proc},
+#ifndef CONFIG_GRKERNSEC_PROC_ADD
 		{"dma",		dma_read_proc},
 		{"cmdline",	cmdline_read_proc},
+#endif
 #ifdef CONFIG_SGI_DS1286
 		{"rtc",		ds1286_read_proc},
 #endif
@@ -627,6 +632,21 @@ void __init proc_misc_init(void)
 	for (p = simple_ones; p->name; p++)
 		create_proc_read_entry(p->name, 0, NULL, p->read_proc, NULL);
 
+#ifdef CONFIG_GRKERNSEC_PROC_USER
+	gr_mode = S_IRUSR;
+#endif
+#if defined(CONFIG_GRKERNSEC_PROC) && defined(CONFIG_MODULES)
+	create_proc_read_entry("modules", gr_mode, NULL, &modules_read_proc, NULL);
+#endif
+#ifdef CONFIG_GRKERNSEC_PROC_ADD
+	create_proc_read_entry("devices", gr_mode, NULL, &devices_read_proc, NULL);
+	create_proc_read_entry("dma", gr_mode, NULL, &dma_read_proc, NULL);
+	create_proc_read_entry("cmdline", gr_mode, NULL, &cmdline_read_proc, NULL);
+#if !defined(CONFIG_ARCH_S390) && !defined(CONFIG_X86)
+	create_proc_read_entry("interrupts", gr_mode, NULL, &interrupts_read_proc, NULL);
+#endif
+#endif
+
 	proc_symlink("mounts", NULL, "self/mounts");
 
 	/* And now for trickier ones */
@@ -634,22 +654,32 @@ void __init proc_misc_init(void)
 	if (entry)
 		entry->proc_fops = &proc_kmsg_operations;
 	create_seq_entry("cpuinfo", 0, &proc_cpuinfo_operations);
-#if defined(CONFIG_X86)
+#if defined(CONFIG_X86) && !defined(CONFIG_GRKERNSEC_PROC_ADD)
 	create_seq_entry("interrupts", 0, &proc_interrupts_operations);
+#elif defined(CONFIG_X86)
+	create_seq_entry("interrupts", gr_mode, &proc_interrupts_operations);
 #endif
+#ifdef CONFIG_GRKERNSEC_PROC_ADD
+	create_seq_entry("ioports", gr_mode, &proc_ioports_operations);
+	create_seq_entry("iomem", gr_mode, &proc_iomem_operations);
+	create_seq_entry("slabinfo",gr_mode,&proc_slabinfo_operations);
+#else
 	create_seq_entry("ioports", 0, &proc_ioports_operations);
 	create_seq_entry("iomem", 0, &proc_iomem_operations);
-	create_seq_entry("partitions", 0, &proc_partitions_operations);
 	create_seq_entry("slabinfo",S_IWUSR|S_IRUGO,&proc_slabinfo_operations);
-#ifdef CONFIG_MODULES
-	create_seq_entry("ksyms", 0, &proc_ksyms_operations);
 #endif
+	create_seq_entry("partitions", 0, &proc_partitions_operations);
+#ifdef CONFIG_MODULES
+	create_seq_entry("ksyms", gr_mode, &proc_ksyms_operations);
+#endif
+#ifndef CONFIG_GRKERNSEC_PROC_ADD
 	proc_root_kcore = create_proc_entry("kcore", S_IRUSR, NULL);
 	if (proc_root_kcore) {
 		proc_root_kcore->proc_fops = &proc_kcore_operations;
 		proc_root_kcore->size =
 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
 	}
+#endif
 	if (prof_shift) {
 		entry = create_proc_entry("profile", S_IWUSR | S_IRUGO, NULL);
 		if (entry) {
@@ -664,7 +694,7 @@ void __init proc_misc_init(void)
 #endif
 #ifdef CONFIG_PPC32
 	{
-		extern struct file_operations ppc_htab_operations;
+		extern const struct file_operations ppc_htab_operations;
 		entry = create_proc_entry("ppc_htab", S_IRUGO|S_IWUSR, NULL);
 		if (entry)
 			entry->proc_fops = &ppc_htab_operations;

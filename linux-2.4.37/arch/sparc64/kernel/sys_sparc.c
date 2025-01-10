@@ -63,6 +63,13 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
 		task_size = 0xf0000000UL;
 	if (len > task_size || len > -PAGE_OFFSET)
 		return -ENOMEM;
+
+#ifdef CONFIG_PAX_RANDMMAP
+//	if ((current->mm->pax_flags & MF_PAX_RANDMMAP) && (!addr || filp))
+	if (!addr || filp)
+		addr = TASK_UNMAPPED_BASE + current->mm->delta_mmap;
+	else
+#endif
 	if (!addr)
 		addr = TASK_UNMAPPED_BASE;
 

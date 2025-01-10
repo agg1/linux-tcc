@@ -33,17 +33,17 @@ struct filter_ops {
 
 struct cache_ops {
         /* operations on the file store */
-        struct super_operations *cache_sops;
+        const struct super_operations *cache_sops;
 
-        struct inode_operations *cache_dir_iops;
-        struct inode_operations *cache_file_iops;
-        struct inode_operations *cache_sym_iops;
+        const struct inode_operations *cache_dir_iops;
+        const struct inode_operations *cache_file_iops;
+        const struct inode_operations *cache_sym_iops;
 
-        struct file_operations *cache_dir_fops;
-        struct file_operations *cache_file_fops;
-        struct file_operations *cache_sym_fops;
+        const struct file_operations *cache_dir_fops;
+        const struct file_operations *cache_file_fops;
+        const struct file_operations *cache_sym_fops;
 
-        struct dentry_operations *cache_dentry_ops;
+        const struct dentry_operations *cache_dentry_ops;
 };
 
 

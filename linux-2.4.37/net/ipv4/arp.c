@@ -1311,7 +1311,7 @@ static void *arp_seq_start(struct seq_file *seq, loff_t *pos)
 
 /* ------------------------------------------------------------------------ */
 
-static struct seq_operations arp_seq_ops = {
+static const struct seq_operations arp_seq_ops = {
 	.start	= arp_seq_start,
 	.next	= neigh_seq_next,
 	.stop	= neigh_seq_stop,
@@ -1341,7 +1341,7 @@ out_kfree:
 	goto out;
 }
 
-static struct file_operations arp_seq_fops = {
+static const struct file_operations arp_seq_fops = {
 	.owner		= THIS_MODULE,
 	.open		= arp_seq_open,
 	.read		= seq_read,

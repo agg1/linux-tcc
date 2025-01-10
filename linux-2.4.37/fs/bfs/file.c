@@ -18,7 +18,7 @@
 #define dprintf(x...)
 #endif
 
-struct file_operations bfs_file_operations = {
+const struct file_operations bfs_file_operations = {
 	llseek: generic_file_llseek,
 	read:	generic_file_read,
 	write:	generic_file_write,
@@ -156,7 +156,7 @@ static int bfs_bmap(struct address_space *mapping, long block)
 	return generic_block_bmap(mapping, block, bfs_get_block);
 }
 
-struct address_space_operations bfs_aops = {
+const struct address_space_operations bfs_aops = {
 	readpage:	bfs_readpage,
 	writepage:	bfs_writepage,
 	sync_page:	block_sync_page,
@@ -165,4 +165,4 @@ struct address_space_operations bfs_aops = {
 	bmap:		bfs_bmap,
 };
 
-struct inode_operations bfs_file_inops;
+const struct inode_operations bfs_file_inops;

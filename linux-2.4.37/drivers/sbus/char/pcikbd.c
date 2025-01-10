@@ -1183,7 +1183,7 @@ static unsigned int aux_poll(struct file *file, poll_table * wait)
 	return 0;
 }
 
-struct file_operations psaux_fops = {
+const struct file_operations psaux_fops = {
 	owner:		THIS_MODULE,
 	read:		aux_read,
 	write:		aux_write,
@@ -1198,7 +1198,7 @@ static int aux_no_open(struct inode *inode, struct file *file)
 	return -ENODEV;
 }
 
-struct file_operations psaux_no_fops = {
+const struct file_operations psaux_no_fops = {
 	owner:		THIS_MODULE,
 	open:		aux_no_open,
 };

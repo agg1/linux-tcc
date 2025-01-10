@@ -91,3 +91,11 @@ endmenu
 
 source crypto/Config.in
 source lib/Config.in
+
+mainmenu_option next_comment
+comment 'Kernel Security'
+bool 'Grsecurity' CONFIG_GRKERNSEC
+if [ "$CONFIG_GRKERNSEC" = "y" ]; then
+	source grsecurity/Config.in
+fi
+endmenu

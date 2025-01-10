@@ -2414,8 +2414,7 @@ out:
 	spin_unlock(&video->spinlock);
 }
 
-static struct file_operations dv1394_fops=
-{
+static const struct file_operations dv1394_fops = {
 	.owner =	THIS_MODULE,
 	.poll =         dv1394_poll,
 	.ioctl =	dv1394_ioctl,

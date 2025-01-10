@@ -209,7 +209,7 @@ static void bfs_write_super(struct super_block *s)
 	s->s_dirt = 0;
 }
 
-static struct super_operations bfs_sops = {
+static const struct super_operations bfs_sops = {
 	read_inode:	bfs_read_inode,
 	write_inode:	bfs_write_inode,
 	delete_inode:	bfs_delete_inode,

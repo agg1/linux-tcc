@@ -890,8 +890,7 @@ static int cfg_fasync(int fd, struct file *fp, int on)
 	return fasync_helper(fd, fp, on, &p->fasync);
 }
 
-static struct file_operations config_fops =
-{
+static const struct file_operations config_fops = {
 	owner:		THIS_MODULE,
 	llseek:		no_llseek,
 	read:		cfg_read,

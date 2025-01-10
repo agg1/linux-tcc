@@ -225,7 +225,7 @@ int hpfs_mknod(struct inode *dir, struct dentry *dentry, int mode, int rdev)
 	return -ENOSPC;
 }
 
-extern struct address_space_operations hpfs_symlink_aops;
+extern const struct address_space_operations hpfs_symlink_aops;
 
 int hpfs_symlink(struct inode *dir, struct dentry *dentry, const char *symlink)
 {
