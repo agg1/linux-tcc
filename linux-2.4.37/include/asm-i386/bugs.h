@@ -224,5 +224,5 @@ static void __init check_bugs(void)
 	check_fpu();
 	check_hlt();
 	check_popad();
-	system_utsname.machine[1] = '4'; // report generic i486
+	system_utsname.machine[1] = '5'; // report generic i586 with TSC
 }
