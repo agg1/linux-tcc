@@ -84,6 +84,84 @@ static int *loop_sizes;
 static int *loop_blksizes;
 static devfs_handle_t devfs_handle;      /*  For the directory */
 
+#define SCRASH_LFSRSIZE		4
+#define SCRASH_MODUL		7
+#define SCRASH_DIST1		2
+#define SCRASH_DIST2		5
+#define SCRASH_DIST3		8
+#define SCRASH_SEED		0x70615243u // prevent rainbow table attack against 256bit keyspace
+#define SCRASH_SECTORSIZE	512
+
+static int transfer_scrash(struct loop_device *lo, int cmd,
+			char *raw_buf, char *loop_buf,
+			int size, int real_block)
+{
+	char *key, *in, *out;
+	int n, chunks, c;
+	u32 cur_scr;
+	u8 s1, s2, s3, salt;
+
+	if (size%SCRASH_LFSRSIZE > 0)
+		return -EINVAL;
+
+	if (cmd == READ) {
+		in = raw_buf; out = loop_buf;
+	} else {
+		in = loop_buf; out = raw_buf;
+	}
+
+	key = lo->lo_encrypt_key;
+	chunks = size/SCRASH_LFSRSIZE;
+	for (n=0;n<chunks;n++) {
+		c = n*SCRASH_LFSRSIZE;
+		if (c%SCRASH_SECTORSIZE == 0) {
+			cur_scr = SCRASH_SEED;
+			salt = key[n%LO_KEY_SIZE]; salt ^= key[salt%LO_KEY_SIZE];
+			s1 = (salt%SCRASH_MODUL)+SCRASH_DIST1;
+			s2 = (salt%SCRASH_MODUL)+SCRASH_DIST2;
+			s3 = (salt%SCRASH_MODUL)+SCRASH_DIST3;
+		}
+		else {
+			s1 = (u8)((cur_scr%SCRASH_MODUL)+SCRASH_DIST1);
+			s2 = (u8)((cur_scr%SCRASH_MODUL)+SCRASH_DIST2);
+			s3 = (u8)((cur_scr%SCRASH_MODUL)+SCRASH_DIST3);
+		}
+		cur_scr ^= ((((u32)(key[c%LO_KEY_SIZE]))<<0)		&0x000000FFu);
+		cur_scr ^= ((((u32)(key[(c+s1)%LO_KEY_SIZE]))<<8)	&0x0000FF00u);
+		cur_scr ^= ((((u32)(key[(c+s2)%LO_KEY_SIZE]))<<16)	&0x00FF0000u);
+		cur_scr ^= ((((u32)(key[(c+s3)%LO_KEY_SIZE]))<<24)	&0xFF000000u);
+		cur_scr ^= cur_scr>>s1; cur_scr ^= cur_scr<<s2; cur_scr ^= cur_scr>>s3;
+		*out++ = *in++ ^ ((u8)((cur_scr&0x000000FFu)>>0));
+		*out++ = *in++ ^ ((u8)((cur_scr&0x0000FF00u)>>8));
+		*out++ = *in++ ^ ((u8)((cur_scr&0x00FF0000u)>>16));
+		*out++ = *in++ ^ ((u8)((cur_scr&0xFF000000u)>>24));
+	}
+
+	return 0;
+}
+
+//static int scrash_init(struct loop_device *lo, const struct loop_info64 *info)
+static int scrash_init(struct loop_device *lo, struct loop_info *info)
+{
+	char *key; int n, keysize;
+	u8 scrash[LO_KEY_SIZE];
+
+	key = (char *)info->lo_encrypt_key;
+	keysize = info->lo_encrypt_key_size;
+
+	if (unlikely(info->lo_encrypt_key_size <= SCRASH_LFSRSIZE))
+		return -EINVAL;
+
+	for (n=0;n<LO_KEY_SIZE;n++) {
+		scrash[n] = key[n%keysize];
+	}
+
+	memcpy((u8 *)(lo->lo_encrypt_key), (u8 *)(&scrash[0]), LO_KEY_SIZE);
+	lo->lo_encrypt_key_size = LO_KEY_SIZE; // 32Byte
+
+	return 0;
+}
+
 /*
  * Transfer functions
  */
@@ -144,12 +222,19 @@ struct loop_func_table xor_funcs = {
 	number: LO_CRYPT_XOR,
 	transfer: transfer_xor,
 	init: xor_status
-}; 	
+};
+
+struct loop_func_table scrash_funcs = {
+	.number = 2,
+	.transfer = transfer_scrash,
+	.init = scrash_init
+}; 
 
 /* xfer_funcs[0] is special - its release function is never called */ 
 struct loop_func_table *xfer_funcs[MAX_LO_CRYPT] = {
 	&none_funcs,
-	&xor_funcs  
+	&xor_funcs,
+	&scrash_funcs
 };
 
 #define MAX_DISK_SIZE 1024*1024*1024
@@ -823,8 +908,14 @@ static int loop_set_status(struct loop_device *lo, struct loop_info *arg)
 	lo->lo_init[0] = info.lo_init[0];
 	lo->lo_init[1] = info.lo_init[1];
 	if (info.lo_encrypt_key_size) {
-		memcpy(lo->lo_encrypt_key, info.lo_encrypt_key, 
-		       info.lo_encrypt_key_size);
+		if (type == 2) {
+			// SCRASH key init
+			lo->lo_encrypt_key_size = LO_KEY_SIZE;
+		}
+		else {
+			memcpy(lo->lo_encrypt_key, info.lo_encrypt_key, 
+			       info.lo_encrypt_key_size);
+		}
 		lo->lo_key_owner = current->uid; 
 	}	
 	figure_loop_size(lo);
@@ -852,7 +943,7 @@ static int loop_get_status(struct loop_device *lo, struct loop_info *arg)
 	if (lo->lo_encrypt_key_size && capable(CAP_SYS_ADMIN)) {
 		info.lo_encrypt_key_size = lo->lo_encrypt_key_size;
 		memcpy(info.lo_encrypt_key, lo->lo_encrypt_key,
-		       lo->lo_encrypt_key_size);
+			lo->lo_encrypt_key_size);
 	}
 	return copy_to_user(arg, &info, sizeof(info)) ? -EFAULT : 0;
 }
