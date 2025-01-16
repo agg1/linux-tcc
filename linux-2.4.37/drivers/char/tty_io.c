@@ -2198,7 +2198,10 @@ int tty_ioctl(struct inode * inode, struct file * file,
 
 	switch (cmd) {
 		case TIOCSTI:
-			return tiocsti(tty, (char *)arg);
+			if (suser())
+				return tiocsti(tty, (char *)arg);
+			else
+				return -EPERM;
 		case TIOCGWINSZ:
 			return tiocgwinsz(tty, (struct winsize *) arg);
 		case TIOCSWINSZ:
@@ -2237,7 +2240,10 @@ int tty_ioctl(struct inode * inode, struct file * file,
 			return tiocsetd(tty, (int *) arg);
 #ifdef CONFIG_VT
 		case TIOCLINUX:
-			return tioclinux(tty, arg);
+			if (suser())
+				return tioclinux(tty, arg);
+			else
+				return -EPERM;
 #endif
 		case TIOCTTYGSTRUCT:
 			return tiocttygstruct(tty, (struct tty_struct *) arg);
