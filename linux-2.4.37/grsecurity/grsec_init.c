@@ -66,6 +66,11 @@ extern struct gr_arg *gr_usermode;
 extern unsigned char *gr_system_salt;
 extern unsigned char *gr_system_sum;
 
+#ifdef CONFIG_GRKERNSEC_RANDOM_TIMESTAMPS
+__u32 random_timestamp_base;
+EXPORT_SYMBOL_GPL(random_timestamp_base);
+#endif
+
 void
 grsecurity_init(void)
 {

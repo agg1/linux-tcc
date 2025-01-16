@@ -48,6 +48,7 @@ bool '   Deny sysctl writes in chroot' CONFIG_GRKERNSEC_CHROOT_SYSCTL
 bool '   Capability restrictions within chroot' CONFIG_GRKERNSEC_CHROOT_CAPS
 fi
 
+bool 'Add random offset to TCP timestamps' CONFIG_GRKERNSEC_RANDOM_TIMESTAMPS
 bool 'Larger entropy pools' CONFIG_GRKERNSEC_RANDNET
 bool 'TCP/UDP blackhole' CONFIG_GRKERNSEC_BLACKHOLE
 

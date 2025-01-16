@@ -1397,4 +1397,8 @@ sock_recv_timestamp(struct msghdr *msg, struct sock *sk, struct sk_buff *skb)
 extern __u32 sysctl_wmem_max;
 extern __u32 sysctl_rmem_max;
 
+#ifdef CONFIG_GRKERNSEC_RANDOM_TIMESTAMPS
+extern __u32 random_timestamp_base;
+#endif
+
 #endif	/* _SOCK_H */

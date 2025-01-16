@@ -2759,6 +2759,10 @@ int __init net_dev_init(void)
 	if (!dev_boot_phase)
 		return 0;
 
+#ifdef CONFIG_GRKERNSEC_RANDOM_TIMESTAMPS
+	random_timestamp_base += (net_random() & ~(sizeof(u32)-1));
+#endif
+
 
 #ifdef CONFIG_NET_DIVERT
 	dv_init();
