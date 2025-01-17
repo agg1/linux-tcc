@@ -18174,6 +18174,21 @@ CONFIG_NCPFS_EXTRAS
   To use the new attributes, it is recommended to use the flags
   '-f 600 -d 755' on the ncpmount command line.
 
+Shell file system support
+CONFIG_SH_FS
+  SHFS is a simple and easy to use Linux kernel module which
+  allows you to mount remote filesystems using plain shell (ssh/rsh)
+  connection. It supports some nice features like readahead cache
+  for access speedup, instant shell/perl server, etc.
+
+  Further information on mounting ssh shares and the options
+  available can be found at http://shfs.sourceforge.net.
+
+  If you want to compile the SSH support as a module ( = code which
+  can be inserted in and removed from the running kernel whenever you
+  want), say M here and read Documentation/modules.txt. The module
+  will be called shfs.o. Most people say N, however.
+
 Default NLS Option
 CONFIG_NLS_DEFAULT
   The default NLS used when mounting file system. Note, that this is

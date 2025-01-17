@@ -62,6 +62,7 @@ subdir-$(CONFIG_AUTOFS_FS)	+= autofs
 subdir-$(CONFIG_AUTOFS4_FS)	+= autofs4
 subdir-$(CONFIG_ADFS_FS)	+= adfs
 subdir-$(CONFIG_REISERFS_FS)	+= reiserfs
+subdir-$(CONFIG_SH_FS)		+= shfs
 subdir-$(CONFIG_DEVPTS_FS)	+= devpts
 subdir-$(CONFIG_SUN_OPENPROMFS)	+= openpromfs
 subdir-$(CONFIG_BEFS_FS)	+= befs

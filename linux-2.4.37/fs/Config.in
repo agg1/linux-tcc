@@ -162,6 +162,8 @@ if [ "$CONFIG_NET" = "y" ]; then
       # for fs/nls/Config.in
       define_bool CONFIG_NCPFS_NLS n
    fi
+
+   dep_tristate 'SSH file system support' CONFIG_SH_FS $CONFIG_EXPERIMENTAL $CONFIG_INET
    endmenu
 
 else

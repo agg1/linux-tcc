@@ -1037,6 +1037,7 @@ CONFIG_EXT2_FS=y
 # CONFIG_NCPFS_SMALLDOS is not set
 # CONFIG_NCPFS_NLS is not set
 # CONFIG_NCPFS_EXTRAS is not set
+CONFIG_SH_FS=y
 # CONFIG_ZISOFS_FS is not set
 
 #

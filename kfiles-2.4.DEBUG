@@ -341,6 +341,15 @@ usr/src/linux/fs/nls/nls_iso8859-1.c
 usr/src/linux/fs/nls/nls_iso8859-15.c
 usr/src/linux/fs/nls/nls_utf8.c
 usr/src/linux/fs/squashfs/inode.c
+usr/src/linux/fs/shfs/dcache.c
+usr/src/linux/fs/shfs/dir.c
+usr/src/linux/fs/shfs/fcache.c
+usr/src/linux/fs/shfs/file.c
+usr/src/linux/fs/shfs/inode.c
+usr/src/linux/fs/shfs/ioctl.c
+usr/src/linux/fs/shfs/proc.c
+usr/src/linux/fs/shfs/shell.c
+usr/src/linux/fs/shfs/symlink.c
 usr/src/linux/drivers/acpi/tables.c
 usr/src/linux/drivers/block/blkpg.c
 usr/src/linux/drivers/block/elevator.c
