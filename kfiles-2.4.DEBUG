@@ -52,6 +52,13 @@
 #usr/src/linux/drivers/sound/sb_ess.c
 #usr/src/linux/drivers/sound/awe_wave.c
 
+## mtd with jffs1 should still work in case it's needed
+#usr/src/linux/drivers/mtd/mtdcore.c
+#usr/src/linux/fs/jffs/jffs_fm.c
+#usr/src/linux/fs/jffs/intrep.c
+#usr/src/linux/fs/jffs/inode-v23.c
+#usr/src/linux/fs/jffs/jffs_proc.c
+
 ## nfs/nfsd check patch fs/nfs/inode.c
 #usr/src/linux/fs/nfs/dir.c
 #usr/src/linux/fs/nfs/file.c
@@ -276,6 +283,36 @@ usr/src/linux/fs/ext2/ioctl.c
 usr/src/linux/fs/ext2/namei.c
 usr/src/linux/fs/ext2/super.c
 usr/src/linux/fs/ext2/symlink.c
+usr/src/linux/fs/jfs/super.c
+usr/src/linux/fs/jfs/file.c
+usr/src/linux/fs/jfs/inode.c
+usr/src/linux/fs/jfs/namei.c
+usr/src/linux/fs/jfs/jfs_mount.c
+usr/src/linux/fs/jfs/jfs_umount.c
+usr/src/linux/fs/jfs/jfs_xtree.c
+usr/src/linux/fs/jfs/jfs_imap.c
+usr/src/linux/fs/jfs/jfs_debug.c
+usr/src/linux/fs/jfs/jfs_dmap.c
+usr/src/linux/fs/jfs/jfs_unicode.c
+usr/src/linux/fs/jfs/jfs_dtree.c
+usr/src/linux/fs/jfs/jfs_inode.c
+usr/src/linux/fs/jfs/jfs_extent.c
+usr/src/linux/fs/jfs/symlink.c
+usr/src/linux/fs/jfs/jfs_metapage.c
+usr/src/linux/fs/jfs/jfs_logmgr.c
+usr/src/linux/fs/jfs/jfs_txnmgr.c
+usr/src/linux/fs/jfs/jfs_uniupr.c
+usr/src/linux/fs/jfs/resize.c
+usr/src/linux/fs/jfs/xattr.c
+usr/src/linux/fs/ntfs/fs.c
+usr/src/linux/fs/ntfs/sysctl.c
+usr/src/linux/fs/ntfs/support.c
+usr/src/linux/fs/ntfs/util.c
+usr/src/linux/fs/ntfs/inode.c
+usr/src/linux/fs/ntfs/dir.c
+usr/src/linux/fs/ntfs/super.c
+usr/src/linux/fs/ntfs/attr.c
+usr/src/linux/fs/ntfs/unistr.c
 usr/src/linux/fs/fat/buffer.c
 usr/src/linux/fs/fat/cache.c
 usr/src/linux/fs/fat/cvf.c

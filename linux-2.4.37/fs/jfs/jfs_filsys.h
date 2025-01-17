@@ -18,6 +18,8 @@
 #ifndef _H_JFS_FILSYS
 #define _H_JFS_FILSYS
 
+#define _JFS_4K
+
 /*
  *	jfs_filsys.h
  *

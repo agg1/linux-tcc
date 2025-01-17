@@ -12,6 +12,8 @@
 #include "ntfsendian.h"
 #include <asm/types.h>
 
+#define NTFS_VERSION "1.1.22"
+
 /* Integral types */
 #ifndef NTFS_INTEGRAL_TYPES
 #define NTFS_INTEGRAL_TYPES
