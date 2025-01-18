@@ -55,6 +55,7 @@ void die(const char * str, ...)
 //	va_start(args, str);
 //	vfprintf(stderr, str, args);
 //	fputc('\n', stderr);
+	fprintf(stderr, str);
 	exit(1);
 }
 
@@ -151,9 +152,10 @@ int main(int argc, char ** argv)
 	fprintf (stderr, "System is %d kB\n", sz/1024);
 	sys_size = (sz + 15) / 16;
 	/* 0x28000*16 = 2.5 MB, conservative estimate for the current maximum */
-//	if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
-	if (sys_size > (is_big_kernel ? 0x80000 : DEF_SYSSIZE))
-		die("System is too big. Try using %smodules.",
+	//if (sys_size > (is_big_kernel ? 0x28000 : DEF_SYSSIZE))
+	/* confirmed size limit of 6528KiB 0x66000 uncompressed statically linked kernel image */
+	if (sys_size > 0x66000)
+		die("System is too big. Try using %smodules.\n",
 			is_big_kernel ? "" : "bzImage or ");
 	if (sys_size > 0xefff)
 		fprintf(stderr,"warning: kernel is too big for standalone boot "
