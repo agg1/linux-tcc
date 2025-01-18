@@ -241,11 +241,13 @@ gr_acl_handle_chown(const struct dentry * dentry, const struct vfsmount * mnt)
 	return 1;
 }
 
-//void
-//grsecurity_init(void)
-//{
-//	return;
-//}
+#ifndef CONFIG_GRKERNSEC
+void
+grsecurity_init(void)
+{
+	return;
+}
+#endif
 
 __u32
 gr_acl_handle_mknod(const struct dentry * new_dentry,
