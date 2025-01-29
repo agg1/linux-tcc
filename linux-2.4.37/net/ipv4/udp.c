@@ -99,8 +99,8 @@
 #include <net/inet_common.h>
 #include <net/checksum.h>
 
-extern int gr_search_udp_recvmsg(struct sock *sk, const struct sk_buff *skb);
-extern int gr_search_udp_sendmsg(struct sock *sk, struct sockaddr_in *addr);
+//extern int gr_search_udp_recvmsg(struct sock *sk, const struct sk_buff *skb);
+//extern int gr_search_udp_sendmsg(struct sock *sk, struct sockaddr_in *addr);
 
 /*
  *	Snmp MIB for the UDP layer
@@ -486,16 +486,16 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 		if (ufh.uh.dest == 0)
 			return -EINVAL;
 
-		err = gr_search_udp_sendmsg(sk, usin);
-		if (err)
-			return err;
+//		err = gr_search_udp_sendmsg(sk, usin);
+//		if (err)
+//			return err;
 	} else {
 		if (sk->state != TCP_ESTABLISHED)
 			return -EDESTADDRREQ;
 
-		err = gr_search_udp_sendmsg(sk, NULL);
-		if (err)
-			return err;
+//		err = gr_search_udp_sendmsg(sk, NULL);
+//		if (err)
+//			return err;
 
 		ufh.daddr = sk->daddr;
 		ufh.uh.dest = sk->dport;
@@ -725,9 +725,9 @@ try_again:
 	if (!skb)
 		goto out;
   
-	err = gr_search_udp_recvmsg(sk, skb);
-	if (err)
-		goto out_free;
+//	err = gr_search_udp_recvmsg(sk, skb);
+//	if (err)
+//		goto out_free;
 
   	copied = skb->len - sizeof(struct udphdr);
 	if (copied > len) {
