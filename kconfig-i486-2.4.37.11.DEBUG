@@ -867,7 +867,7 @@ CONFIG_VIDEO_DEV=y
 #
 # Video For Linux
 #
-# CONFIG_VIDEO_PROC_FS is not set
+CONFIG_VIDEO_PROC_FS=y
 # CONFIG_I2C_PARPORT is not set
 # CONFIG_VIDEO_BT848 is not set
 # CONFIG_VIDEO_PMS is not set
