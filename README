@@ -19,9 +19,11 @@ https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00008.html
 https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00019.html
 https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00020.html
 
-With the local test setup the patched linux-2.4.37.11 sources compiled, linked
-and too booted successfully with nosmp option, which it is by default currently.
+With a local test setup the patched linux-2.4.37.11 sources compiled, linked
+and too booted successfully including USB, SMP, O1/NPTL, grsecurity support.
 
-With plans for a complete i486-tcc-linux-musl.iso distribution this project
-will be incorporated into system integration gradually.
+With plans for a complete i586-tcc-linux-musl.iso distribution this project
+will be incorporated into system integration gradually; musl-libc 1.1.24
+sanitized for linux-2.4 ABI together with a complete system profile including
+important development utilities are supported already.
 
