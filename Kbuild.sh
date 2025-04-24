@@ -190,7 +190,7 @@ LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 #REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 # 16bit x86 real-mode assembler support
-REALAS="i486-gentoo-linux-musl-as"
+REALAS="i486-pc-linux-musl-as"
 
 
 
@@ -232,9 +232,9 @@ CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
 
 ### gcc-4.4.7
 #CCLIB=""
-#CC="i486-gentoo-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
-#LD="i486-gentoo-linux-musl-gcc -ffreestanding -O"
-#AS="i486-gentoo-linux-musl-as"
+#CC="i486-pc-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
+#LD="i486-pc-linux-musl-gcc -ffreestanding -O"
+#AS="i486-pc-linux-musl-as"
 ### gcc needs vmlinux.lds linker script to apply appropriate section layout
 #compile_kernel ; link_kernel_gcc
 
