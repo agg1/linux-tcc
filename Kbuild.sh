@@ -22,7 +22,7 @@ prepare_config() {
 	cd $CWD/$KDIR
 	##make ARCH=i386 CC="i386-tcc" LD="i386-tcc" AS="i386-tcc" HOSTCC="tcc" menuconfig
 	# autoconf.h and version.h
-	make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" oldconfig
+	make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" oldconfig >/dev/null
 	make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" include/linux/version.h
 	# slow, use pre-generated compile.h instead
 	##make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" dep include/linux/compile.h
@@ -54,7 +54,8 @@ prepare_loader() {
 	$REALAS trampoline.s -o trampoline.o
 
 	#
-	$HOSTCC -I../$KDIR/include -I/usr/lib/tcc/include ../$KDIR/arch/i386/boot/tools/build.c -static -o build ; chmod 755 build
+	TCC_LIBRARY_PATH="/lib:/usr/lib:/usr/lib/tcc" TCC_CPATH="/usr/include:/usr/lib/tcc/include" $HOSTCC \
+	-I../$KDIR/include -I/usr/lib/tcc/include ../$KDIR/arch/i386/boot/tools/build.c -static -o build ; chmod 755 build
 
 	cd $CWD
 }
@@ -155,6 +156,10 @@ label linux-debug
 	cp /usr/share/syslinux/isolinux.bin isoroot/isolinux/
 	cp ${INITRD} isoroot/boot/initrd
 
+	if [ ! -e "${CWD}/btmp/vmlinux" ] ; then
+		echo "vmlinux missing." ; exit 1
+	fi
+
 	cd $CWD/btmp
 	#./build -b ./bootsect ./setup vmlinux CURRENT >../isoroot/boot/linux
 	./build -b ./bootsect ./setup vmlinux >../isoroot/boot/linux
@@ -169,14 +174,17 @@ label linux-debug
 	mkisofs -l -V LIVECD -o tccboot.iso \
 	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 isoroot
 
-	#cp tccboot.iso tccboot-hybrid.iso
-	#isohybrid -type 112 -id 0x88888888 tccboot-hybrid.iso
+	cp tccboot.iso tccboot-hybrid.iso
+	isohybrid -type 112 -id 0x88888888 tccboot-hybrid.iso
 }
 
 FILE_LIST_o=""
 
 # directory in sync with tccboot.iso from bellard to match /boot/tccargs paths
 # just create a symlink to appropriate kernel sources and leave it as is
+mkdir -p usr/src/ ; cd usr/src/ ; rm -f linux ; ln -sf ../../linux-2.4.37 linux ; cd ${CWD}
+cp -p linux-2.4.37/tcc/compile.h usr/src/linux/include/linux/compile.h
+cp -p linux-2.4.37/tcc/consolemap_deftbl.c usr/src/linux/drivers/char/consolemap_deftbl.c
 KDIR="usr/src/linux"
 
 
@@ -184,11 +192,11 @@ KDIR="usr/src/linux"
 ## ? -fasynchronous-unwind-tables
 ## ? -D__STRICT_ANSI__ see in types.h
 HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline "
-CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
+#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586'"
+CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 # 16bit x86 real-mode assembler support
 REALAS="i486-pc-linux-musl-as"
 
@@ -212,8 +220,8 @@ KCONF=kconfig-i486-2.4.37.11.DEBUG
 
 
 # ext2, romfs, squashfs v1/v2 rootfs
-INITRD="/media/CACHE/TCC/initrd.ext2"
-INITRD_SIZE=$(du -B1024 ${INITRD} | cut -d'/' -f1)
+INITRD="/media/DATA/TCC/initrd.romfs"
+INITRD_SIZE="$(du -B1024 ${INITRD} | cut -d'/' -f1 || echo 0)"
 
 
 #

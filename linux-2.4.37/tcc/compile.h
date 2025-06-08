@@ -1,4 +1,5 @@
 #define UTS_VERSION "#1 Thu Jan 01 00:00:00 -00 1970"
+#define UTS_MACHINE "i586"
 #define LINUX_COMPILE_TIME "00:00:00"
 #define LINUX_COMPILE_BY "root"
 #define LINUX_COMPILE_HOST "localhost"
