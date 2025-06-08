@@ -550,6 +550,7 @@ usr/src/linux/drivers/usb/host/ehci-hcd.c
 usr/src/linux/drivers/usb/host/usb-ohci.c
 usr/src/linux/drivers/usb/host/usb-uhci.c
 usr/src/linux/drivers/usb/acm.c
+usr/src/linux/drivers/usb/asix.c
 usr/src/linux/drivers/usb/rtl8150.c
 usr/src/linux/drivers/bluetooth/hci_bcsp.c
 usr/src/linux/drivers/bluetooth/hci_h4.c

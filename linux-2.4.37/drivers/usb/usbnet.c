@@ -228,7 +228,10 @@ struct usbnet {
 	// protocol/interface state
 	struct net_device	net;
 	struct net_device_stats	stats;
-	int			msg_level;
+	//int			msg_enable;
+	int			msg_enable;
+	unsigned long		data[5];
+	size_t			rx_urb_size;	/* size for rx urbs */
 	struct mii_if_info	mii;
 
 #ifdef CONFIG_USB_NET1080
@@ -246,6 +249,9 @@ struct usbnet {
 #		define EVENT_TX_HALT	0
 #		define EVENT_RX_HALT	1
 #		define EVENT_RX_MEMORY	2
+
+	void			*priv;	/* point to minidriver private data */
+	unsigned char		rx_size;
 };
 
 // device-specific info used by the driver
@@ -260,7 +266,18 @@ struct driver_info {
 #define FLAG_ETHER	0x0020		/* maybe use "eth%d" names */
 
 	/* init device ... can sleep, or cause probe() failure */
-	int	(*bind)(struct usbnet *, struct usb_device *);
+	//int	(*bind)(struct usbnet *, struct usb_device *);
+	int	(*bind)(struct usbnet *, struct usb_interface *);
+
+	/* cleanup device ... can sleep, but can't fail */
+	//void	(*unbind)(struct usbnet *, struct usb_device *);
+	void	(*unbind)(struct usbnet *, struct usb_interface *);
+
+	/* for status polling */
+	void	(*status)(struct usbnet *, struct urb *);
+
+	/* link reset handling, called from defer_kevent */
+	int	(*link_reset)(struct usbnet *);
 
 	/* reset device ... can sleep */
 	int	(*reset)(struct usbnet *);
@@ -303,9 +320,9 @@ struct skb_data {	// skb->cb is one of these
 static const char driver_name [] = "usbnet";
 
 /* use ethtool to change the level for any given device */
-static int msg_level = 1;
-MODULE_PARM (msg_level, "i");
-MODULE_PARM_DESC (msg_level, "Initial message level (default = 1)");
+static int msg_enable = 1;
+MODULE_PARM (msg_enable, "i");
+MODULE_PARM_DESC (msg_enable, "Initial message level (default = 1)");
 
 
 #define	mutex_lock(x)	down(x)
@@ -387,7 +404,7 @@ found:
 #endif
 
 #define devinfo(usbnet, fmt, arg...) \
-	do { if ((usbnet)->msg_level >= 1) \
+	do { if ((usbnet)->msg_enable >= 1) \
 	printk(KERN_INFO "%s: " fmt "\n" , (usbnet)->net.name , ## arg); \
 	} while (0)
 
@@ -588,133 +605,133 @@ static void ax8817x_mdio_write(struct net_device *netdev, int phy_id, int loc, i
 	ax8817x_write_cmd(dev, AX_CMD_SET_HW_MII, 0, 0, 0, &buf);
 }
 
-static int ax8817x_bind(struct usbnet *dev, struct usb_device *intf)
-{
-	int ret;
-	u8 buf[6];
-	u16 *buf16 = (u16 *) buf;
-	int i;
-	unsigned long gpio_bits = dev->driver_info->data;
+//static int ax8817x_bind(struct usbnet *dev, struct usb_device *intf)
+//{
+//	int ret;
+//	u8 buf[6];
+//	u16 *buf16 = (u16 *) buf;
+//	int i;
+//	unsigned long gpio_bits = dev->driver_info->data;
+//
+//	dev->in = usb_rcvbulkpipe(dev->udev, 3);
+//	dev->out = usb_sndbulkpipe(dev->udev, 2);
+//
+//	/* Toggle the GPIOs in a manufacturer/model specific way */
+//	for (i = 2; i >= 0; i--) {
+//		if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_GPIOS,
+//				       (gpio_bits >> (i * 8)) & 0xff, 0, 0,
+//				       buf)) < 0)
+//			return ret;
+//		wait_ms(5);
+//        }
+//                                                                                
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_RX_CTL, 0x80, 0, 0, buf)) < 0) {
+//		dbg("send AX_CMD_WRITE_RX_CTL failed: %d", ret);
+//		return ret;
+//	}
+//
+//	/* Get the MAC address */
+//	memset(buf, 0, ETH_ALEN);
+//	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_NODE_ID, 0, 0, 6, buf)) < 0) {
+//		dbg("read AX_CMD_READ_NODE_ID failed: %d", ret);
+//		return ret;
+//	}
+//	memcpy(dev->net.dev_addr, buf, ETH_ALEN);
+//
+//	/* Get IPG values */
+//	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_IPG012, 0, 0, 3, buf)) < 0) {
+//		dbg("Error reading IPG values: %d", ret);
+//		return ret;
+//	}
+//
+//	for(i = 0;i < 3;i++) {
+//		ax8817x_write_cmd(dev, AX_CMD_WRITE_IPG0 + i, 0, 0, 1, &buf[i]);
+//	}
+//
+//	/* Get the PHY id */
+//	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_PHY_ID, 0, 0, 2, buf)) < 0) {
+//		dbg("error on read AX_CMD_READ_PHY_ID: %02x", ret);
+//		return ret;
+//	} else if (ret < 2) {
+//		/* this should always return 2 bytes */
+//		dbg("AX_CMD_READ_PHY_ID returned less than 2 bytes: ret=%02x", ret);
+//		return -EIO;
+//	}
+//
+//	/* Initialize MII structure */
+//	dev->mii.dev = &dev->net;
+//	dev->mii.mdio_read = ax8817x_mdio_read;
+//	dev->mii.mdio_write = ax8817x_mdio_write;
+//	dev->mii.phy_id_mask = 0x3f;
+//	dev->mii.reg_num_mask = 0x1f;
+//	dev->mii.phy_id = buf[1];
+//
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_SET_SW_MII, 0, 0, 0, &buf)) < 0) {
+//		dbg("Failed to go to software MII mode: %02x", ret);
+//		return ret;
+//	}
+//
+//	*buf16 = cpu_to_le16(BMCR_RESET);
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
+//				     dev->mii.phy_id, MII_BMCR, 2, buf16)) < 0) {
+//		dbg("Failed to write MII reg - MII_BMCR: %02x", ret);
+//		return ret;
+//	}
+//
+//	/* Advertise that we can do full-duplex pause */
+//	*buf16 = cpu_to_le16(ADVERTISE_ALL | ADVERTISE_CSMA | 0x0400);
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
+//			   	     dev->mii.phy_id, MII_ADVERTISE, 
+//				     2, buf16)) < 0) {
+//		dbg("Failed to write MII_REG advertisement: %02x", ret);
+//		return ret;
+//	}
+//
+//	*buf16 = cpu_to_le16(BMCR_ANENABLE | BMCR_ANRESTART);
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
+//			  	     dev->mii.phy_id, MII_BMCR, 
+//				     2, buf16)) < 0) {
+//		dbg("Failed to write MII reg autonegotiate: %02x", ret);
+//		return ret;
+//	}
+//
+//	if ((ret = ax8817x_write_cmd(dev, AX_CMD_SET_HW_MII, 0, 0, 0, &buf)) < 0) {
+//		dbg("Failed to set hardware MII: %02x", ret);
+//		return ret;
+//	}
+//
+//	dev->net.set_multicast_list = ax8817x_set_multicast;
+//
+//	return 0;
+//}
 
-	dev->in = usb_rcvbulkpipe(dev->udev, 3);
-	dev->out = usb_sndbulkpipe(dev->udev, 2);
-
-	/* Toggle the GPIOs in a manufacturer/model specific way */
-	for (i = 2; i >= 0; i--) {
-		if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_GPIOS,
-				       (gpio_bits >> (i * 8)) & 0xff, 0, 0,
-				       buf)) < 0)
-			return ret;
-		wait_ms(5);
-        }
-                                                                                
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_RX_CTL, 0x80, 0, 0, buf)) < 0) {
-		dbg("send AX_CMD_WRITE_RX_CTL failed: %d", ret);
-		return ret;
-	}
-
-	/* Get the MAC address */
-	memset(buf, 0, ETH_ALEN);
-	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_NODE_ID, 0, 0, 6, buf)) < 0) {
-		dbg("read AX_CMD_READ_NODE_ID failed: %d", ret);
-		return ret;
-	}
-	memcpy(dev->net.dev_addr, buf, ETH_ALEN);
-
-	/* Get IPG values */
-	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_IPG012, 0, 0, 3, buf)) < 0) {
-		dbg("Error reading IPG values: %d", ret);
-		return ret;
-	}
-
-	for(i = 0;i < 3;i++) {
-		ax8817x_write_cmd(dev, AX_CMD_WRITE_IPG0 + i, 0, 0, 1, &buf[i]);
-	}
-
-	/* Get the PHY id */
-	if ((ret = ax8817x_read_cmd(dev, AX_CMD_READ_PHY_ID, 0, 0, 2, buf)) < 0) {
-		dbg("error on read AX_CMD_READ_PHY_ID: %02x", ret);
-		return ret;
-	} else if (ret < 2) {
-		/* this should always return 2 bytes */
-		dbg("AX_CMD_READ_PHY_ID returned less than 2 bytes: ret=%02x", ret);
-		return -EIO;
-	}
-
-	/* Initialize MII structure */
-	dev->mii.dev = &dev->net;
-	dev->mii.mdio_read = ax8817x_mdio_read;
-	dev->mii.mdio_write = ax8817x_mdio_write;
-	dev->mii.phy_id_mask = 0x3f;
-	dev->mii.reg_num_mask = 0x1f;
-	dev->mii.phy_id = buf[1];
-
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_SET_SW_MII, 0, 0, 0, &buf)) < 0) {
-		dbg("Failed to go to software MII mode: %02x", ret);
-		return ret;
-	}
-
-	*buf16 = cpu_to_le16(BMCR_RESET);
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
-				     dev->mii.phy_id, MII_BMCR, 2, buf16)) < 0) {
-		dbg("Failed to write MII reg - MII_BMCR: %02x", ret);
-		return ret;
-	}
-
-	/* Advertise that we can do full-duplex pause */
-	*buf16 = cpu_to_le16(ADVERTISE_ALL | ADVERTISE_CSMA | 0x0400);
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
-			   	     dev->mii.phy_id, MII_ADVERTISE, 
-				     2, buf16)) < 0) {
-		dbg("Failed to write MII_REG advertisement: %02x", ret);
-		return ret;
-	}
-
-	*buf16 = cpu_to_le16(BMCR_ANENABLE | BMCR_ANRESTART);
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_MII_REG,
-			  	     dev->mii.phy_id, MII_BMCR, 
-				     2, buf16)) < 0) {
-		dbg("Failed to write MII reg autonegotiate: %02x", ret);
-		return ret;
-	}
-
-	if ((ret = ax8817x_write_cmd(dev, AX_CMD_SET_HW_MII, 0, 0, 0, &buf)) < 0) {
-		dbg("Failed to set hardware MII: %02x", ret);
-		return ret;
-	}
-
-	dev->net.set_multicast_list = ax8817x_set_multicast;
-
-	return 0;
-}
-
-static const struct driver_info ax8817x_info = {
-	.description = "ASIX AX8817x USB 2.0 Ethernet",
-	.bind = ax8817x_bind,
-	.flags =  FLAG_ETHER,
-	.data = 0x00130103,
-};
-
-static const struct driver_info dlink_dub_e100_info = {
-	.description = "DLink DUB-E100 USB Ethernet",
-	.bind = ax8817x_bind,
-	.flags =  FLAG_ETHER,
-	.data = 0x009f9d9f,
-};
-
-static const struct driver_info netgear_fa120_info = {
-	.description = "Netgear FA-120 USB Ethernet",
-	.bind = ax8817x_bind,
-	.flags =  FLAG_ETHER,
-	.data = 0x00130103,
-};
-
-static const struct driver_info hawking_uf200_info = {
-	.description = "Hawking UF200 USB Ethernet",
-	.bind = ax8817x_bind,
-	.flags =  FLAG_ETHER,
-	.data = 0x001f1d1f,
-};
+//static const struct driver_info ax8817x_info = {
+//	.description = "ASIX AX8817x USB 2.0 Ethernet",
+//	.bind = ax8817x_bind,
+//	.flags =  FLAG_ETHER,
+//	.data = 0x00130103,
+//};
+//
+//static const struct driver_info dlink_dub_e100_info = {
+//	.description = "DLink DUB-E100 USB Ethernet",
+//	.bind = ax8817x_bind,
+//	.flags =  FLAG_ETHER,
+//	.data = 0x009f9d9f,
+//};
+//
+//static const struct driver_info netgear_fa120_info = {
+//	.description = "Netgear FA-120 USB Ethernet",
+//	.bind = ax8817x_bind,
+//	.flags =  FLAG_ETHER,
+//	.data = 0x00130103,
+//};
+//
+//static const struct driver_info hawking_uf200_info = {
+//	.description = "Hawking UF200 USB Ethernet",
+//	.bind = ax8817x_bind,
+//	.flags =  FLAG_ETHER,
+//	.data = 0x001f1d1f,
+//};
 #endif /* CONFIG_USB_AX8817X */
 
 
@@ -1402,7 +1419,7 @@ static int net1080_reset (struct usbnet *dev)
 			MK_TTL (NC_READ_TTL_MS, TTL_OTHER (ttl)) );
 	dbg ("%s: assigned TTL, %d ms", dev->net.name, NC_READ_TTL_MS);
 
-	if (dev->msg_level >= 2)
+	if (dev->msg_enable >= 2)
 		devinfo (dev, "port %c, peer %sconnected",
 			(status & STATUS_PORT_A) ? 'A' : 'B',
 			(status & STATUS_CONN_OTHER) ? "" : "dis"
@@ -1714,7 +1731,38 @@ static const struct driver_info zaurus_pxa_info = {
 
 #endif
 
-
+
+static void usbnet_random_ether_addr(u8 *addr)
+{
+	get_random_bytes(addr, ETH_ALEN);
+	addr [0] &= 0xfe;	// clear multicast bit
+	addr [0] |= 0x02;	// set local assignment bit (IEEE802)
+}
+
+/* Passes this packet up the stack, updating its accounting.
+ * Some link protocols batch packets, so their rx_fixup paths
+ * can return clones as well as just modify the original skb.
+ */
+static
+void usbnet_skb_return(struct usbnet *dev, struct sk_buff *skb)
+{
+	int	status;
+
+	skb->dev = &(dev->net);
+	skb->protocol = eth_type_trans(skb, &(dev->net));
+	dev->stats.rx_packets++;
+	dev->stats.rx_bytes += skb->len;
+
+	if (netif_msg_rx_status(dev))
+		devdbg(dev, "< rx, len %zu, type 0x%x",
+			skb->len + sizeof(struct ethhdr), skb->protocol);
+
+	memset(skb->cb, 0, sizeof(struct skb_data));
+	status = netif_rx(skb);
+	if (status != NET_RX_SUCCESS && netif_msg_rx_err(dev))
+		devdbg(dev, "netif_rx status %d", status);
+}
+
 /*-------------------------------------------------------------------------
  *
  * Network Device Driver (peer link to "Host Device", from USB host)
@@ -2014,7 +2062,7 @@ static int usbnet_stop (struct net_device *net)
 	mutex_lock (&dev->mutex);
 	netif_stop_queue (net);
 
-	if (dev->msg_level >= 2)
+	if (dev->msg_enable >= 2)
 		devinfo (dev, "stop stats: rx/tx %ld/%ld, errs %ld/%ld",
 			dev->stats.rx_packets, dev->stats.tx_packets, 
 			dev->stats.rx_errors, dev->stats.tx_errors
@@ -2070,7 +2118,7 @@ static int usbnet_open (struct net_device *net)
 	}
 
 	netif_start_queue (net);
-	if (dev->msg_level >= 2)
+	if (dev->msg_enable >= 2)
 		devinfo (dev, "open: enable queueing "
 				"(rx %d, tx %d) mtu %d %s framing",
 			RX_QLEN, TX_QLEN, dev->net.mtu,
@@ -2117,14 +2165,14 @@ static u32 usbnet_get_msglevel (struct net_device *net)
 {
 	struct usbnet *dev = net->priv;
 
-	return dev->msg_level;
+	return dev->msg_enable;
 }
 
 static void usbnet_set_msglevel (struct net_device *net, u32 level)
 {
 	struct usbnet *dev = net->priv;
 
-	dev->msg_level = level;
+	dev->msg_enable = level;
 }
 
 static int usbnet_ioctl (struct net_device *net, struct ifreq *rq, int cmd)
@@ -2487,7 +2535,7 @@ usbnet_probe (struct usb_device *udev, unsigned ifnum,
 	usb_get_dev (udev);
 	dev->udev = udev;
 	dev->driver_info = info;
-	dev->msg_level = msg_level;
+	dev->msg_enable = msg_enable;
 	INIT_LIST_HEAD (&dev->dev_list);
 	skb_queue_head_init (&dev->rxq);
 	skb_queue_head_init (&dev->txq);
@@ -2520,7 +2568,8 @@ usbnet_probe (struct usb_device *udev, unsigned ifnum,
 	// allow device-specific bind/init procedures
 	// NOTE net->name still not usable ...
 	if (info->bind) {
-		status = info->bind (dev, udev);
+		//status = info->bind (dev, udev);
+		status = info->bind (dev, usb_ifnum_to_if(udev, ifnum));
 		// heuristic:  "usb%d" for links we know are two-host,
 		// else "eth%d" when there's reasonable doubt.  userspace
 		// can rename the link if it knows better.
@@ -2561,7 +2610,7 @@ usbnet_probe (struct usb_device *udev, unsigned ifnum,
  * may not be on the device.
  */
 
-static const struct usb_device_id	products [] = {
+static const struct usb_device_id	_products [] = {
 
 #ifdef	CONFIG_USB_AN2720
 {
@@ -2572,7 +2621,7 @@ static const struct usb_device_id	products [] = {
 	.driver_info =	(unsigned long) &an2720_info,
 },
 #endif
-
+/*
 #ifdef CONFIG_USB_AX8817X
 {
 	// Linksys USB200M
@@ -2600,7 +2649,7 @@ static const struct usb_device_id	products [] = {
 	.driver_info =  (unsigned long) &ax8817x_info,
 },
 #endif
-
+*/
 #ifdef	CONFIG_USB_BELKIN
 {
 	USB_DEVICE (0x050d, 0x0004),	// Belkin
@@ -2742,14 +2791,14 @@ static const struct usb_device_id	products [] = {
 
 	{ },		// END
 };
-MODULE_DEVICE_TABLE (usb, products);
+//MODULE_DEVICE_TABLE (usb, products);
 
-static struct usb_driver usbnet_driver = {
-	.name =		driver_name,
-	.id_table =	products,
-	.probe =	usbnet_probe,
-	.disconnect =	usbnet_disconnect,
-};
+//static struct usb_driver usbnet_driver = {
+//	.name =		driver_name,
+//	.id_table =	products,
+//	.probe =	usbnet_probe,
+//	.disconnect =	usbnet_disconnect,
+//};
 
 /* Default ethtool_ops assigned.  Devices can override in their bind() routine */
 static struct ethtool_ops usbnet_ethtool_ops = {
@@ -2760,28 +2809,28 @@ static struct ethtool_ops usbnet_ethtool_ops = {
 };
 /*-------------------------------------------------------------------------*/
 
-static int __init usbnet_init (void)
-{
-	// compiler should optimize this out
-	if (sizeof (((struct sk_buff *)0)->cb) < sizeof (struct skb_data))
-		BUG ();
-
-	get_random_bytes (node_id, sizeof node_id);
-	node_id [0] &= 0xfe;	// clear multicast bit
-	node_id [0] |= 0x02;    // set local assignment bit (IEEE802)
-
- 	if (usb_register (&usbnet_driver) < 0)
- 		return -1;
-
-	return 0;
-}
-module_init (usbnet_init);
-
-static void __exit usbnet_exit (void)
-{
- 	usb_deregister (&usbnet_driver);
-}
-module_exit (usbnet_exit);
+//static int __init usbnet_init (void)
+//{
+//	// compiler should optimize this out
+//	if (sizeof (((struct sk_buff *)0)->cb) < sizeof (struct skb_data))
+//		BUG ();
+//
+//	get_random_bytes (node_id, sizeof node_id);
+//	node_id [0] &= 0xfe;	// clear multicast bit
+//	node_id [0] |= 0x02;    // set local assignment bit (IEEE802)
+//
+// 	if (usb_register (&usbnet_driver) < 0)
+// 		return -1;
+//
+//	return 0;
+//}
+//module_init (usbnet_init);
+//
+//static void __exit usbnet_exit (void)
+//{
+// 	usb_deregister (&usbnet_driver);
+//}
+//module_exit (usbnet_exit);
 
 EXPORT_NO_SYMBOLS;
 MODULE_AUTHOR ("David Brownell <dbrownell@users.sourceforge.net>");
