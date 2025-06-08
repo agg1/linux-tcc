@@ -1,5 +1,5 @@
 HOSTCFLAGS += -DLOCALE 
-LIBS = -lncurses
+LIBS = -lncurses -lterminfo
 
 ifeq (/usr/include/ncurses/ncurses.h, $(wildcard /usr/include/ncurses/ncurses.h))
         HOSTCFLAGS += -I/usr/include/ncurses -DCURSES_LOC="<ncurses.h>"
@@ -25,11 +25,11 @@ OBJS = checklist.o menubox.o textbox.o yesno.o inputbox.o \
 all: ncurses lxdialog
 
 lxdialog: $(OBJS)
-	$(HOSTCC) -o lxdialog $(OBJS) $(LIBS)
+	$(HOSTCC) -static -g -o lxdialog $(OBJS) $(LIBS)
 
 ncurses:
 	@echo "main() {}" > lxtemp.c
-	@if $(HOSTCC) -lncurses lxtemp.c ; then \
+	@if $(HOSTCC) -lncurses -lterminfo lxtemp.c ; then \
 		rm -f lxtemp.c a.out; \
 	else \
 		rm -f lxtemp.c; \

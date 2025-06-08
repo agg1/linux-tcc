@@ -88,11 +88,11 @@ dialog_yesno (const char *title, const char *prompt, int height, int width)
 	switch (key) {
 	case 'Y':
 	case 'y':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return 0;
 	case 'N':
 	case 'n':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return 1;
 
 	case TAB:
@@ -106,13 +106,13 @@ dialog_yesno (const char *title, const char *prompt, int height, int width)
 	    break;
 	case ' ':
 	case '\n':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return button;
 	case ESC:
 	    break;
 	}
     }
 
-    delwin (dialog);
+    //delwin (dialog);
     return -1;			/* ESC pressed */
 }

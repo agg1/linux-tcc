@@ -31,9 +31,9 @@
  *        smarter and works more like other menu systems (just have a look at
  *        it).
  *
- *    *)  Formerly if I selected something my scrolling would be broken because
+ *    *)  Formerly if I selected something my _scrolling would be broken because
  *        lxdialog is re-invoked by the Menuconfig shell script, can't
- *        remember the last scrolling position, and just sets it so that the
+ *        remember the last _scrolling position, and just sets it so that the
  *        cursor is at the bottom of the box.  Now it writes the temporary file
  *        lxdialog.scrltmp which contains this information. The file is
  *        deleted by lxdialog if the user leaves a submenu or enters a new
@@ -45,18 +45,19 @@
  *    *)  Now lxdialog is crash-safe against broken "lxdialog.scrltmp" files
  *        and menus change their size on the fly.
  *
- *    *)  If for some reason the last scrolling position is not saved by
- *        lxdialog, it sets the scrolling so that the selected item is in the
+ *    *)  If for some reason the last _scrolling position is not saved by
+ *        lxdialog, it sets the _scrolling so that the selected item is in the
  *        middle of the menu box, not at the bottom.
  *
  * 02 January 1999, Michael Elizabeth Chastain (mec@shout.net)
- * Reset 'scroll' to 0 if the value from lxdialog.scrltmp is bogus.
+ * Reset '_scroll' to 0 if the value from lxdialog.scrltmp is bogus.
  * This fixes a bug in Menuconfig where using ' ' to descend into menus
  * would leave mis-synchronized lxdialog.scrltmp files lying around,
- * fscanf would read in 'scroll', and eventually that value would get used.
+ * fscanf would read in '_scroll', and eventually that value would get used.
  */
 
 #include "dialog.h"
+#include <curses.h>
 
 static int menu_width, item_x;
 
@@ -98,10 +99,10 @@ print_item (WINDOW * win, const char *item, int choice, int selected, int hotkey
 }
 
 /*
- * Print the scroll indicators.
+ * Print the _scroll indicators.
  */
 static void
-print_arrows (WINDOW * win, int item_no, int scroll,
+print_arrows (WINDOW * win, int item_no, int _scroll,
 		int y, int x, int height)
 {
     int cur_y, cur_x;
@@ -110,7 +111,7 @@ print_arrows (WINDOW * win, int item_no, int scroll,
 
     wmove(win, y, x);
 
-    if (scroll > 0) {
+    if (_scroll > 0) {
 	wattrset (win, uarrow_attr);
 	waddch (win, ACS_UARROW);
 	waddstr (win, "(-)");
@@ -126,7 +127,7 @@ print_arrows (WINDOW * win, int item_no, int scroll,
    y = y + height + 1;
    wmove(win, y, x);
 
-   if ((height < item_no) && (scroll + height < item_no)) {
+   if ((height < item_no) && (_scroll + height < item_no)) {
 	wattrset (win, darrow_attr);
 	waddch (win, ACS_DARROW);
 	waddstr (win, "(+)");
@@ -169,7 +170,7 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 
 {
     int i, j, x, y, box_x, box_y;
-    int key = 0, button = 0, scroll = 0, choice = 0, first_item = 0, max_choice;
+    int key = 0, button = 0, _scroll = 0, choice = 0, first_item = 0, max_choice;
     WINDOW *dialog, *menu;
     FILE *f;
 
@@ -236,16 +237,16 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 
     item_x = (menu_width - item_x) / 2;
 
-    /* get the scroll info from the temp file */
+    /* get the _scroll info from the temp file */
     if ( (f=fopen("lxdialog.scrltmp","r")) != NULL ) {
-	if ( (fscanf(f,"%d\n",&scroll) == 1) && (scroll <= choice) &&
-	     (scroll+max_choice > choice) && (scroll >= 0) &&
-	     (scroll+max_choice <= item_no) ) {
-	    first_item = scroll;
-	    choice = choice - scroll;
+	if ( (fscanf(f,"%d\n",&_scroll) == 1) && (_scroll <= choice) &&
+	     (_scroll+max_choice > choice) && (_scroll >= 0) &&
+	     (_scroll+max_choice <= item_no) ) {
+	    first_item = _scroll;
+	    choice = choice - _scroll;
 	    fclose(f);
 	} else {
-	    scroll=0;
+	    _scroll=0;
 	    remove("lxdialog.scrltmp");
 	    fclose(f);
 	    f=NULL;
@@ -253,10 +254,10 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
     }
     if ( (choice >= max_choice) || (f==NULL && choice >= max_choice/2) ) {
 	if (choice >= item_no-max_choice/2)
-	    scroll = first_item = item_no-max_choice;
+	    _scroll = first_item = item_no-max_choice;
 	else
-	    scroll = first_item = choice - max_choice/2;
-	choice = choice - scroll;
+	    _scroll = first_item = choice - max_choice/2;
+	choice = choice - _scroll;
     }
 
     /* Print the menu */
@@ -267,7 +268,7 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 
     wnoutrefresh (menu);
 
-    print_arrows(dialog, item_no, scroll,
+    print_arrows(dialog, item_no, _scroll,
 		 box_y, box_x+item_x+1, menu_height);
 
     print_buttons (dialog, height, width, 0);
@@ -283,14 +284,14 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 		i = max_choice;
 	else {
         for (i = choice+1; i < max_choice; i++) {
-		j = first_alpha(items[(scroll+i)*2+1], "YyNnMm");
-		if (key == tolower(items[(scroll+i)*2+1][j]))
+		j = first_alpha(items[(_scroll+i)*2+1], "YyNnMm");
+		if (key == tolower(items[(_scroll+i)*2+1][j]))
                 	break;
 	}
 	if (i == max_choice)
        		for (i = 0; i < max_choice; i++) {
-			j = first_alpha(items[(scroll+i)*2+1], "YyNnMm");
-			if (key == tolower(items[(scroll+i)*2+1][j]))
+			j = first_alpha(items[(_scroll+i)*2+1], "YyNnMm");
+			if (key == tolower(items[(_scroll+i)*2+1][j]))
                 		break;
 		}
 	}
@@ -300,52 +301,52 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
             key == '-' || key == '+' ||
             key == KEY_PPAGE || key == KEY_NPAGE) {
 
-            print_item (menu, items[(scroll+choice)*2+1], choice, FALSE,
-                       (items[(scroll+choice)*2][0] != ':'));
+            print_item (menu, items[(_scroll+choice)*2+1], choice, FALSE,
+                       (items[(_scroll+choice)*2][0] != ':'));
 
 	    if (key == KEY_UP || key == '-') {
-                if (choice < 2 && scroll) {
+                if (choice < 2 && _scroll) {
 	            /* Scroll menu down */
                     scrollok (menu, TRUE);
                     wscrl (menu, -1);
                     scrollok (menu, FALSE);
 
-                    scroll--;
+                    _scroll--;
 
-                    print_item (menu, items[scroll * 2 + 1], 0, FALSE,
-                               (items[scroll*2][0] != ':'));
+                    print_item (menu, items[_scroll * 2 + 1], 0, FALSE,
+                               (items[_scroll*2][0] != ':'));
 		} else
 		    choice = MAX(choice - 1, 0);
 
 	    } else if (key == KEY_DOWN || key == '+')  {
 
-		print_item (menu, items[(scroll+choice)*2+1], choice, FALSE,
-                                (items[(scroll+choice)*2][0] != ':'));
+		print_item (menu, items[(_scroll+choice)*2+1], choice, FALSE,
+                                (items[(_scroll+choice)*2][0] != ':'));
 
                 if ((choice > max_choice-3) &&
-                    (scroll + max_choice < item_no)
+                    (_scroll + max_choice < item_no)
                    ) {
 		    /* Scroll menu up */
 		    scrollok (menu, TRUE);
                     scroll (menu);
                     scrollok (menu, FALSE);
 
-                    scroll++;
+                    _scroll++;
 
-                    print_item (menu, items[(scroll+max_choice-1)*2+1],
+                    print_item (menu, items[(_scroll+max_choice-1)*2+1],
                                max_choice-1, FALSE,
-                               (items[(scroll+max_choice-1)*2][0] != ':'));
+                               (items[(_scroll+max_choice-1)*2][0] != ':'));
                 } else
                     choice = MIN(choice+1, max_choice-1);
 
 	    } else if (key == KEY_PPAGE) {
 	        scrollok (menu, TRUE);
                 for (i=0; (i < max_choice); i++) {
-                    if (scroll > 0) {
+                    if (_scroll > 0) {
                 	wscrl (menu, -1);
-                	scroll--;
-                	print_item (menu, items[scroll * 2 + 1], 0, FALSE,
-                	(items[scroll*2][0] != ':'));
+                	_scroll--;
+                	print_item (menu, items[_scroll * 2 + 1], 0, FALSE,
+                	(items[_scroll*2][0] != ':'));
                     } else {
                         if (choice > 0)
                             choice--;
@@ -355,14 +356,14 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 
             } else if (key == KEY_NPAGE) {
                 for (i=0; (i < max_choice); i++) {
-                    if (scroll+max_choice < item_no) {
+                    if (_scroll+max_choice < item_no) {
 			scrollok (menu, TRUE);
 			scroll(menu);
 			scrollok (menu, FALSE);
-                	scroll++;
-                	print_item (menu, items[(scroll+max_choice-1)*2+1],
+                	_scroll++;
+                	print_item (menu, items[(_scroll+max_choice-1)*2+1],
 			            max_choice-1, FALSE,
-			            (items[(scroll+max_choice-1)*2][0] != ':'));
+			            (items[(_scroll+max_choice-1)*2][0] != ':'));
 		    } else {
 			if (choice+1 < max_choice)
 			    choice++;
@@ -372,10 +373,10 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
             } else
                 choice = i;
 
-            print_item (menu, items[(scroll+choice)*2+1], choice, TRUE,
-                       (items[(scroll+choice)*2][0] != ':'));
+            print_item (menu, items[(_scroll+choice)*2+1], choice, TRUE,
+                       (items[(_scroll+choice)*2][0] != ':'));
 
-            print_arrows(dialog, item_no, scroll,
+            print_arrows(dialog, item_no, _scroll,
                          box_y, box_x+item_x+1, menu_height);
 
             wnoutrefresh (dialog);
@@ -399,13 +400,13 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 	case 'y':
 	case 'n':
 	case 'm':
-	    /* save scroll info */
+	    /* save _scroll info */
 	    if ( (f=fopen("lxdialog.scrltmp","w")) != NULL ) {
-		fprintf(f,"%d\n",scroll);
+		fprintf(f,"%d\n",_scroll);
 		fclose(f);
 	    }
-	    delwin (dialog);
-            fprintf(stderr, "%s\n", items[(scroll + choice) * 2]);
+	    //delwin (dialog);
+            fprintf(stderr, "%s\n", items[(_scroll + choice) * 2]);
             switch (key) {
             case 's': return 3;
             case 'y': return 3;
@@ -418,14 +419,14 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 	case '?':
 	    button = 2;
 	case '\n':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    if (button == 2) 
             	fprintf(stderr, "%s \"%s\"\n", 
-			items[(scroll + choice) * 2],
-			items[(scroll + choice) * 2 + 1] +
-			first_alpha(items[(scroll + choice) * 2 + 1],""));
+			items[(_scroll + choice) * 2],
+			items[(_scroll + choice) * 2 + 1] +
+			first_alpha(items[(_scroll + choice) * 2 + 1],""));
 	    else
-            	fprintf(stderr, "%s\n", items[(scroll + choice) * 2]);
+            	fprintf(stderr, "%s\n", items[(_scroll + choice) * 2]);
 
 	    remove("lxdialog.scrltmp");
 	    return button;
@@ -437,7 +438,7 @@ dialog_menu (const char *title, const char *prompt, int height, int width,
 	}
     }
 
-    delwin (dialog);
+    //delwin (dialog);
     remove("lxdialog.scrltmp");
     return -1;			/* ESC pressed */
 }

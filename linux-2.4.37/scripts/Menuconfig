@@ -833,7 +833,7 @@ function activate_menu () {
 
 		if [ "$?" != "0" ]
 		then
-			clear
+			#clear
 			cat <<EOM
 
 Menuconfig has encountered a possible error in one of the kernel's
@@ -890,7 +890,7 @@ EOM
 			;;
 		139)
 			stty sane
-			clear
+			#clear
 			cat <<EOM
 
 There seems to be a problem with the lxdialog companion utility which is
@@ -1311,16 +1311,19 @@ save_configuration () {
 # Remove temporary files
 #
 cleanup () {
-	cleanup1
-	cleanup2
+#	cleanup1
+#	cleanup2
+	true
 }
 
 cleanup1 () {
-	rm -f MCmenu* MCradiolists MCdialog.out help.out
+#	rm -f MCmenu* MCradiolists MCdialog.out help.out
+	true
 }
 
 cleanup2 () {
-	rm -f .tmpconfig .tmpconfig.h
+#	rm -f .tmpconfig .tmpconfig.h
+	true
 }
 
 set_geometry () {
@@ -1376,6 +1379,7 @@ Please enter a string value. \
 Use the <TAB> key to move from the input field to the buttons below it."
 
 DIALOG="./scripts/lxdialog/lxdialog"
+#DIALOG=/usr/bin/dialog
 
 kernel_version="${VERSION}.${PATCHLEVEL}.${SUBLEVEL}${EXTRAVERSION}"
 

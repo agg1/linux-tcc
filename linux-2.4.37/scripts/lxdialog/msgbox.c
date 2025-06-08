@@ -80,6 +80,6 @@ dialog_msgbox (const char *title, const char *prompt, int height, int width,
 	wrefresh (dialog);
     }
 
-    delwin (dialog);
+    //delwin (dialog);
     return key == ESC ? -1 : 0;
 }

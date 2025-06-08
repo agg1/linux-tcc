@@ -178,11 +178,11 @@ dialog_inputbox (const char *title, const char *prompt, int height, int width,
 	switch (key) {
 	case 'O':
 	case 'o':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return 0;
 	case 'H':
 	case 'h':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return 1;
 	case KEY_UP:
 	case KEY_LEFT:
@@ -225,7 +225,7 @@ dialog_inputbox (const char *title, const char *prompt, int height, int width,
 	    break;
 	case ' ':
 	case '\n':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    return (button == -1 ? 0 : button);
 	case 'X':
 	case 'x':
@@ -235,6 +235,6 @@ dialog_inputbox (const char *title, const char *prompt, int height, int width,
 	}
     }
 
-    delwin (dialog);
+    //delwin (dialog);
     return -1;			/* ESC pressed */
 }

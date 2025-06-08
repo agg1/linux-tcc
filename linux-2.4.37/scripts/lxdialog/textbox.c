@@ -138,7 +138,7 @@ dialog_textbox (const char *title, const char *file, int height, int width)
 	case 'e':
 	case 'X':
 	case 'x':
-	    delwin (dialog);
+	    //delwin (dialog);
 	    free (buf);
 	    close (fd);
 	    return 0;
@@ -314,7 +314,7 @@ dialog_textbox (const char *title, const char *file, int height, int width)
 	}
     }
 
-    delwin (dialog);
+    //delwin (dialog);
     free (buf);
     close (fd);
     return -1;			/* ESC pressed */
