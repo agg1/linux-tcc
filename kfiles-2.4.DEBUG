@@ -838,6 +838,8 @@ usr/src/linux/fs/lockd/svcsubs.c
 usr/src/linux/fs/lockd/mon.c
 usr/src/linux/fs/lockd/xdr.c
 usr/src/linux/fs/lockd/lockd_syms.c
+usr/src/linux/fs/lockd/xdr4.c
+usr/src/linux/fs/lockd/svc4proc.c
 usr/src/linux/fs/nfs/dir.c
 usr/src/linux/fs/nfs/file.c
 usr/src/linux/fs/nfs/flushd.c
@@ -849,6 +851,8 @@ usr/src/linux/fs/nfs/read.c
 usr/src/linux/fs/nfs/symlink.c
 usr/src/linux/fs/nfs/unlink.c
 usr/src/linux/fs/nfs/write.c
+usr/src/linux/fs/nfs/nfs3proc.c
+usr/src/linux/fs/nfs/nfs3xdr.c
 usr/src/linux/fs/nfsd/nfssvc.c
 usr/src/linux/fs/nfsd/nfsctl.c
 usr/src/linux/fs/nfsd/nfsproc.c
@@ -860,6 +864,8 @@ usr/src/linux/fs/nfsd/lockd.c
 usr/src/linux/fs/nfsd/nfscache.c
 usr/src/linux/fs/nfsd/nfsxdr.c
 usr/src/linux/fs/nfsd/stats.c
+usr/src/linux/fs/nfsd/nfs3proc.c
+usr/src/linux/fs/nfsd/nfs3xdr.c
 usr/src/linux/net/sunrpc/clnt.c
 usr/src/linux/net/sunrpc/xprt.c
 usr/src/linux/net/sunrpc/sched.c
