@@ -202,9 +202,9 @@ static void ax88772_status(struct usbnet *dev, struct urb *urb)
 
 //	if (ax772_data->Event)
 //		queue_work(ax772_data->ax_work, &ax772_data->check_link);
-	if (ax772_data->Event) {
-		ax88772_link_reset(dev);
-	}
+//	if (ax772_data->Event) {
+//		ax88772_link_reset(dev);
+//	}
 }
 
 static void ax88772a_status(struct usbnet *dev, struct urb *urb)
@@ -241,9 +241,9 @@ static void ax88772a_status(struct usbnet *dev, struct urb *urb)
 
 //	if (ax772a_data->Event)
 //		queue_work(ax772a_data->ax_work, &ax772a_data->check_link);
-	if (ax772a_data->Event) {
-		ax88772a_link_reset(dev);
-	}
+//	if (ax772a_data->Event) {
+//		ax88772a_link_reset(dev);
+//	}
 }
 
 static int ax88772b_stop(struct usbnet *dev)
@@ -347,11 +347,11 @@ static void ax88772b_status(struct usbnet *dev, struct urb *urb)
 		}
 	}
 
-	//if (ax772b_data->Event)
-	//	queue_work(ax772b_data->ax_work, &ax772b_data->check_link);
-	if (ax772b_data->Event) {
-		ax88772b_link_reset(dev);
-	}
+//	if (ax772b_data->Event)
+//		queue_work(ax772b_data->ax_work, &ax772b_data->check_link);
+//	if (ax772b_data->Event) {
+//		ax88772b_link_reset(dev);
+//	}
 }
 
 static void ax88772c_status(struct usbnet *dev, struct urb *urb)
@@ -412,11 +412,11 @@ static void ax88772c_status(struct usbnet *dev, struct urb *urb)
 		}
 	}
 
-	//if (ax772b_data->Event)
-	//	queue_work(ax772b_data->ax_work, &ax772b_data->check_link);
-	if (ax772b_data->Event) {
-		ax88772b_link_reset(dev);
-	}
+//	if (ax772b_data->Event)
+//		queue_work(ax772b_data->ax_work, &ax772b_data->check_link);
+//	if (ax772b_data->Event) {
+//		ax88772b_link_reset(dev);
+//	}
 }
 
 //void
@@ -1373,6 +1373,7 @@ static int ax88772_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	ax772_data->dev = dev;
 //#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
+	ax88772_link_reset(dev);
 //	INIT_WORK(&ax772_data->check_link, ax88772_link_reset, dev);
 //#else
 //	INIT_WORK(&ax772_data->check_link, ax88772_link_reset);
@@ -1678,6 +1679,7 @@ static int ax88772a_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	ax772a_data->dev = dev;
 //#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
+	ax88772a_link_reset(dev);
 //	INIT_WORK(&ax772a_data->check_link, ax88772a_link_reset, dev);
 //#else
 //	INIT_WORK(&ax772a_data->check_link, ax88772a_link_reset);
@@ -2006,6 +2008,7 @@ static int ax88772b_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	ax772b_data->dev = dev;
 //#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
+	ax88772b_link_reset(dev);
 //	INIT_WORK(&ax772b_data->check_link, ax88772b_link_reset, dev);
 //#else
 //	INIT_WORK(&ax772b_data->check_link, ax88772b_link_reset);
