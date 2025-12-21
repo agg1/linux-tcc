@@ -8,7 +8,7 @@
  * and envelope for the new program. 33 should suffice, this gives
  * a maximum env+arg of 132kB w/4KB pages!
  */
-#define MAX_ARG_PAGES 33
+#define MAX_ARG_PAGES 128
 
 /* sizeof(linux_binprm->buf) */
 #define BINPRM_BUF_SIZE 128
