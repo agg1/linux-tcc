@@ -10,10 +10,11 @@
 ## CONFIG_INPUT_IFORCE_USB deadlocks kernel boot
 #usr/src/linux/drivers/char/joystick/iforce.c
 
-## sata discs are detected by libata without specific sata or ahci extension
+## sata discs are detected by libata/ahci
 #usr/src/linux/drivers/scsi/ata_piix.c
-## ahci extension deadlocks kernel boot
-#usr/src/linux/drivers/scsi/ahci.c
+
+## CONFIG_BLK_DEV_IDESCSI
+#usr/src/linux/drivers/scsi/ide-scsi.c
 
 ## vesafb suffices
 #usr/src/linux/drivers/video/intel/builtinmodes.c
@@ -484,7 +485,6 @@ usr/src/linux/drivers/pcmcia/yenta.c
 usr/src/linux/drivers/pcmcia/pci_socket.c
 usr/src/linux/drivers/scsi/constants.c
 usr/src/linux/drivers/scsi/hosts.c
-usr/src/linux/drivers/scsi/ide-scsi.c
 usr/src/linux/drivers/scsi/scsi.c
 usr/src/linux/drivers/scsi/scsi_dma.c
 usr/src/linux/drivers/scsi/scsi_error.c
@@ -506,6 +506,7 @@ usr/src/linux/drivers/scsi/sr_vendor.c
 usr/src/linux/drivers/scsi/st.c
 usr/src/linux/drivers/scsi/libata-core.c
 usr/src/linux/drivers/scsi/libata-scsi.c
+usr/src/linux/drivers/scsi/ahci.c
 usr/src/linux/drivers/sound/sound_core.c
 usr/src/linux/drivers/sound/sound_firmware.c
 usr/src/linux/drivers/sound/dev_table.c
