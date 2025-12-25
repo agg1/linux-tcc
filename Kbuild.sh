@@ -20,7 +20,7 @@ prepare_config() {
 	cp ${KCONF} $CWD/$KDIR/.config
 
 	cd $CWD/$KDIR
-	##make ARCH=i386 CC="i386-tcc" LD="i386-tcc" AS="i386-tcc" HOSTCC="tcc" menuconfig
+	##make ARCH=i386 CC="i386-tcc" LD="i386-tcc" AS="i386-tcc" HOSTCC="i386-tcc" menuconfig
 	# autoconf.h and version.h
 	make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" oldconfig >/dev/null
 	make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" include/linux/version.h
@@ -198,8 +198,7 @@ LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 #REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 # 16bit x86 real-mode assembler support
-REALAS="i486-pc-linux-musl-as"
-
+REALAS="i586-tcc-linux-musl-as"
 
 
 ### OK; tiny config does not have ext2fs, use romfs then
