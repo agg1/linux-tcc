@@ -6,8 +6,8 @@ Kbuild.sh contains further comments.
 linux-2.4.37 folder contains kernel sources with all necessary patches applied
 from patches/kernel folder.
 
-A recent tinycc compiler is required, tested with mob branch commit
-085e029f08c9b0b57632703df565efdbe2cd0c7f november 2024.
+A recent tinycc compiler is required, last tested with mob branch commit
+34eed88a70fc8238cd5b623cc96b8bf0e40392ed december 2025.
 
 Currently it is recommended to execute Kbuild.sh on a native x86 build host
 instead of using tcc as cross-compiler accross different architectures, because
@@ -22,8 +22,11 @@ https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00020.html
 With a local test setup the patched linux-2.4.37.11 sources compiled, linked
 and too booted successfully including USB, SMP, O1/NPTL, grsecurity support.
 
-With plans for a complete i586-tcc-linux-musl.iso distribution this project
-will be incorporated into system integration gradually; musl-libc 1.1.24
-sanitized for linux-2.4 ABI together with a complete system profile including
-important development utilities are supported already.
+A complete i586-tcc-linux2-musl.iso distribution with musl-libc-1.1.24 and
+a complete userspace of 500builds including all required development utilities
+back-ported onto linux-2.4 SYSV ABI passed self-hosting compilation already:
+https://lists.nongnu.org/archive/html/tinycc-devel/2025-12/msg00023.html
+
+As introductory note for the conceptual reasoning involved some documentation
+is published at a tiny test-site: http://tinyfront.mooo.com/docs.html
 
