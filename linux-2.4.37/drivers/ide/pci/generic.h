@@ -205,7 +205,7 @@ static ide_pci_device_t generic_chipsets[] __devinitdata = {
 	}
 };
 
-#if 0
+//#if 0
 static ide_pci_device_t unknown_chipset[] __devinitdata = {
 	{	/* 0 */
 		.vendor		= 0,
@@ -228,6 +228,6 @@ static ide_pci_device_t unknown_chipset[] __devinitdata = {
 	}
 
 };
-#endif
+//#endif
 
 #endif /* IDE_GENERIC_H */

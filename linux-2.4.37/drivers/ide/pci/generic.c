@@ -101,10 +101,19 @@ extern void ide_setup_pci_device(struct pci_dev *, ide_pci_device_t *);
  *	Called when the PCI registration layer (or the IDE initialization)
  *	finds a device matching our IDE device tables.
  */
- 
+
 static int __devinit generic_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	ide_pci_device_t *d = &generic_chipsets[id->driver_data];
+	ide_pci_device_t *d;
+	if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE) {
+		d = &unknown_chipset[0];
+		d->vendor = dev->vendor;
+		d->device = dev->device;
+	}
+	else {
+		return 1;
+	}
+
 	u16 command;
 
 	if (dev->device != d->device)
@@ -130,6 +139,7 @@ static int __devinit generic_init_one(struct pci_dev *dev, const struct pci_devi
 	return 0;
 }
 
+#if 0
 static struct pci_device_id generic_pci_tbl[] __devinitdata = {
 	{ PCI_VENDOR_ID_NS,     PCI_DEVICE_ID_NS_87410,            PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
 	{ PCI_VENDOR_ID_PCTECH, PCI_DEVICE_ID_PCTECH_SAMURAI_IDE,  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1},
@@ -149,6 +159,14 @@ static struct pci_device_id generic_pci_tbl[] __devinitdata = {
 	{ PCI_VENDOR_ID_MARVELL,  PCI_DEVICE_ID_MARVELL_6145,      PCI_ANY_ID, PCI_ANY_ID, 0, 0, 15},
 	{ 0, },
 };
+#endif
+
+static struct pci_device_id generic_pci_tbl[] __devinitdata = {
+	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, 0 , 0, 0},
+	//{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_STORAGE_IDE << 8, 0xffff00, 0},
+	//{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, 0},
+	{ 0, },
+}
 
 static struct pci_driver driver = {
 	.name		= "PCI IDE",
