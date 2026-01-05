@@ -256,6 +256,8 @@ static struct ata_port_info ahci_port_info[] = {
 
 static const struct pci_device_id ahci_pci_tbl[] = {
 	/* INTEL */
+	{ PCI_VENDOR_ID_INTEL, 0x06d6, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Comet Lake PCH-H RAID */
 	{ PCI_VENDOR_ID_INTEL, 0x2652, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci }, /* ICH6 */
 	{ PCI_VENDOR_ID_INTEL, 0x2653, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
@@ -316,18 +318,290 @@ static const struct pci_device_id ahci_pci_tbl[] = {
 	  board_ahci },	/* Tolapai */
 	{ PCI_VENDOR_ID_INTEL, 0x3a05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* ICH10 */
+	{ PCI_VENDOR_ID_INTEL, 0x3a22, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ICH10 */
 	{ PCI_VENDOR_ID_INTEL, 0x3a25, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* ICH10 */
+	{ PCI_VENDOR_ID_INTEL, 0x3b22, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* PCH AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x3b23, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* PCH AHCI */
 	{ PCI_VENDOR_ID_INTEL, 0x3b24, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* PCH RAID */
-	{ PCI_VENDOR_ID_INTEL, 0x3b2b, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	{ PCI_VENDOR_ID_INTEL, 0x3b25, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* PCH RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x3b29, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PCH M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x3b2b, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PCH RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x3b2c, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PCH M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x3b2f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PCH AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b0, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b1, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b2, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b4, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b5, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b6, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19b7, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19bE, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19bF, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c0, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c1, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c2, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c4, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c5, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c6, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19c7, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19cE, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x19cF, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DNV AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1c02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1c03, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1c04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1c05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1c06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1c07, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* CPT RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1d02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PBG AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1d04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PBG RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1d06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PBG RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x2826, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* PBG RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x2323, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* DH89xxCC AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1e02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther Point AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1e03, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1e04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1e05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1e06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1e07, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1e0e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Panther Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx Point AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8c03, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8c04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c07, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c0e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx Point RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c0f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x9c03, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x9c04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c07, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c0e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c0f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lynx LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9dd3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Cannon Lake PCH-LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1f22, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1f23, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1f24, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f25, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f26, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f27, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f2e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f2f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f32, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1f33, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x1f34, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f35, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f36, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f37, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f3e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x1f3f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Avoton RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x2823, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x2827, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d02, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8d04, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d0e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d62, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8d64, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d66, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8d6e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wellsburg RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x23a3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Coleto Creek AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x9c83, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wildcat LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x9c85, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wildcat LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c87, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wildcat LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9c8f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Wildcat LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c82, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8c83, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x8c84, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c85, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c86, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c87, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c8e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x8c8f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 9 Series M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9d03, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x9d05, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x9d07, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise LP RAID */
+	{ PCI_VENDOR_ID_INTEL, 0xa102, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise Point-H AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0xa103, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise M AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0xa105, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise Point-H RAID */
+	{ PCI_VENDOR_ID_INTEL, 0xa106, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise Point-H RAID */
+	{ PCI_VENDOR_ID_INTEL, 0xa107, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise M RAID */
+	{ PCI_VENDOR_ID_INTEL, 0xa10f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Sunrise Point-H RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x2822, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0x2823, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg AHCI*/
+	{ PCI_VENDOR_ID_INTEL, 0x2826, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0x2827, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa182, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg AHCI*/
+	{ PCI_VENDOR_ID_INTEL, 0xa186, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa1d2, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa1d6, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa202, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg AHCI*/
+	{ PCI_VENDOR_ID_INTEL, 0xa206, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa252, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa256, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Lewisburg RAID*/
+	{ PCI_VENDOR_ID_INTEL, 0xa356, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Cannon Lake PCH-H RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x06d7, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Comet Lake-H RAID */
+	{ PCI_VENDOR_ID_INTEL, 0xa386, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Comet Lake PCH-V RAID */
+	{ PCI_VENDOR_ID_INTEL, 0x0f22, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Bay Trail AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x0f23, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Bay Trail AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x22a3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Cherry Tr. AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x5ae3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* ApolloLake AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x34d3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Ice Lake LP AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x02d3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Comet Lake PCH-U AHCI */
+	{ PCI_VENDOR_ID_INTEL, 0x02d7, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* Comet Lake PCH RAID */
 
-	/* JMICRON */
+	/* JMicron 360/1/3/5/6, match class to avoid IDE function */
+	{ PCI_VENDOR_ID_JMICRON, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci },
 	{ 0x197b, 0x2360, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci }, /* JMicron JMB360 */
 	{ 0x197b, 0x2363, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci }, /* JMicron JMB363 */
+	/* JMicron 362B and 362C have an AHCI function with IDE class code */
+	{ PCI_VENDOR_ID_JMICRON, 0x2362, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_JMICRON, 0x236f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	/* May need to update quirk_jmicron_async_suspend() for additions */
 
 	/* ATI */
 	{ PCI_VENDOR_ID_ATI, 0x4380, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
@@ -344,6 +618,24 @@ static const struct pci_device_id ahci_pci_tbl[] = {
 	  board_ahci },	/* ATI SB700/800 */
 	{ PCI_VENDOR_ID_ATI, 0x4395, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* ATI SB700/800 */
+
+	/* Amazon's Annapurna Labs support */
+	{ PCI_VENDOR_ID_AMAZON_ANNAPURNA_LABS, 0x0031, PCI_ANY_ID, PCI_ANY_ID,
+	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci },
+	/* AMD */
+	{ PCI_VENDOR_ID_AMD, 0x7800, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* AMD Hudson-2 */
+	{ PCI_VENDOR_ID_AMD, 0x7900, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* AMD CZ */
+	/* AMD is using RAID class only for ahci controllers */
+	{ PCI_VENDOR_ID_AMD, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+	  PCI_CLASS_STORAGE_RAID << 8, 0xffffff, board_ahci },
+
+	/* VIA */
+	{ PCI_VENDOR_ID_VIA, 0x3349, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* VIA VT8251 */
+	{ PCI_VENDOR_ID_VIA, 0x6287, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* VIA VT8251 */
 
 	/* NVIDIA */
 	{ PCI_VENDOR_ID_NVIDIA, 0x044c, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
@@ -386,6 +678,38 @@ static const struct pci_device_id ahci_pci_tbl[] = {
 	  board_ahci },	/* MCP67 */
 	{ PCI_VENDOR_ID_NVIDIA, 0x055b, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* MCP67 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0580, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0581, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0582, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0583, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0584, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0585, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0586, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0587, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0588, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0589, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058a, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058b, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058c, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058d, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
+	{ PCI_VENDOR_ID_NVIDIA, 0x058f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* Linux ID */
 	{ PCI_VENDOR_ID_NVIDIA, 0x07f0, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* MCP73 */
 	{ PCI_VENDOR_ID_NVIDIA, 0x07f1, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
@@ -458,38 +782,116 @@ static const struct pci_device_id ahci_pci_tbl[] = {
 	  board_ahci },	/* MCP79 */
 	{ PCI_VENDOR_ID_NVIDIA, 0x0abf, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },	/* MCP79 */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc4, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc5, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc6, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc7, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc8, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bc9, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bca, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bcb, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bcc, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bcd, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bce, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
-	{ PCI_VENDOR_ID_NVIDIA, 0x0bcf, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },	/* MCP7B */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d84, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d85, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d86, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d87, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d88, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d89, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8a, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8b, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8c, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8d, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8e, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
+	{ PCI_VENDOR_ID_NVIDIA, 0x0d8f, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* MCP89 */
 
 	/* SIS */
 	{ PCI_VENDOR_ID_SI, 0x1184, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },		/* SiS 966 */
 	{ PCI_VENDOR_ID_SI, 0x1185, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	  board_ahci },		/* SiS 966 */
-	{ PCI_VENDOR_ID_SI, 0x1186, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 	  board_ahci },		/* SiS 968 */
+	{ PCI_VENDOR_ID_SI, 0x0186, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },		/* SiS 968 */
+
+	/* ST Microelectronics */
+	{ PCI_VENDOR_ID_STMICRO, 0xCC06, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },		/* ST ConneXt */
+
+	/* Marvell */
+	{ PCI_VENDOR_ID_MARVELL, 0x6145, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 6145 */
+	{ PCI_VENDOR_ID_MARVELL, 0x6121, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 6121 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9123, PCI_ANY_ID, PCI_ANY_ID,
+	  PCI_CLASS_STORAGE_RAID << 8, 0xffffff, board_ahci },	/* 88se9128 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9125, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 88se9125 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9178, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9170, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 88se9170 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x917a, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 88se9172 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9172, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 88se9182 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9182, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* 88se9172 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9192, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x91a0, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x91a2, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* 88se91a2 */
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x91a3, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_MARVELL_EXT, 0x9230, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_TTI, 0x0642, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* highpoint rocketraid 642L */
+	{ PCI_VENDOR_ID_TTI, 0x0645, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci }, /* highpoint rocketraid 644L */
+
+	/* Promise */
+	{ PCI_VENDOR_ID_PROMISE, 0x3f20, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* PDC42819 */
+	{ PCI_VENDOR_ID_PROMISE, 0x3781, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* FastTrak TX8660 ahci-mode */
+
+	/* Asmedia */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0601, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1060 */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0602, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1060 */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0611, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1061 */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0612, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1062 */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0621, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1061R */
+	{ PCI_VENDOR_ID_ASMEDIA, 0x0622, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },	/* ASM1062R */
+
+	/*
+	 * Samsung SSDs found on some macbooks.  NCQ times out if MSI is
+	 * enabled.  https://bugzilla.kernel.org/show_bug.cgi?id=60731
+	 */
+	{ PCI_VENDOR_ID_SAMSUNG, 0x1600, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+	{ PCI_VENDOR_ID_SAMSUNG, 0xa800, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+
+	/* Enmotus */
+	{ 0x1c44, 0x8000, PCI_ANY_ID, PCI_ANY_ID, 0, 0, board_ahci },
+
+	/* Loongson */
+	{ PCI_VENDOR_ID_LOONGSON, 0x7a08, PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+	  board_ahci },
+
+	/* Generic, PCI class code for AHCI */
+	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci },
 
 	{ }	/* terminate list */
 };
@@ -1011,6 +1413,9 @@ static int ahci_host_init(struct ata_probe_ent *probe_ent)
 	cap_save = readl(mmio + HOST_CAP);
 	cap_save &= ( (1<<28) | (1<<17) );
 	cap_save |= (1 << 27);
+
+	// disable NCQ
+	cap_save &= ~(1 << 30); // HOST_CAP_NCQ
 
 	/* global controller reset */
 	tmp = readl(mmio + HOST_CTL);
