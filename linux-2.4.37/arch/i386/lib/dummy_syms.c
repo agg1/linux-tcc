@@ -10,9 +10,10 @@ int abs(int a)
 #ifdef __TINYC__
 
 // symbols provided by libtcc1
-//long long __ashrdi3(long long a, int b)
-//long long __ashldi3(long long a, int b)
-//unsigned long long __lshrdi3(unsigned long long a, int b)
+//tcc: error: undefined symbol '__ashrdi3'
+//tcc: error: undefined symbol '__ashldi3'
+//tcc: error: undefined symbol '__lshrdi3'
+//tcc: error: undefined symbol '__divdi3'
 
 #define DUMMY(x) const char x = 0xcc;
 

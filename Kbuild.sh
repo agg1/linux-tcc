@@ -174,7 +174,7 @@ label linux-debug
 	mkisofs -l -V LIVECD -o tccboot.iso \
 	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 isoroot
 
-	cp tccboot.iso tccboot-hybrid.iso
+	cp tccboot.iso tccboot-hybrid.iso ; sync
 	isohybrid -type 112 -id 0x88888888 tccboot-hybrid.iso
 }
 
@@ -189,16 +189,15 @@ KDIR="usr/src/linux"
 
 
 ### keep tcc for prepare_loader
-## ? -fasynchronous-unwind-tables
 ## ? -D__STRICT_ANSI__ see in types.h
-HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586'"
-CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
-LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
-AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
-#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
-# 16bit x86 real-mode assembler support
-REALAS="i586-tcc-linux-musl-as"
+#HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
+##CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586'"
+#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline"
+#LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline"
+#AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+##REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+## 16bit x86 real-mode assembler support
+#REALAS="i586-pc-linux-musl-as"
 
 
 ### OK; tiny config does not have ext2fs, use romfs then
@@ -213,7 +212,8 @@ REALAS="i586-tcc-linux-musl-as"
 ##KCONF=kconfig-i486-2.4.37.11.ALL
 ##. ./kfiles-2.4.ALL
 
-### reasonably complete configuration including ioapic,usb,smp,squashfs with sufficient test coverage
+### reasonably complete configuration
+## including ioapic,usb,smp,squashfs,highmen,ahci,grsecurity,vesa-framebuffer optional PAE etc...
 KCONF=kconfig-i486-2.4.37.11.DEBUG
 . ./kfiles-2.4.DEBUG
 
@@ -229,19 +229,25 @@ prepare_loader
 
 
 ### tcc
-# ensure tcc does not include nor link anything unknown into; tcc needs patches
+## ensure tcc does not include nor link anything unknown into; tcc needs patches
 export TCC_LIBRARY_PATH="/dev/null"
 export TCC_CPATH="/dev/null"
-## some missing functions from libtcc can be added to dummy_syms.c
+## some missing functions from libtcc can be added to arch/i386/lib/dummy_syms.c when CCLIB=""
 ## Freeing initrd memory PANIC -> libtcc1 linked against kernel needed for unknown reason
+##
+## compilelink_kernel produces mis-compiled/mis-linked when tcc compiles/links in a single-pass !!!
+## noticed with ahci.c which panics kernel in interrupt handler (dd if=/dev/sdX of=/dev/null bs=1M count=1024)!
+## noticed with backborted asix.c usb-ethernet dongle connection losses and kernel-deadlocks and/or panics with larger packets sent!
 CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
+## first compiling objects and linking in a separate stage with tcc didn't show errors with ahci.c/sata
+#compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
 
 
 ### gcc-4.4.7
 #CCLIB=""
-#CC="i486-pc-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
-#LD="i486-pc-linux-musl-gcc -ffreestanding -O"
-#AS="i486-pc-linux-musl-as"
+#CC="i586-pc-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
+#LD="i586-pc-linux-musl-gcc -ffreestanding -O"
+#AS="i586-pc-linux-musl-as"
 ### gcc needs vmlinux.lds linker script to apply appropriate section layout
 #compile_kernel ; link_kernel_gcc
 
