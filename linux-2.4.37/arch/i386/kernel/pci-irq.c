@@ -1181,6 +1181,7 @@ void pcibios_enable_irq(struct pci_dev *dev)
 			return;
 
 		if (io_apic_assign_pci_irqs) {
+#ifdef CONFIG_X86_IO_APIC
 			int irq;
 
 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number, PCI_SLOT(dev->devfn), pin);
@@ -1210,6 +1211,7 @@ void pcibios_enable_irq(struct pci_dev *dev)
 				return;
 			} else
 				msg = " Probably buggy MP table.";
+#endif
 		} else if (pci_probe & PCI_BIOS_IRQ_SCAN)
 			msg = "";
 		else
