@@ -144,7 +144,7 @@ FILE_LIST="
 usr/src/linux/tcc/kstart.S
 usr/src/linux/arch/i386/kernel/head.S
 usr/src/linux/arch/i386/kernel/entry.S
-btmp/trampoline.o
+${KTMP}/trampoline.o
 usr/src/linux/arch/i386/lib/getuser.S
 usr/src/linux/arch/i386/lib/checksum.S
 usr/src/linux/arch/i386/kernel/acpi.c
