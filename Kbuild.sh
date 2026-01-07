@@ -221,7 +221,7 @@ LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline"
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 #REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
 # 16bit x86 real-mode assembler support
-REALAS="i586-pc-linux-musl-as"
+REALAS="i586-tcc-linux-musl-as"
 
 
 ### OK; tiny config does not have ext2fs, use romfs then

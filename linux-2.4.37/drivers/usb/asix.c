@@ -19,6 +19,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * 07-jan-2025  re-factoring to integrate with linux-2.4.37 kernel
+ */
+
 /* debug messages, extra info */
 /* #define	DEBUG */
 
@@ -38,10 +42,25 @@
 #include <linux/usb.h>
 #include <linux/crc32.h>
 
-#include "usbnet.c"
-#include "asix.h"
+//#define THROTTLE_JIFFIES    (HZ / 8)
+//
+// missing definitions grabbed from axusbnet.h
+#define FLAG_FRAMING_AX 0x0040
+#define FLAG_HW_IP_ALIGNMENT 0x0400
+//#define EVENT_TX_HALT    0
+//#define EVENT_RX_HALT    1
+//#define EVENT_RX_MEMORY  2
+//#define EVENT_STS_SPLIT  3
+#define EVENT_LINK_RESET 4
+//#define EVENT_RX_PAUSED  5
+#define EVENT_RX_KILL    10
+//
+#define NET_IP_ALIGN	2
 
-#define DRV_VERSION	"4.20.0"
+#include "asix.h"
+#include "usbnet.c"
+
+#define DRV_VERSION	"4.20.1"
 
 static char version[] =
 KERN_INFO "ASIX USB Ethernet Adapter:v" DRV_VERSION
@@ -80,7 +99,7 @@ static int ax88772b_set_csums(struct usbnet *dev);
 //		index,
 //		data,
 //		size,
-//		USB_CTRL_GET_TIMEOUT);
+//		CONTROL_TIMEOUT_JIFFIES);
 //}
 //
 //static int ax8817x_write_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
@@ -95,7 +114,7 @@ static int ax88772b_set_csums(struct usbnet *dev);
 //		index,
 //		data,
 //		size,
-//		USB_CTRL_SET_TIMEOUT);
+//		CONTROL_TIMEOUT_JIFFIES);
 //}
 //
 //#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
@@ -144,8 +163,7 @@ static void ax88178_status(struct usbnet *dev, struct urb *urb)
 	if (netif_carrier_ok(&(dev->net)) != link) {
 		if (link) {
 			netif_carrier_on(&(dev->net));
-//			axusbnet_defer_kevent(dev, EVENT_LINK_RESET);
-//			defer_kevent(dev, EVENT_LINK_RESET);
+			defer_kevent(dev, EVENT_LINK_RESET);
 		} else
 			netif_carrier_off(&(dev->net));
 		devwarn(dev, "ax88178 - Link status is: %d", link);
@@ -165,8 +183,7 @@ static void ax8817x_status(struct usbnet *dev, struct urb *urb)
 	if (netif_carrier_ok(&(dev->net)) != link) {
 		if (link) {
 			netif_carrier_on(&(dev->net));
-//			axusbnet_defer_kevent(dev, EVENT_LINK_RESET);
-//			defer_kevent(dev, EVENT_LINK_RESET);
+			defer_kevent(dev, EVENT_LINK_RESET);
 		} else
 			netif_carrier_off(&(dev->net));
 		devwarn(dev, "ax8817x - Link status is: %d", link);
@@ -461,7 +478,7 @@ static void ax88772c_status(struct usbnet *dev, struct urb *urb)
 //		usb_free_urb(urb);
 //	}
 //}
-
+//
 //static void ax8817x_set_multicast(struct net_device *net)
 //{
 //	struct usbnet *dev = netdev_priv(net);
@@ -1563,11 +1580,11 @@ static int ax88772_bind(struct usbnet *dev, struct usb_interface *intf)
 	}
 
 	/* Asix framing packs multiple eth frames into a 2K usb bulk transfer */
-//	if (dev->driver_info->flags & FLAG_FRAMING_AX) {
-//		/* hard_mtu  is still the default - the device does not support
-//		   jumbo eth frames */
-//		dev->rx_urb_size = 2048;
-//	}
+	if (dev->driver_info->flags & FLAG_FRAMING_AX) {
+		/* hard_mtu  is still the default - the device does not support
+		   jumbo eth frames */
+		dev->rx_urb_size = 2048;
+	}
 
 	kfree(buf);
 	printk(version);
@@ -1828,11 +1845,11 @@ static int ax88772a_bind(struct usbnet *dev, struct usb_interface *intf)
 	}
 
 	/* Asix framing packs multiple eth frames into a 2K usb bulk transfer */
-//	if (dev->driver_info->flags & FLAG_FRAMING_AX) {
-//		/* hard_mtu  is still the default - the device does not support
-//		   jumbo eth frames */
-//		dev->rx_urb_size = 2048;
-//	}
+	if (dev->driver_info->flags & FLAG_FRAMING_AX) {
+		/* hard_mtu  is still the default - the device does not support
+		   jumbo eth frames */
+		dev->rx_urb_size = 2048;
+	}
 
 	kfree(buf);
 
@@ -3144,8 +3161,8 @@ static int ax88178_bind(struct usbnet *dev, struct usb_interface *intf)
 //	data->suspend = ax88772_suspend;
 //	data->resume = ax88772_resume;
 
-//	if (dev->driver_info->flags & FLAG_FRAMING_AX)
-//		dev->rx_urb_size = 16384;
+	if (dev->driver_info->flags & FLAG_FRAMING_AX)
+		dev->rx_urb_size = 16384;
 
 	ret = ax8817x_write_cmd(dev, AX_CMD_WRITE_RX_CTL, (AX_RX_CTL_MFB |
 				AX_RX_CTL_START | AX_RX_CTL_AB), 0, 0, NULL);
@@ -3920,7 +3937,7 @@ static const struct driver_info ax88178_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
 #endif
 	.rx_fixup = ax88772_rx_fixup,
 	.tx_fixup = ax88772_tx_fixup,
@@ -3937,7 +3954,7 @@ static const struct driver_info belkin178_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
 #endif
 	.rx_fixup = ax88772_rx_fixup,
 	.tx_fixup = ax88772_tx_fixup,
@@ -4008,7 +4025,7 @@ static const struct driver_info ax88772_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
 #endif
 	.rx_fixup = ax88772_rx_fixup,
 	.tx_fixup = ax88772_tx_fixup,
@@ -4024,7 +4041,7 @@ static const struct driver_info dlink_dub_e100b_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
 #endif
 	.rx_fixup = ax88772_rx_fixup,
 	.tx_fixup = ax88772_tx_fixup,
@@ -4040,7 +4057,7 @@ static const struct driver_info dlink_dub_e100_772b_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT,
 #endif
 	.rx_fixup = ax88772b_rx_fixup,
 	.tx_fixup = ax88772b_tx_fixup,
@@ -4056,7 +4073,7 @@ static const struct driver_info dlink_dub_e100_772c_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT,
 #endif
 	.rx_fixup = ax88772b_rx_fixup,
 	.tx_fixup = ax88772b_tx_fixup,
@@ -4072,7 +4089,7 @@ static const struct driver_info ax88772a_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX,
 #endif
 	.rx_fixup = ax88772_rx_fixup,
 	.tx_fixup = ax88772_tx_fixup,
@@ -4088,7 +4105,7 @@ static const struct driver_info ax88772b_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT,
 #endif
 	.rx_fixup = ax88772b_rx_fixup,
 	.tx_fixup = ax88772b_tx_fixup,
@@ -4104,7 +4121,7 @@ static const struct driver_info ax88772c_info = {
 	.stop	= ax88772b_stop,
 	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT | FLAG_AVOID_UNLINK_URBS,
 #else
-	.flags	= FLAG_ETHER,
+	.flags	= FLAG_ETHER | FLAG_FRAMING_AX | FLAG_HW_IP_ALIGNMENT,
 #endif
 	.rx_fixup = ax88772b_rx_fixup,
 	.tx_fixup = ax88772b_tx_fixup,

@@ -122,6 +122,8 @@
  * 		support (db), fix for framing issues on Z, net1080, and
  * 		gl620a (Toby Milne)
  *
+ * 07-jan-2025	re-factoring to integrate with asix.c supporting ax8872 series
+ *
  *-------------------------------------------------------------------------*/
 
 #include <linux/config.h>
@@ -157,15 +159,15 @@
 
 
 /* minidrivers _could_ be individually configured */
-#define	CONFIG_USB_AN2720
+//#define	CONFIG_USB_AN2720
 #define	CONFIG_USB_AX8817X
-#define	CONFIG_USB_BELKIN
-#define	CONFIG_USB_EPSON2888
-#define	CONFIG_USB_GENESYS
-#define	CONFIG_USB_NET1080
-#define	CONFIG_USB_PL2301
-#define	CONFIG_USB_ARMLINUX
-#define	CONFIG_USB_ZAURUS
+//#define	CONFIG_USB_BELKIN
+//#define	CONFIG_USB_EPSON2888
+//#define	CONFIG_USB_GENESYS
+//#define	CONFIG_USB_NET1080
+//#define	CONFIG_USB_PL2301
+//#define	CONFIG_USB_ARMLINUX
+//#define	CONFIG_USB_ZAURUS
 
 
 #define DRIVER_VERSION		"18-Oct-2002"
@@ -1838,13 +1840,20 @@ static void defer_kevent (struct usbnet *dev, int work)
 
 static void rx_complete (struct urb *urb);
 
+static void
+ax8817x_write_cmd_async(struct usbnet *dev, u8 cmd, u16 value, u16 index,
+				u16 size, void *data);
+
+// was rebased from axusbnet.c to prevent instability with large network packets
 static void rx_submit (struct usbnet *dev, struct urb *urb, int flags)
 {
 	struct sk_buff		*skb;
 	struct skb_data		*entry;
 	int			retval = 0;
 	unsigned long		lockflags;
-	size_t			size;
+	size_t			size = dev->rx_urb_size;
+	struct driver_info	*info = dev->driver_info;
+	u8			align;
 
 #ifdef CONFIG_USB_NET1080
 	if (dev->driver_info->flags & FLAG_FRAMING_NC)
@@ -1861,14 +1870,48 @@ static void rx_submit (struct usbnet *dev, struct urb *urb, int flags)
 		size = 6 + (sizeof (struct ethhdr) + dev->net.mtu);
 	else
 #endif
-		size = (sizeof (struct ethhdr) + dev->net.mtu);
+//		size = (sizeof (struct ethhdr) + dev->net.mtu);
+		size = dev->rx_urb_size;
 
-	if ((skb = alloc_skb (size, flags)) == 0) {
-		dbg ("no rx skb");
-		defer_kevent (dev, EVENT_RX_MEMORY);
-		usb_free_urb (urb);
+	/* prevent rx skb allocation when error ratio is high */
+	if (test_bit(EVENT_RX_KILL, &dev->flags)) {
+		    usb_free_urb(urb);
+		    return;
+	}
+
+#if (AX_FORCE_BUFF_ALIGN)
+	align = 0;
+#else
+	if (!(info->flags & FLAG_HW_IP_ALIGNMENT))
+		align = NET_IP_ALIGN;
+	else
+		align = 0;
+#endif
+	skb = alloc_skb(size + align, flags);
+	if (skb == NULL) {
+
+		if (netif_msg_rx_err(dev))
+			devdbg(dev, "no rx skb");
+
+		if ((dev->rx_urb_size > 2048) && dev->rx_size) {
+			dev->rx_size--;
+			dev->rx_urb_size =
+				AX88772B_BULKIN_SIZE[dev->rx_size].size;
+
+			ax8817x_write_cmd_async(dev, 0x2A,
+				AX88772B_BULKIN_SIZE[dev->rx_size].byte_cnt,
+				AX88772B_BULKIN_SIZE[dev->rx_size].threshold,
+				0, NULL);
+		}
+
+		if (!(dev->flags & EVENT_RX_MEMORY))
+			defer_kevent(dev, EVENT_RX_MEMORY);
+		usb_free_urb(urb);
 		return;
 	}
+
+	if (align)
+		skb_reserve(skb, NET_IP_ALIGN);
 
 	entry = (struct skb_data *) skb->cb;
 	entry->urb = urb;
@@ -1876,36 +1919,43 @@ static void rx_submit (struct usbnet *dev, struct urb *urb, int flags)
 	entry->state = rx_start;
 	entry->length = 0;
 
-	usb_fill_bulk_urb (urb, dev->udev, dev->in,
-		skb->data, size, rx_complete, skb);
-	urb->transfer_flags |= USB_ASYNC_UNLINK;
+	usb_fill_bulk_urb(urb, dev->udev, dev->in, skb->data,
+			  size, rx_complete, skb);
 
-	spin_lock_irqsave (&dev->rxq.lock, lockflags);
+	spin_lock_irqsave(&dev->rxq.lock, lockflags);
 
-	if (netif_running (&dev->net)
-			&& !test_bit (EVENT_RX_HALT, &dev->flags)) {
-		switch (retval = SUBMIT_URB (urb, GFP_ATOMIC)){ 
+	if (netif_running(&(dev->net))
+			&& netif_device_present(&(dev->net))
+			&& !test_bit(EVENT_RX_HALT, &dev->flags)) {
+		switch (retval = usb_submit_urb(urb)) {
 		case -EPIPE:
-			defer_kevent (dev, EVENT_RX_HALT);
+			defer_kevent(dev, EVENT_RX_HALT);
 			break;
 		case -ENOMEM:
-			defer_kevent (dev, EVENT_RX_MEMORY);
+			defer_kevent(dev, EVENT_RX_MEMORY);
+			break;
+		case -ENODEV:
+			if (netif_msg_ifdown(dev))
+				devdbg(dev, "device gone");
+			netif_device_detach(&(dev->net));
 			break;
 		default:
-			dbg ("%s rx submit, %d", dev->net.name, retval);
-			tasklet_schedule (&dev->bh);
+			if (netif_msg_rx_err(dev))
+				devdbg(dev, "rx submit, %d", retval);
+			tasklet_schedule(&dev->bh);
 			break;
 		case 0:
-			__skb_queue_tail (&dev->rxq, skb);
+			__skb_queue_tail(&dev->rxq, skb);
 		}
 	} else {
-		dbg ("rx: stopped");
+		if (netif_msg_ifdown(dev))
+			devdbg(dev, "rx: stopped");
 		retval = -ENOLINK;
 	}
-	spin_unlock_irqrestore (&dev->rxq.lock, lockflags);
+	spin_unlock_irqrestore(&dev->rxq.lock, lockflags);
 	if (retval) {
-		dev_kfree_skb_any (skb);
-		usb_free_urb (urb);
+		dev_kfree_skb_any(skb);
+		usb_free_urb(urb);
 	}
 }
 

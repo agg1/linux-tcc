@@ -9,7 +9,7 @@
  * function "skb_reserve (skb, NET_IP_ALIGN)" to retain the buffer aligned on
  * double word alignment for ingress packets.
  */
-#define AX_FORCE_BUFF_ALIGN		1
+#define AX_FORCE_BUFF_ALIGN		0
 
 //#define RX_SKB_COPY
 
