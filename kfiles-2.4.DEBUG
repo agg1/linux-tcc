@@ -81,6 +81,128 @@
 #usr/src/linux/net/sched/sch_atm.c
 #usr/src/linux/drivers/atm/atmdev_init.c
 
+## ax.25
+##-CONFIG_HAMRADIO=y
+##-CONFIG_AX25=y
+##-CONFIG_AX25_DAMA_SLAVE=y
+##-CONFIG_NETROM=y
+##-CONFIG_ROSE=y
+##-# CONFIG_MKISS is not set
+##-# CONFIG_6PACK is not set
+##-# CONFIG_BPQETHER is not set
+##-# CONFIG_SCC_DELAY is not set
+##-# CONFIG_SCC_TRXECHO is not set
+##-# CONFIG_BAYCOM_SER_FDX is not set
+##-# CONFIG_BAYCOM_SER_HDX is not set
+##-# CONFIG_BAYCOM_PAR is not set
+##-# CONFIG_BAYCOM_EPP is not set
+##-CONFIG_SOUNDMODEM=y
+##-CONFIG_SOUNDMODEM_SBC=y
+##-# CONFIG_SOUNDMODEM_WSS is not set
+##-CONFIG_SOUNDMODEM_AFSK1200=y
+##-CONFIG_SOUNDMODEM_AFSK2400_7=y
+##-CONFIG_SOUNDMODEM_AFSK2400_8=y
+##-CONFIG_SOUNDMODEM_AFSK2666=y
+##-CONFIG_SOUNDMODEM_HAPN4800=y
+##-CONFIG_SOUNDMODEM_PSK4800=y
+##-CONFIG_SOUNDMODEM_FSK9600=y
+##-# CONFIG_YAM is not set
+##+# CONFIG_HAMRADIO is not set
+##
+#usr/src/linux/drivers/net/hamradio/hdlcdrv.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_sbc.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk1200.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2400_7.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2400_8.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2666.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_fsk9600.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_hapn4800.c
+#usr/src/linux/drivers/net/hamradio/soundmodem/sm_psk4800.c
+#
+#usr/src/linux/net/ax25/af_ax25.c
+#usr/src/linux/net/ax25/ax25_addr.c
+#usr/src/linux/net/ax25/ax25_dev.c
+#usr/src/linux/net/ax25/ax25_ds_in.c
+#usr/src/linux/net/ax25/ax25_ds_subr.c
+#usr/src/linux/net/ax25/ax25_ds_timer.c
+#usr/src/linux/net/ax25/ax25_iface.c
+#usr/src/linux/net/ax25/ax25_in.c
+#usr/src/linux/net/ax25/ax25_ip.c
+#usr/src/linux/net/ax25/ax25_out.c
+#usr/src/linux/net/ax25/ax25_route.c
+#usr/src/linux/net/ax25/ax25_std_in.c
+#usr/src/linux/net/ax25/ax25_std_subr.c
+#usr/src/linux/net/ax25/ax25_std_timer.c
+#usr/src/linux/net/ax25/ax25_subr.c
+#usr/src/linux/net/ax25/ax25_timer.c
+#usr/src/linux/net/ax25/ax25_uid.c
+#usr/src/linux/net/ax25/sysctl_net_ax25.c
+#
+#usr/src/linux/net/netrom/af_netrom.c
+#usr/src/linux/net/netrom/nr_dev.c
+#usr/src/linux/net/netrom/nr_in.c
+#usr/src/linux/net/netrom/nr_loopback.c
+#usr/src/linux/net/netrom/nr_out.c
+#usr/src/linux/net/netrom/nr_route.c
+#usr/src/linux/net/netrom/nr_subr.c
+#usr/src/linux/net/netrom/nr_timer.c
+#usr/src/linux/net/netrom/sysctl_net_netrom.c
+#usr/src/linux/net/rose/af_rose.c
+#usr/src/linux/net/rose/rose_dev.c
+#usr/src/linux/net/rose/rose_in.c
+#usr/src/linux/net/rose/rose_link.c
+#usr/src/linux/net/rose/rose_loopback.c
+#usr/src/linux/net/rose/rose_out.c
+#usr/src/linux/net/rose/rose_route.c
+#usr/src/linux/net/rose/rose_subr.c
+#usr/src/linux/net/rose/rose_timer.c
+#usr/src/linux/net/rose/sysctl_net_rose.c
+
+## bluetooth
+##+# CONFIG_USB_BLUETOOTH is not set
+##-CONFIG_BLUEZ=y
+##-CONFIG_BLUEZ_L2CAP=y
+##-CONFIG_BLUEZ_SCO=y
+##-CONFIG_BLUEZ_RFCOMM=y
+##-CONFIG_BLUEZ_RFCOMM_TTY=y
+##-CONFIG_BLUEZ_BNEP=y
+##-CONFIG_BLUEZ_BNEP_MC_FILTER=y
+##-CONFIG_BLUEZ_BNEP_PROTO_FILTER=y
+##-CONFIG_BLUEZ_HCIUSB=y
+##-CONFIG_BLUEZ_HCIUSB_SCO=y
+##-# CONFIG_BLUEZ_HCIUART is not set
+##-# CONFIG_BLUEZ_HCIBFUSB is not set
+##-# CONFIG_BLUEZ_HCIDTL1 is not set
+##-# CONFIG_BLUEZ_HCIBT3C is not set
+##-# CONFIG_BLUEZ_HCIBLUECARD is not set
+##-# CONFIG_BLUEZ_HCIBTUART is not set
+##-# CONFIG_BLUEZ_HCIVHCI is not set
+##+# CONFIG_BLUEZ is not set
+#
+#usr/src/linux/drivers/bluetooth/hci_bcsp.c
+#usr/src/linux/drivers/bluetooth/hci_h4.c
+#usr/src/linux/drivers/bluetooth/hci_ldisc.c
+#usr/src/linux/drivers/bluetooth/hci_usb.c
+#usr/src/linux/drivers/bluetooth/hci_vhci.c
+#
+#usr/src/linux/net/bluetooth/af_bluetooth.c
+#usr/src/linux/net/bluetooth/bnep/core.c
+#usr/src/linux/net/bluetooth/bnep/netdev.c
+#usr/src/linux/net/bluetooth/bnep/sock.c
+#usr/src/linux/net/bluetooth/hci_conn.c
+#usr/src/linux/net/bluetooth/hci_core.c
+#usr/src/linux/net/bluetooth/hci_event.c
+#usr/src/linux/net/bluetooth/hci_sock.c
+#usr/src/linux/net/bluetooth/l2cap.c
+#usr/src/linux/net/bluetooth/lib.c
+#usr/src/linux/net/bluetooth/rfcomm/core.c
+#usr/src/linux/net/bluetooth/rfcomm/crc.c
+#usr/src/linux/net/bluetooth/rfcomm/sock.c
+#usr/src/linux/net/bluetooth/rfcomm/tty.c
+#usr/src/linux/net/bluetooth/sco.c
+#usr/src/linux/net/bluetooth/syms.c
+
 ## no need to increase kernel image size beyond 6.4MiB limit
 #usr/src/linux/drivers/net/irda/irtty.c
 #usr/src/linux/net/irda/af_irda.c
@@ -451,16 +573,6 @@ usr/src/linux/drivers/net/shaper.c
 usr/src/linux/drivers/net/slhc.c
 usr/src/linux/drivers/net/slip.c
 usr/src/linux/drivers/net/tun.c
-usr/src/linux/drivers/net/hamradio/hdlcdrv.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_sbc.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk1200.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2400_7.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2400_8.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_afsk2666.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_fsk9600.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_hapn4800.c
-usr/src/linux/drivers/net/hamradio/soundmodem/sm_psk4800.c
 usr/src/linux/drivers/parport/daisy.c
 usr/src/linux/drivers/parport/ieee1284.c
 usr/src/linux/drivers/parport/ieee1284_ops.c
@@ -553,11 +665,6 @@ usr/src/linux/drivers/usb/host/usb-uhci.c
 usr/src/linux/drivers/usb/acm.c
 usr/src/linux/drivers/usb/asix.c
 usr/src/linux/drivers/usb/rtl8150.c
-usr/src/linux/drivers/bluetooth/hci_bcsp.c
-usr/src/linux/drivers/bluetooth/hci_h4.c
-usr/src/linux/drivers/bluetooth/hci_ldisc.c
-usr/src/linux/drivers/bluetooth/hci_usb.c
-usr/src/linux/drivers/bluetooth/hci_vhci.c
 usr/src/linux/drivers/media/video/videodev.c
 usr/src/linux/drivers/video/dummycon.c
 usr/src/linux/drivers/video/fbcmap.c
@@ -583,40 +690,6 @@ usr/src/linux/net/socket.c
 usr/src/linux/net/sysctl_net.c
 usr/src/linux/net/802/p8023.c
 usr/src/linux/net/802/sysctl_net_802.c
-usr/src/linux/net/ax25/af_ax25.c
-usr/src/linux/net/ax25/ax25_addr.c
-usr/src/linux/net/ax25/ax25_dev.c
-usr/src/linux/net/ax25/ax25_ds_in.c
-usr/src/linux/net/ax25/ax25_ds_subr.c
-usr/src/linux/net/ax25/ax25_ds_timer.c
-usr/src/linux/net/ax25/ax25_iface.c
-usr/src/linux/net/ax25/ax25_in.c
-usr/src/linux/net/ax25/ax25_ip.c
-usr/src/linux/net/ax25/ax25_out.c
-usr/src/linux/net/ax25/ax25_route.c
-usr/src/linux/net/ax25/ax25_std_in.c
-usr/src/linux/net/ax25/ax25_std_subr.c
-usr/src/linux/net/ax25/ax25_std_timer.c
-usr/src/linux/net/ax25/ax25_subr.c
-usr/src/linux/net/ax25/ax25_timer.c
-usr/src/linux/net/ax25/ax25_uid.c
-usr/src/linux/net/ax25/sysctl_net_ax25.c
-usr/src/linux/net/bluetooth/af_bluetooth.c
-usr/src/linux/net/bluetooth/bnep/core.c
-usr/src/linux/net/bluetooth/bnep/netdev.c
-usr/src/linux/net/bluetooth/bnep/sock.c
-usr/src/linux/net/bluetooth/hci_conn.c
-usr/src/linux/net/bluetooth/hci_core.c
-usr/src/linux/net/bluetooth/hci_event.c
-usr/src/linux/net/bluetooth/hci_sock.c
-usr/src/linux/net/bluetooth/l2cap.c
-usr/src/linux/net/bluetooth/lib.c
-usr/src/linux/net/bluetooth/rfcomm/core.c
-usr/src/linux/net/bluetooth/rfcomm/crc.c
-usr/src/linux/net/bluetooth/rfcomm/sock.c
-usr/src/linux/net/bluetooth/rfcomm/tty.c
-usr/src/linux/net/bluetooth/sco.c
-usr/src/linux/net/bluetooth/syms.c
 usr/src/linux/net/bridge/br.c
 usr/src/linux/net/bridge/br_device.c
 usr/src/linux/net/bridge/br_fdb.c
@@ -764,25 +837,6 @@ usr/src/linux/net/ipv4/ipvs/ip_vs_sync.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_wlc.c
 usr/src/linux/net/ipv4/ipvs/ip_vs_wrr.c
 usr/src/linux/net/netlink/af_netlink.c
-usr/src/linux/net/netrom/af_netrom.c
-usr/src/linux/net/netrom/nr_dev.c
-usr/src/linux/net/netrom/nr_in.c
-usr/src/linux/net/netrom/nr_loopback.c
-usr/src/linux/net/netrom/nr_out.c
-usr/src/linux/net/netrom/nr_route.c
-usr/src/linux/net/netrom/nr_subr.c
-usr/src/linux/net/netrom/nr_timer.c
-usr/src/linux/net/netrom/sysctl_net_netrom.c
-usr/src/linux/net/rose/af_rose.c
-usr/src/linux/net/rose/rose_dev.c
-usr/src/linux/net/rose/rose_in.c
-usr/src/linux/net/rose/rose_link.c
-usr/src/linux/net/rose/rose_loopback.c
-usr/src/linux/net/rose/rose_out.c
-usr/src/linux/net/rose/rose_route.c
-usr/src/linux/net/rose/rose_subr.c
-usr/src/linux/net/rose/rose_timer.c
-usr/src/linux/net/rose/sysctl_net_rose.c
 usr/src/linux/net/sched/cls_api.c
 usr/src/linux/net/sched/cls_fw.c
 usr/src/linux/net/sched/cls_route.c

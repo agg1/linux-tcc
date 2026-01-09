@@ -1,0 +1,136 @@
+diff --git a/tccgen.c b/tccgen.c
+index 6519a46..8cacccd 100644
+--- a/tccgen.c
++++ b/tccgen.c
+@@ -3482,7 +3482,7 @@ done:
+ }
+ 
+ /* return type size as known at compile time. Put alignment at 'a' */
+-ST_FUNC int type_size(CType *type, int *a)
++static inline int type_size_struct(CType *type, int *a, int is_struct)
+ {
+     Sym *s;
+     int bt;
+@@ -3497,7 +3497,7 @@ ST_FUNC int type_size(CType *type, int *a)
+         if (type->t & VT_ARRAY) {
+             int ts;
+             s = type->ref;
+-            ts = type_size(&s->type, a);
++            ts = type_size_struct(&s->type, a, is_struct);
+             if (s->c < 0)
+                 return s->c;
+             return ts * s->c;
+@@ -3514,7 +3514,7 @@ ST_FUNC int type_size(CType *type, int *a)
+     } else if (bt == VT_DOUBLE || bt == VT_LLONG) {
+ #if (defined TCC_TARGET_I386 && !defined TCC_TARGET_PE) \
+  || (defined TCC_TARGET_ARM && !defined TCC_ARM_EABI)
+-        *a = 4;
++        *a = is_struct ? 4 : 8;
+ #else
+         *a = 8;
+ #endif
+@@ -3535,6 +3535,11 @@ ST_FUNC int type_size(CType *type, int *a)
+     }
+ }
+ 
++ST_FUNC int type_size(CType *type, int *a)
++{
++   return type_size_struct(type, a, 0);
++}
++
+ /* push type size as known at runtime time on top of value stack. Put
+    alignment at 'a' */
+ static void vpush_type_size(CType *type, int *a)
+@@ -4220,7 +4225,7 @@ static void struct_layout(CType *type, AttributeDef *ad)
+             bit_size = BIT_SIZE(f->type.t);
+         else
+             bit_size = -1;
+-        size = type_size(&f->type, &align);
++        size = type_size_struct(&f->type, &align, 1);
+         a = f->a.aligned ? 1 << (f->a.aligned - 1) : 0;
+         packed = 0;
+ 
+@@ -8369,6 +8374,15 @@ static void decl_initializer_alloc(CType *type, AttributeDef *ad, int r,
+         }
+ 
+         if (sec) {
++	    /* gcc aligns sections to size */
++	    if (sec != cur_text_section) {
++	        if (size >= 32)
++	            section_add(sec, 0, 32);
++	        else if (size >= 16)
++	            section_add(sec, 0, 16);
++	        else if (size >= 8)
++	            section_add(sec, 0, 8);
++	    }
+ 	    addr = section_add(sec, size, align);
+ #ifdef CONFIG_TCC_BCHECK
+             /* add padding if bound check */
+diff --git a/tests/tcctest.c b/tests/tcctest.c
+index 4995941..5992361 100644
+--- a/tests/tcctest.c
++++ b/tests/tcctest.c
+@@ -1057,6 +1057,20 @@ struct aligntest10 {
+     unsigned long long start_lba;
+ };
+ 
++struct aligntest11 {
++    long long a[0];
++};
++
++struct aligntest12 {
++    LONG_DOUBLE a;
++};
++
++long long aligntest13[2];
++
++double aligntest14[2];
++
++LONG_DOUBLE aligntest15[2];
++
+ void struct_test()
+ {
+     struct1 *s;
+@@ -1109,12 +1123,42 @@ void struct_test()
+            sizeof(struct aligntest9), __alignof__(struct aligntest9));
+     printf("aligntest10 sizeof=%d alignof=%d\n",
+            sizeof(struct aligntest10), __alignof__(struct aligntest10));
++    printf("aligntest11 sizeof=%d alignof=%d\n",
++           sizeof(struct aligntest11), __alignof__(struct aligntest11));
++    printf("aligntest12 sizeof=%d alignof=%d\n",
++           sizeof(struct aligntest12), __alignof__(struct aligntest12));
++    printf("aligntest13 sizeof=%d alignof=%d\n",
++           sizeof(aligntest13), __alignof__(aligntest13));
++    printf("aligntest14 sizeof=%d alignof=%d\n",
++           sizeof(aligntest14), __alignof__(aligntest14));
++    printf("aligntest15 sizeof=%d alignof=%d\n",
++           sizeof(aligntest15), __alignof__(aligntest15));
+     printf("altest5 sizeof=%d alignof=%d\n",
+            sizeof(altest5), __alignof__(altest5));
+     printf("altest6 sizeof=%d alignof=%d\n",
+            sizeof(altest6), __alignof__(altest6));
+     printf("altest7 sizeof=%d alignof=%d\n",
+            sizeof(altest7), __alignof__(altest7));
++    printf("altest7 sizeof=%d alignof=%d\n",
++           sizeof(altest7), __alignof__(altest7));
++    printf("altestt1 sizeof=%d alignof=%d\n",
++           sizeof(char), __alignof__(char));
++    printf("altestt2 sizeof=%d alignof=%d\n",
++           sizeof(short), __alignof__(short));
++    printf("altestt3 sizeof=%d alignof=%d\n",
++           sizeof(int), __alignof__(int));
++    printf("altestt4 sizeof=%d alignof=%d\n",
++           sizeof(long), __alignof__(long));
++    printf("altestt5 sizeof=%d alignof=%d\n",
++           sizeof(long long), __alignof__(long long));
++    printf("altestt6 sizeof=%d alignof=%d\n",
++           sizeof(float), __alignof__(float));
++    printf("altestt7 sizeof=%d alignof=%d\n",
++           sizeof(double), __alignof__(double));
++    printf("altestt8 sizeof=%d alignof=%d\n",
++           sizeof(LONG_DOUBLE), __alignof__(LONG_DOUBLE));
++    printf("altestt9 sizeof=%d alignof=%d\n",
++           sizeof(void *), __alignof__(void *));
+            
+     /* empty structures (GCC extension) */
+     printf("sizeof(struct empty) = %d\n", sizeof(struct empty));
