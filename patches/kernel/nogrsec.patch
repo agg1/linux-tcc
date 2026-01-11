@@ -1,33 +1,17 @@
-commit c6c77030ddbb33356450e091306228f2ddf1ebf2
+commit 4d4eebe675ce1f526b01d1262c81b44d9871dfc3
 Author: Michael Ackermann <aggi@tinyfront>
-Date:   Sun Nov 16 02:08:38 2025 +0000
+Date:   Sat Jan 10 04:52:45 2026 +0000
 
-    Revert "rebased most of grsecurity-2.1.14-2.4.37.7-200911101931.patch"
-    
-    This reverts commit ae733137c6ca29551a2dfdb05c44e7742276ea08.
+    reverted grsecurity
+    git revert -n 1efd2985d049518588ebb486c069e0c06ac834ad \
+    195e74ae3252f0c56b50fcbd13c730c00818d020 \
+    b52ff056395f5c1876e243a0d6c31461c23c4eb7 \
+    88fbf9d3027e0c2c2c6d397ecf2009c6b9d02e95 \
+    d1651972fbc52517fe12b8ccc45212f6a34f1549 \
+    ae733137c6ca29551a2dfdb05c44e7742276ea08
 
-diff --git a/README b/README
-index 49f5ea5..2e78582 100644
---- a/README
-+++ b/README
-@@ -19,11 +19,9 @@ https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00008.html
- https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00019.html
- https://lists.nongnu.org/archive/html/tinycc-devel/2024-11/msg00020.html
- 
--With a local test setup the patched linux-2.4.37.11 sources compiled, linked
--and too booted successfully including USB, SMP, O1/NPTL, grsecurity support.
-+With the local test setup the patched linux-2.4.37.11 sources compiled, linked
-+and too booted successfully with nosmp option, which it is by default currently.
- 
--With plans for a complete i586-tcc-linux-musl.iso distribution this project
--will be incorporated into system integration gradually; musl-libc 1.1.24
--sanitized for linux-2.4 ABI together with a complete system profile including
--important development utilities are supported already.
-+With plans for a complete i486-tcc-linux-musl.iso distribution this project
-+will be incorporated into system integration gradually.
- 
 diff --git a/kconfig-i486-2.4.37.11.DEBUG b/kconfig-i486-2.4.37.11.DEBUG
-index 9a08176..a4b4432 100644
+index 449020b..3145ef7 100644
 --- a/kconfig-i486-2.4.37.11.DEBUG
 +++ b/kconfig-i486-2.4.37.11.DEBUG
 @@ -19,9 +19,9 @@ CONFIG_EXPERIMENTAL=y
@@ -66,7 +50,7 @@ index 9a08176..a4b4432 100644
  CONFIG_HAVE_DEC_LOCK=y
  
  #
-@@ -1315,45 +1313,3 @@ CONFIG_CRC32=y
+@@ -1268,45 +1266,3 @@ CONFIG_CRC32=y
  CONFIG_ZLIB_INFLATE=y
  CONFIG_ZLIB_DEFLATE=y
  # CONFIG_FW_LOADER is not set
@@ -113,10 +97,10 @@ index 9a08176..a4b4432 100644
 -CONFIG_GRKERNSEC_FLOODTIME=10
 -CONFIG_GRKERNSEC_FLOODBURST=4
 diff --git a/kfiles-2.4.DEBUG b/kfiles-2.4.DEBUG
-index bb18111..f44374d 100644
+index 1cd9a4f..a96f97c 100644
 --- a/kfiles-2.4.DEBUG
 +++ b/kfiles-2.4.DEBUG
-@@ -881,17 +881,6 @@ usr/src/linux/net/sunrpc/xdr.c
+@@ -936,17 +936,6 @@ usr/src/linux/net/sunrpc/xdr.c
  usr/src/linux/net/sunrpc/sunrpc_syms.c
  usr/src/linux/net/sunrpc/stats.c
  usr/src/linux/net/sunrpc/sysctl.c
@@ -15098,10 +15082,9 @@ index 9d76598..7ce75cd 100644
  	.destroy_inode		= linvfs_destroy_inode,
  	.write_inode		= linvfs_write_inode,
 diff --git a/linux-2.4.37/grsecurity/Config.in b/linux-2.4.37/grsecurity/Config.in
-deleted file mode 100644
-index c0a32f2..0000000
+index c0a32f2..e69de29 100644
 --- a/linux-2.4.37/grsecurity/Config.in
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/Config.in
 @@ -1,63 +0,0 @@
 -bool 'Address Space Layout Randomization' CONFIG_PAX_ASLR
 -if [ "$CONFIG_PAX_ASLR" = "y" ]; then
@@ -15167,10 +15150,9 @@ index c0a32f2..0000000
 -endmenu
 -
 diff --git a/linux-2.4.37/grsecurity/Makefile b/linux-2.4.37/grsecurity/Makefile
-deleted file mode 100644
-index 8fe8a43..0000000
+index 8fe8a43..e69de29 100644
 --- a/linux-2.4.37/grsecurity/Makefile
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/Makefile
 @@ -1,24 +0,0 @@
 -# grsecurity's ACL system was originally written in 2001 by Michael Dalton
 -# during 2001-2005 it has been completely redesigned by Brad Spengler
@@ -15197,10 +15179,9 @@ index 8fe8a43..0000000
 -
 -include $(TOPDIR)/Rules.make
 diff --git a/linux-2.4.37/grsecurity/gracl.c b/linux-2.4.37/grsecurity/gracl.c
-deleted file mode 100644
-index 0c937d8..0000000
+index 0c937d8..e69de29 100644
 --- a/linux-2.4.37/grsecurity/gracl.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/gracl.c
 @@ -1,3653 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -18856,10 +18837,9 @@ index 0c937d8..0000000
 -//	return (obj->mode & GR_FIND) ? 1 : 0;
 -//}
 diff --git a/linux-2.4.37/grsecurity/grsec_chroot.c b/linux-2.4.37/grsecurity/grsec_chroot.c
-deleted file mode 100644
-index 3eb0699..0000000
+index 3eb0699..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_chroot.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_chroot.c
 @@ -1,318 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -19180,10 +19160,9 @@ index 3eb0699..0000000
 -}
 -
 diff --git a/linux-2.4.37/grsecurity/grsec_disabled.c b/linux-2.4.37/grsecurity/grsec_disabled.c
-deleted file mode 100644
-index 0652799..0000000
+index 0652799..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_disabled.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_disabled.c
 @@ -1,403 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/config.h>
@@ -19589,10 +19568,9 @@ index 0652799..0000000
 -	return 0;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_fifo.c b/linux-2.4.37/grsecurity/grsec_fifo.c
-deleted file mode 100644
-index 1ed6b20..0000000
+index 1ed6b20..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_fifo.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_fifo.c
 @@ -1,22 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -19617,10 +19595,9 @@ index 1ed6b20..0000000
 -	return 0;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_init.c b/linux-2.4.37/grsecurity/grsec_init.c
-deleted file mode 100644
-index a1533f1..0000000
+index a1533f1..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_init.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_init.c
 @@ -1,241 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -19864,10 +19841,9 @@ index a1533f1..0000000
 -	return;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_ipc.c b/linux-2.4.37/grsecurity/grsec_ipc.c
-deleted file mode 100644
-index 9cace6e..0000000
+index 9cace6e..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_ipc.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_ipc.c
 @@ -1,81 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -19951,10 +19927,9 @@ index 9cace6e..0000000
 -	return;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_link.c b/linux-2.4.37/grsecurity/grsec_link.c
-deleted file mode 100644
-index 6038829..0000000
+index 6038829..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_link.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_link.c
 @@ -1,39 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -19996,10 +19971,9 @@ index 6038829..0000000
 -	return 0;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_log.c b/linux-2.4.37/grsecurity/grsec_log.c
-deleted file mode 100644
-index a07842c..0000000
+index a07842c..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_log.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_log.c
 @@ -1,272 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -20274,10 +20248,9 @@ index a07842c..0000000
 -	END_LOCKS(audit);
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_mem.c b/linux-2.4.37/grsecurity/grsec_mem.c
-deleted file mode 100644
-index 1275431..0000000
+index 1275431..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_mem.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_mem.c
 @@ -1,70 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -20350,10 +20323,9 @@ index 1275431..0000000
 -	return 0;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_mount.c b/linux-2.4.37/grsecurity/grsec_mount.c
-deleted file mode 100644
-index 2886654..0000000
+index 2886654..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_mount.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_mount.c
 @@ -1,34 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -20390,10 +20362,9 @@ index 2886654..0000000
 -	return;
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_sock.c b/linux-2.4.37/grsecurity/grsec_sock.c
-deleted file mode 100644
-index 2c356eb..0000000
+index 2c356eb..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_sock.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_sock.c
 @@ -1,238 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -20634,10 +20605,9 @@ index 2c356eb..0000000
 -#endif
 -}
 diff --git a/linux-2.4.37/grsecurity/grsec_time.c b/linux-2.4.37/grsecurity/grsec_time.c
-deleted file mode 100644
-index 9501ab4..0000000
+index 9501ab4..e69de29 100644
 --- a/linux-2.4.37/grsecurity/grsec_time.c
-+++ /dev/null
++++ b/linux-2.4.37/grsecurity/grsec_time.c
 @@ -1,13 +0,0 @@
 -#include <linux/kernel.h>
 -#include <linux/sched.h>
@@ -21640,23 +21610,9 @@ index 9fe4ff5..a4ffcbb 100644
  #endif /* __KERNEL__ */
  #endif	/* _LINUX_BFS_FS_H */
 diff --git a/linux-2.4.37/include/linux/binfmts.h b/linux-2.4.37/include/linux/binfmts.h
-index 9647c4c..9fdffd7 100644
+index 92486ca..e10483f 100644
 --- a/linux-2.4.37/include/linux/binfmts.h
 +++ b/linux-2.4.37/include/linux/binfmts.h
-@@ -5,10 +5,10 @@
- 
- /*
-  * MAX_ARG_PAGES defines the number of pages allocated for arguments
-- * and envelope for the new program. 33 should suffice, this gives
-- * a maximum env+arg of 132kB w/4KB pages!
-+ * and envelope for the new program. 32 should suffice, this gives
-+ * a maximum env+arg of 128kB w/4KB pages!
-  */
--#define MAX_ARG_PAGES 33
-+#define MAX_ARG_PAGES 32
- 
- /* sizeof(linux_binprm->buf) */
- #define BINPRM_BUF_SIZE 128
 @@ -29,7 +29,6 @@ struct linux_binprm{
  	int argc, envc;
  	char * filename;	/* Name of binary */
@@ -22066,10 +22022,9 @@ index 423d03f..cb495b6 100644
  
  
 diff --git a/linux-2.4.37/include/linux/gracl.h b/linux-2.4.37/include/linux/gracl.h
-deleted file mode 100644
-index 5ee2cbb..0000000
+index 5ee2cbb..e69de29 100644
 --- a/linux-2.4.37/include/linux/gracl.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/gracl.h
 @@ -1,317 +0,0 @@
 -#ifndef GR_ACL_H
 -#define GR_ACL_H
@@ -22389,10 +22344,9 @@ index 5ee2cbb..0000000
 -
 -#endif
 diff --git a/linux-2.4.37/include/linux/gralloc.h b/linux-2.4.37/include/linux/gralloc.h
-deleted file mode 100644
-index 323ecf2..0000000
+index 323ecf2..e69de29 100644
 --- a/linux-2.4.37/include/linux/gralloc.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/gralloc.h
 @@ -1,9 +0,0 @@
 -#ifndef __GRALLOC_H
 -#define __GRALLOC_H
@@ -22404,10 +22358,9 @@ index 323ecf2..0000000
 -
 -#endif
 diff --git a/linux-2.4.37/include/linux/grdefs.h b/linux-2.4.37/include/linux/grdefs.h
-deleted file mode 100644
-index 2375019..0000000
+index 2375019..e69de29 100644
 --- a/linux-2.4.37/include/linux/grdefs.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/grdefs.h
 @@ -1,132 +0,0 @@
 -#ifndef GRDEFS_H
 -#define GRDEFS_H
@@ -22542,10 +22495,9 @@ index 2375019..0000000
 -
 -#endif
 diff --git a/linux-2.4.37/include/linux/grinternal.h b/linux-2.4.37/include/linux/grinternal.h
-deleted file mode 100644
-index 96c57fd..0000000
+index 96c57fd..e69de29 100644
 --- a/linux-2.4.37/include/linux/grinternal.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/grinternal.h
 @@ -1,211 +0,0 @@
 -#ifndef __GRINTERNAL_H
 -#define __GRINTERNAL_H
@@ -22759,10 +22711,9 @@ index 96c57fd..0000000
 -
 -#endif
 diff --git a/linux-2.4.37/include/linux/grmsg.h b/linux-2.4.37/include/linux/grmsg.h
-deleted file mode 100644
-index d734a80..0000000
+index d734a80..e69de29 100644
 --- a/linux-2.4.37/include/linux/grmsg.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/grmsg.h
 @@ -1,108 +0,0 @@
 -#define DEFAULTSECMSG "%.256s[%.16s:%d] uid/euid:%u/%u gid/egid:%u/%u, parent %.256s[%.16s:%d] uid/euid:%u/%u gid/egid:%u/%u"
 -#define GR_ACL_PROCACCT_MSG "%.256s[%.16s:%d] IP:%u.%u.%u.%u TTY:%.64s uid/euid:%u/%u gid/egid:%u/%u run time:[%ud %uh %um %us] cpu time:[%ud %uh %um %us] %s with exit code %ld, parent %.256s[%.16s:%d] IP:%u.%u.%u.%u TTY:%.64s uid/euid:%u/%u gid/egid:%u/%u"
@@ -22873,10 +22824,9 @@ index d734a80..0000000
 -#define GR_RESOURCE_MSG "denied resource overstep by requesting %lu for %.16s against limit %lu for "
 -#define GR_TEXTREL_AUDIT_MSG "text relocation in %s, VMA:0x%08lx 0x%08lx by "
 diff --git a/linux-2.4.37/include/linux/grsecurity.h b/linux-2.4.37/include/linux/grsecurity.h
-deleted file mode 100644
-index 2fdfe99..0000000
+index 2fdfe99..e69de29 100644
 --- a/linux-2.4.37/include/linux/grsecurity.h
-+++ /dev/null
++++ b/linux-2.4.37/include/linux/grsecurity.h
 @@ -1,199 +0,0 @@
 -#ifndef GR_SECURITY_H
 -#define GR_SECURITY_H
@@ -25119,10 +25069,9 @@ index 76b8ccc..94691f8 100644
  	unix_peer(sk)=newsk;
  	sock->state=SS_CONNECTED;
 diff --git a/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch b/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch
-deleted file mode 100644
-index 996e61c..0000000
+index 996e61c..e69de29 100644
 --- a/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch
-+++ /dev/null
++++ b/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch
 @@ -1,35741 +0,0 @@
 -diff -urNp linux-2.4.37.7/arch/alpha/config.in linux-2.4.37.7/arch/alpha/config.in
 ---- linux-2.4.37.7/arch/alpha/config.in	2009-11-07 11:52:20.000000000 -0500
@@ -60865,7 +60814,3 @@ index 996e61c..0000000
 - 	sock_hold(newsk);
 - 	unix_peer(sk)=newsk;
 - 	sock->state=SS_CONNECTED;
-diff --git a/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch.sig b/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch.sig
-deleted file mode 100644
-index 7c7da2a..0000000
-Binary files a/patches/kernel/grsecurity-2.1.14-2.4.37.7-200911101931.patch.sig and /dev/null differ
