@@ -452,7 +452,7 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_access)
 	.long SYMBOL_NAME(sys_nice)
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 35 */		/* old ftime syscall holder */
-	.long SYMBOL_NAME(sys_ni_syscall)				// sys_sync can cause kernel deadlock
+	.long SYMBOL_NAME(sys_sync)					// sys_sync can cause kernel deadlock
 	.long SYMBOL_NAME(sys_kill)
 	.long SYMBOL_NAME(sys_rename)
 	.long SYMBOL_NAME(sys_mkdir)
@@ -685,7 +685,7 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_clock_getres */
 	.long SYMBOL_NAME(sys_ni_syscall)	/* sys_clock_nanosleep */
 	.long SYMBOL_NAME(sys_statfs64)		/* sys_statfs64 */
-	.long SYMBOL_NAME(sys_statfs64)		/* sys_fstatfs64 */
+	.long SYMBOL_NAME(sys_fstatfs64)	/* sys_fstatfs64 */
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 270 */
 
 	.rept NR_syscalls-(.-sys_call_table)/4

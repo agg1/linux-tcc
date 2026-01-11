@@ -1306,7 +1306,7 @@ static inline int ahci_host_intr(struct ata_port *ap, struct ata_queued_cmd *qc)
 
 static void ahci_irq_clear(struct ata_port *ap)
 {
-	/* TODO */
+	/* TODO */ // ??
 }
 
 static irqreturn_t ahci_interrupt (int irq, void *dev_instance, struct pt_regs *regs)
