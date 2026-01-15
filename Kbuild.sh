@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# (c) 2023,2024 aggi
+# (c) 2023,2024,2025,2026 aggi
 # this script fully replaces the linux-2.4 internal Kbuild system to simplify
 # AoT compilation of kernel with tinycc compiler
 #
@@ -8,6 +8,7 @@
 # for JiT compilation of linux-2.4 kernel
 #
 # AoT compilation of linux-2.4 was inspired by https://github.com/seyko2/tccboot
+# which was not maintained for a decade and suffered from regressions
 
 set -eu
 CWD="$(pwd)"
@@ -204,13 +205,15 @@ label linux-debug
 FILE_LIST_o=""
 
 # directory in sync with tccboot.iso from bellard to match /boot/tccargs paths
-# just create a symlink to appropriate kernel sources and leave it as is
+# just create a symlink to appropriate kernel sources and leave it as is here
 mkdir -p usr/src/ ; cd usr/src/ ; rm -f linux ; ln -sf ../../linux-2.4.37 linux ; cd ${CWD}
 cp -p linux-2.4.37/tcc/compile.h usr/src/linux/include/linux/compile.h
 cp -p linux-2.4.37/tcc/consolemap_deftbl.c usr/src/linux/drivers/char/consolemap_deftbl.c
 KDIR="usr/src/linux"
 
+# build output
 KTMP="/var/tmp/ktmp"
+#mount -o remount,exec ${KTMP} >/dev/null 2>&1 || true
 
 ### keep tcc for prepare_loader
 ## ? -D__STRICT_ANSI__ see in types.h
@@ -253,21 +256,20 @@ prepare_loader
 
 
 ### tcc
-## ensure tcc does not include nor link anything unknown into; tcc needs patches
+## ensure tcc does not include nor link anything unknown into; tcc patches/tcc/tcc-9999-library_path.patch
 export TCC_LIBRARY_PATH="/dev/null"
 export TCC_CPATH="/dev/null"
 ## some missing functions from libtcc can be added to arch/i386/lib/dummy_syms.c when CCLIB=""
 ## Freeing initrd memory PANIC -> libtcc1 linked against kernel needed for unknown reason
 ##
-## compilelink_kernel produces mis-compiled/mis-linked when tcc compiles/links in a single-pass !!!
+## compilelink_kernel produces mis-compiled/mis-linked binary when tcc compiles/links in a single-pass !!!
 ## noticed with ahci.c which panics kernel in interrupt handler (dd if=/dev/sdX of=/dev/null bs=1M count=1024)!
-## noticed with backborted asix.c usb-ethernet dongle connection losses and kernel-deadlocks and/or panics with larger packets sent!
 #CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
 ## first compiling objects and linking in a separate stage with tcc didn't show errors with ahci.c/sata
 compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
 
 
-### gcc-4.4.7
+### gcc-4.7.4
 #CCLIB=""
 #CC="i586-pc-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
 #LD="i586-pc-linux-musl-gcc -ffreestanding -O"

@@ -1,8 +1,8 @@
 diff --git a/libtcc.c b/libtcc.c
-index f686feb5..c9c687c3 100644
+index d6d09ebc..5617046c 100644
 --- a/libtcc.c
 +++ b/libtcc.c
-@@ -890,6 +890,7 @@ LIBTCCAPI void tcc_delete(TCCState *s1)
+@@ -954,6 +954,7 @@ LIBTCCAPI void tcc_delete(TCCState *s1)
  
  LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
  {
@@ -10,7 +10,7 @@ index f686feb5..c9c687c3 100644
  #ifdef CONFIG_TCC_PIE
      if (output_type == TCC_OUTPUT_EXE)
          output_type |= TCC_OUTPUT_DYN;
-@@ -897,9 +898,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+@@ -961,9 +962,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
      s->output_type = output_type;
  
      if (!s->nostdinc) {
@@ -31,16 +31,18 @@ index f686feb5..c9c687c3 100644
      }
  
      if (output_type == TCC_OUTPUT_PREPROCESS) {
-@@ -916,7 +925,7 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+@@ -980,8 +989,8 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
          return 0;
      }
  
--    tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
-+//    tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
+-    if (!s->nostdlib_paths)
+-        tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
++    if (!s->nostdlib_paths && getenv("TCC_LIBRARY_PATH") == NULL) // TCC_LIBPATHS by TCC_LIBRARY_PATH overriden elsewhere unrelated to -nostdlib
++        tcc_add_library_path(s, CONFIG_TCC_LIBPATHS);
  
  #ifdef TCC_TARGET_PE
  # ifdef TCC_IS_NATIVE
-@@ -928,8 +937,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
+@@ -993,8 +1002,17 @@ LIBTCCAPI int tcc_set_output_type(TCCState *s, int output_type)
      tcc_add_macos_sdkpath(s);
  # endif
  #else
@@ -60,10 +62,10 @@ index f686feb5..c9c687c3 100644
          tccelf_add_crtbegin(s);
  #endif
 diff --git a/tcc.c b/tcc.c
-index 838f41d9..b215c36f 100644
+index e1819239..24104a7d 100644
 --- a/tcc.c
 +++ b/tcc.c
-@@ -221,18 +221,33 @@ static void set_environment(TCCState *s)
+@@ -233,18 +233,33 @@ static void set_environment(TCCState *s)
  {
      char * path;
  
