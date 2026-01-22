@@ -547,7 +547,8 @@ usr/src/linux/drivers/net/e1000/kcompat.c
 usr/src/linux/drivers/net/pcmcia/pcnet_cs.c
 usr/src/linux/drivers/net/8139cp.c
 usr/src/linux/drivers/net/8139too.c
-usr/src/linux/drivers/net/r8169.c
+usr/src/linux/drivers/net/r1000_n.c
+usr/src/linux/drivers/net/r1000_ioctl.c
 usr/src/linux/drivers/net/8390.c
 usr/src/linux/drivers/net/Space.c
 usr/src/linux/drivers/net/auto_irq.c

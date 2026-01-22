@@ -17,6 +17,9 @@ typedef void irqreturn_t;
 #define IRQ_NONE
 #define IRQ_HANDLED
 #define IRQ_RETVAL(x)
+//typedef irqreturn_t (*irq_handler_t)(int, void *);
+//#define IRQ_NONE	0
+//#define IRQ_HANDLED	1
 
 struct irqaction {
 	void (*handler)(int, void *, struct pt_regs *);
