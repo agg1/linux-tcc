@@ -82,5 +82,6 @@ obj-$(CONFIG_BINFMT_ELF)	+= binfmt_elf.o
 # persistent filesystems
 obj-y += $(join $(subdir-y),$(subdir-y:%=/%.o))
 
+obj-$(CONFIG_UNION_FS)		+= unionfs
 
 include $(TOPDIR)/Rules.make

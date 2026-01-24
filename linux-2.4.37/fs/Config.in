@@ -181,6 +181,8 @@ else
    define_tristate CONFIG_ZISOFS_FS n
 fi
 
+tristate "Union fs support" CONFIG_UNION_FS
+
 mainmenu_option next_comment
 comment 'Partition Types'
 source fs/partitions/Config.in

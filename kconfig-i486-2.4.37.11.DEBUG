@@ -956,6 +956,7 @@ CONFIG_LOCKD_V4=y
 # CONFIG_NCPFS_EXTRAS is not set
 # CONFIG_SH_FS is not set
 # CONFIG_ZISOFS_FS is not set
+CONFIG_UNION_FS=y
 
 #
 # Partition Types

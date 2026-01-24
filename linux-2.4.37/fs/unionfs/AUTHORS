@@ -1,0 +1,99 @@
+PRIMARY AUTHORS AND MAJOR CONTRIBUTORS TO AM_UTILS:
+The primary authors work at the Filesystems and Storage Lab at Stony Brook
+University.   They also currently maintain the package.
+
+* Erez Zadok  <ezk@cs.sunysb.edu>
+- Primary Investigator
+
+* Charles P. Wright  <cwright@cs.sunysb.edu>
+- Primary maintainer
+- Snapshotting support
+- Initial development
+
+* Dave Quigley  <dquigley@fsl.cs.sunysb.edu>
+- 2.6 Port
+- Maintenance
+
+* Arun Krishna Kumar <arunmk@fsl.cs.sunysb.edu>
+- Maintenance
+
+* Mohammad Nayyer Zubair
+- Initial development
+- Regression Suite
+
+* Puja Gupta
+- Initial development
+
+* Harikesavan Krishnan
+- Initial development
+
+Other contributors:
+* Sai Suman  <suman@pantasys.com>
+January 10, 2005: NFS Export patch
+January 10, 2005: Copyup bug fix.
+
+* Alex de Landgraaf <alex@delandgraaf.com>
+January 10, 2005: Fixes for gcc 2.9.5
+
+* Anton Farygin <rider@altlinux.com>
+February 2, 2005:  Fixes for non-privileged copyup.
+March 2, 2005: vfs_readdir bug in dirhelper.c
+March 2, 2005: Fix copyup on symlinks
+March 2, 2005: Fix handling of failed whiteout lookup
+August 15, 2005: Fix possible deadlock in incgen when memory allocaiton fails.
+
+* Jaspreet Singh  <jsingh@ensim.com>
+February 8, 2005: Use security functions for xattr copyup.
+May 11, 2005: Fix for Xattr copyup on Selinux
+May 12, 2005: Selinux requires valid i_mode before d_instantiate.
+
+* Fabian Franz <fs-bugs@fabian-franz.de>
+February 22, 2005: Hardlinks should have the same inode number.
+February 22, 2005: Device copyup fix.
+February 22, 2005: Identified d_delete problem over tmpfs
+March 2, 2005: vfs_readdir bug in dirhelper.c
+
+* Terry Barnaby <terry1@beam.ltd.uk>
+March 3, 2005: Copy attributes on d_revalidate
+March 2, 2005: Fix for readdir over NFS
+March 16, 2005: Fix for unionfs_dir_llseek
+April 20, 2005: Submitted opaque directory patch, wich the current code
+is inspired by.
+
+* Lucas Correia Villa Real <lucasvr@gobolinux.org>
+March 7, 2005: Makefile uses MODDIR.
+
+* Eduard Bloch <blade@debian.org>
+March 7, 2005: Fix man page sections, improve Makefile
+
+* Fernando Freiregomez <fernando.freiregomez@telefonica.es>
+March 7, 2005: Have snapmerge fix times on created files.
+
+* Markus F.X.J. Oberhumer <markus@oberhumer.com>
+April 18, 2005: Fixes for compilation on AMD64
+
+* Tomas Matejicek
+May 10, 2005: I used his linuxrc as the basis for the Unionfs as a root
+file system instructions.
+
+* Shaya Potter
+July 19, 2005: Symbolic links should not be renamed to whiteout files, as
+that confuses Unionfs later.
+September 2, 2005: Fix copyup checking for mmap.
+
+
+* Jan Engelhardt <jengelh@linux01.gwdg.de>
+July 22, 2005: Support for realpath in unionctl.
+August 1, 2005: Use vprintk instead of vsnprintf/printk combo.
+August 9, 2005: Fix unionctl so that it doesn't truncate "/" to "".
+
+* Malcom Lashley <malc@gentoo.org>
+August 9, 2005: AMD64 compile fixes.
+
+* Eduard Bloch <blade@debian.org>
+August 9, 2005: Debian packaging files.
+
+* Klaus Knopper <unionfs@knopper.net>
+August 22, 2005: Fix from lookup_one_len in unionfs_create.
+
+* And many more ...
