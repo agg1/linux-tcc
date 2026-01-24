@@ -83,6 +83,8 @@ static int r1000_start_xmit (struct sk_buff *skb, struct net_device *netdev);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
 //typedef	int				irqreturn_t;
+#undef IRQ_NONE
+#undef IRQ_HANDLED
 #define	IRQ_NONE		0
 #define	IRQ_HANDLED		1
 static void r1000_interrupt (int irq, void *dev_instance, struct pt_regs *regs);
