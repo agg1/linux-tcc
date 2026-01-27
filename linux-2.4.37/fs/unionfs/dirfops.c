@@ -170,8 +170,8 @@ static int unionfs_readdir(struct file *file, void *dirent, filldir_t filldir)
 			err = offset;
 			goto out;
 		}
-		fist_dprint(7, "calling readdir for %d.%lld\n", uds->uds_bindex,
-			    hidden_file->f_pos);
+		fist_dprint(7, "calling readdir for %d.%lld (offset = %lld)\n",
+			    uds->uds_bindex, uds->uds_dirpos, offset);
 		err = vfs_readdir(hidden_file, unionfs_filldir, (void *)&buf);
 		fist_dprint(7,
 			    "readdir on %d.%lld = %d (entries written %d, filldir called %d)\n",
@@ -191,6 +191,7 @@ static int unionfs_readdir(struct file *file, void *dirent, filldir_t filldir)
 			err = offset;
 			goto out;
 		}
+		uds->uds_dirpos = offset;
 
 		/* Copy the atime. */
 		fist_copy_attr_atime(inode, hidden_file->f_dentry->d_inode);

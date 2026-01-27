@@ -15,7 +15,7 @@
  * This Copyright notice must be kept intact and distributed with all sources.
  */
 /*
- *  $Id: rename.c,v 1.18 2005/09/01 23:04:41 cwright Exp $
+ *  $Id: rename.c,v 1.21 2005/10/14 18:43:15 arunmk Exp $
  */
 
 #include "fist.h"
@@ -50,7 +50,8 @@ static int do_rename(struct inode *old_dir, struct dentry *old_dentry,
 				   bindex);
 		if (IS_ERR(hidden_new_dentry)) {
 			fist_dprint(7,
-				    "error creating directory tree for rename, bindex = $d\n");
+				    "error creating directory tree for rename, bindex = %d\n",
+				    bindex);
 			err = PTR_ERR(hidden_new_dentry);
 			goto out;
 		}
@@ -92,8 +93,9 @@ static int do_rename(struct inode *old_dir, struct dentry *old_dentry,
 		}
 		DPUT(hidden_wh_dentry);
 		unlock_dir(hidden_wh_dir_dentry);
-		if (err)
+		if (err) {
 			goto out;
+		}
 	} else {
 		DPUT(hidden_wh_dentry);
 	}
@@ -398,12 +400,17 @@ static int unionfs_rename_all(struct inode *old_dir, struct dentry *old_dentry,
 	int do_whiteout = -1;	/* Where we should start whiteouts of the source. */
 	int clobber;		/* Are we clobbering the destination. */
 	fd_set success_mask;
+	char *name = NULL;
 
 	print_entry_location();
 
 	old_bstart = dbstart(old_dentry);
 	old_bend = dbend(old_dentry);
+
 	parent_dentry = old_dentry->d_parent;
+	name = KMALLOC(old_dentry->d_name.len + 1, GFP_UNIONFS);
+	strncpy(name, old_dentry->d_name.name, old_dentry->d_name.len + 1);
+
 	new_bstart = dbstart(new_dentry);
 	new_bend = dbend(new_dentry);
 	ASSERT(new_bstart >= 0);
@@ -513,8 +520,9 @@ static int unionfs_rename_all(struct inode *old_dir, struct dentry *old_dentry,
 					do_copyup = new_bstart - 1;
 			}
 			if ((do_whiteout == -1)
-			    || (new_bstart - 1 < do_whiteout))
+			    || (new_bstart - 1 < do_whiteout)) {
 				do_whiteout = new_bstart - 1;
+			}
 		} else if (err) {
 			goto revert;
 		}
@@ -543,8 +551,9 @@ static int unionfs_rename_all(struct inode *old_dir, struct dentry *old_dentry,
 				err = -EXDEV;
 				goto revert;
 			}
-			if ((do_copyup == -1) || (new_bstart - 1 < do_copyup))
+			if ((do_copyup == -1) || (new_bstart - 1 < do_copyup)) {
 				do_copyup = new_bstart - 1;
+			}
 		} else if (err) {
 			goto revert;
 		}
@@ -553,7 +562,10 @@ static int unionfs_rename_all(struct inode *old_dir, struct dentry *old_dentry,
 	/* Create a whiteout for the source. */
 	if (do_whiteout != -1) {
 		ASSERT(do_whiteout >= 0);
-		err = create_whiteout(old_dentry, do_whiteout);
+		/* create a lookup in the old_dentry's actual parent */
+		lock_dentry(parent_dentry);
+		err = create_whiteout_parent(parent_dentry, name, do_whiteout);
+		unlock_dentry(parent_dentry);
 		if (err) {
 			/* We can't fix anything now, so we -EIO. */
 			printk(KERN_WARNING "We can't create a whiteout for the"
@@ -651,8 +663,75 @@ static int unionfs_rename_all(struct inode *old_dir, struct dentry *old_dentry,
 		err = eio;
 
       out:
+	KFREE(name);
 	print_exit_status(err);
 	return err;
+}
+
+/*
+ * generate whiteout name, which is NOT terminated by NULL.
+ * @name: original d_name.name
+ * @len: original d_name.len
+ * @whlen: length of whname
+ * return value is the whname.
+ * correctly returned value as whname must be freed later.
+ * If an error occurs, returns PTR_ERR.
+ */
+static inline char *get_whname(const char *name, int len, int *whlen)
+{
+	char *ret;
+
+	ASSERT(name && len && whlen);
+#if 0
+	/* TODO: check the full path length with PATH_MAX */
+	if (len > PAGE_SIZE - sizeof(".wh."))
+		return ERR_PTR(-ENAMETOOLONG);
+#endif
+	ret = __getname();
+	if (!ret)
+		return ERR_PTR(-ENOMEM);
+
+	memcpy(ret, ".wh.", sizeof(".wh.") - 1);
+	memcpy(ret + sizeof(".wh.") - 1, name, len);
+	*whlen = len + sizeof(".wh.") - 1;
+
+	return ret;
+}
+
+static inline void put_whname(char *whname)
+{
+	putname(whname); // __putname(whname);
+}
+
+static struct dentry *lookup_whiteout(struct dentry *dentry)
+{
+	char *whname;
+	int whlen = 0, bindex = -1, bstart = -1, bend = -1;
+	struct dentry *parent, *hidden_parent, *wh_dentry;
+
+	whname = get_whname(dentry->d_name.name, dentry->d_name.len, &whlen);
+	if (IS_ERR(whname))
+		return (void *)whname;
+
+	parent = GET_PARENT(dentry);
+	lock_dentry(parent);
+	bstart = dbstart(parent);
+	bend = dbend(parent);
+	wh_dentry = ERR_PTR(-ENOENT);
+	for (bindex = bstart; bindex <= bend; bindex++) {
+		hidden_parent = dtohd_index(parent, bindex);
+		wh_dentry = LOOKUP_ONE_LEN(whname, hidden_parent, whlen);
+		if (IS_ERR(wh_dentry))
+			continue;
+		if (wh_dentry->d_inode)
+			break;
+		DPUT(wh_dentry);
+		wh_dentry = ERR_PTR(-ENOENT);
+	}
+	unlock_dentry(parent);
+	DPUT(parent);
+	put_whname(whname);
+	return wh_dentry;
 }
 
 int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
@@ -661,6 +740,8 @@ int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	int err = 0;
 	struct dentry *hidden_old_dentry;
 	struct dentry *hidden_new_dentry;
+	struct dentry *wh_dentry;
+	int new_was_wh = 0;
 
 	print_entry_location();
 
@@ -681,7 +762,15 @@ int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	hidden_new_dentry = dtohd(new_dentry);
 	hidden_old_dentry = dtohd(old_dentry);
 
-	if (new_dentry->d_inode) {
+	/*
+	 * if new_dentry is already hidden because of whiteout,
+	 * simply override it even if the whiteouted dir is not empty.
+	 */
+	wh_dentry = lookup_whiteout(new_dentry);
+	if (!IS_ERR(wh_dentry)) {
+		new_was_wh = 1;
+		DPUT(wh_dentry);
+	} else if (new_dentry->d_inode) {
 		if (S_ISDIR(old_dentry->d_inode->i_mode) !=
 		    S_ISDIR(new_dentry->d_inode->i_mode)) {
 			err =
@@ -715,7 +804,14 @@ int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
       out:
 	fist_checkinode(new_dir, "post unionfs_rename-new_dir");
 	fist_print_dentry("OUT: unionfs_rename, old_dentry", old_dentry);
-	fist_print_dentry("OUT: unionfs_rename, new_dentry", new_dentry);
+
+	if (err) {
+		/* clear the new_dentry stuff created */
+		d_drop(new_dentry);
+	} else
+		fist_print_dentry("OUT: unionfs_rename, new_dentry",
+				  new_dentry);
+
 	unlock_dentry(new_dentry);
 	unlock_dentry(old_dentry);
 	print_exit_status(err);

@@ -337,6 +337,8 @@ static int unionfs_rmdir_all(struct inode *dir, struct dentry *dentry,
 		} else {
 			err = create_whiteout(dentry, dbstart(dentry));
 		}
+	} else {
+		err = create_whiteout(dentry, dbstart(dentry));
 	}
 
       out:

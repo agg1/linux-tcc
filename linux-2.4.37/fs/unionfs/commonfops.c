@@ -277,6 +277,9 @@ int unionfs_file_revalidate(struct file *file, int willwrite)
 						continue;
 
 				}
+				atomic_set(&ftopd(file)->ufi_generation,
+					   atomic_read(&itopd(dentry->d_inode)->
+						       uii_generation));
 				goto out;
 			}
 

@@ -315,7 +315,7 @@ static int unionfs_fsync(struct file *file, struct dentry *dentry, int datasync)
 	hidden_file = ftohf(file);
 
 	err = -EINVAL;
-	if (!hidden_file->f_op && !hidden_file->f_op->fsync)
+	if (!hidden_file->f_op || !hidden_file->f_op->fsync)
 		goto out;
 
 	down(&hidden_file->f_dentry->d_inode->i_sem);

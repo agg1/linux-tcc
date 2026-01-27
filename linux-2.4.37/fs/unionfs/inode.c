@@ -45,7 +45,7 @@ static int unionfs_create(struct inode *parent, struct dentry *dentry,
 	hidden_dentry = dtohd(dentry);
 
 	/* check if whiteout exists in this branch, i.e. lookup .wh.foo first */
-	name = KMALLOC(dentry->d_name.len + sizeof(".wh"), GFP_UNIONFS);
+	name = KMALLOC(dentry->d_name.len + sizeof(".wh."), GFP_UNIONFS);
 	if (!name) {
 		err = -ENOMEM;
 		goto out;
@@ -370,7 +370,7 @@ static int unionfs_symlink(struct inode *dir, struct dentry *dentry,
 	hidden_dentry = dtohd(dentry);
 
 	/* check if whiteout exists in this branch, i.e. lookup .wh.foo first. If present, delete it */
-	name = KMALLOC(dentry->d_name.len + sizeof(".wh"), GFP_UNIONFS);
+	name = KMALLOC(dentry->d_name.len + sizeof(".wh."), GFP_UNIONFS);
 	if (!name) {
 		err = -ENOMEM;
 		goto out;
@@ -506,7 +506,7 @@ static int unionfs_mkdir(struct inode *parent, struct dentry *dentry, int mode)
 	hidden_dentry = dtohd(dentry);
 
 	// check if whiteout exists in this branch, i.e. lookup .wh.foo first
-	name = KMALLOC(dentry->d_name.len + sizeof(".wh"), GFP_UNIONFS);
+	name = KMALLOC(dentry->d_name.len + sizeof(".wh."), GFP_UNIONFS);
 	if (!name) {
 		err = -ENOMEM;
 		goto out;
@@ -673,7 +673,7 @@ static int unionfs_mknod(struct inode *dir, struct dentry *dentry, int mode,
 	hidden_dentry = dtohd(dentry);
 
 	// check if whiteout exists in this branch, i.e. lookup .wh.foo first
-	name = KMALLOC(dentry->d_name.len + sizeof(".wh"), GFP_UNIONFS);
+	name = KMALLOC(dentry->d_name.len + sizeof(".wh."), GFP_UNIONFS);
 	if (!name) {
 		err = -ENOMEM;
 		goto out;
@@ -865,6 +865,52 @@ void unionfs_put_link(struct dentry *dentry, struct nameidata *nd, void *cookie)
 }
 #endif
 
+///* Basically copied from the kernel vfs permission(), but we've changed
+// * the following: (1) the IS_RDONLY check is skipped, and (2) if you define
+// * -DNFS_SECURITY_HOLE, we assume that -EACCESS means that the export is
+// * read-only and we should check standard Unix permissions.  This means
+// * that NFS ACL checks (or other advanced permission features) are bypassed.
+// */
+//int inode_permission(struct inode *inode, int mask, struct nameidata *nd,
+//		     int bindex)
+//{
+//	int retval, submask;
+//
+//	if (mask & MAY_WRITE) {
+//		/* The first branch is allowed to be really readonly. */
+//		if (bindex == 0) {
+//			umode_t mode = inode->i_mode;
+//			if (IS_RDONLY(inode) && (S_ISREG(mode) || S_ISDIR(mode)
+//						 || S_ISLNK(mode)))
+//				return -EROFS;
+//		}
+//		/*
+//		 * Nobody gets write access to an immutable file.
+//		 */
+//		if (IS_IMMUTABLE(inode))
+//			return -EACCES;
+//	}
+//
+//	/* Ordinary permission routines do not understand MAY_APPEND. */
+//	submask = mask & ~MAY_APPEND;
+//	if (inode->i_op && inode->i_op->permission) {
+//		retval = inode->i_op->permission(inode, submask, nd);
+//#ifdef NFS_SECURITY_HOLE
+//#define IS_NFS(inode) (strcmp("nfs", (inode)->i_sb->s_type->s_name))
+//		if ((retval == -EACCESS) && (submask & MAY_WRITE) &&
+//		    IS_NFS(inode)) {
+//			retval = generic_permission(inode, submask, NULL);
+//		}
+//#endif
+//	} else {
+//		retval = generic_permission(inode, submask, NULL);
+//	}
+//	if (retval)
+//		return retval;
+//
+//	return security_inode_permission(inode, mask, nd);
+//}
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
 static int unionfs_permission(struct inode *inode, int mask,
 			      struct nameidata *nd)
@@ -908,6 +954,10 @@ static int unionfs_permission(struct inode *inode, int mask)
 		 * Otherwise we ignore EROFS. */
 		if (IS_COPYUP_ERR(err) && (bindex != 0))
 			err = 0;
+//		/* We use our own special version of permission, such that 
+//		 * only the first branch returns -EROFS. */
+//		err = inode_permission(hidden_inode, mask, nd, bindex);
+
 		/* The permissions are an intersection of the overall directory
 		 * permissions, so we fail if one fails. */
 		if (err)

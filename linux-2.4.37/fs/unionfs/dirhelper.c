@@ -15,7 +15,7 @@
  * This Copyright notice must be kept intact and distributed with all sources.
  */
 /*
- *  $Id: dirhelper.c,v 1.17 2005/09/01 23:04:41 cwright Exp $
+ *  $Id: dirhelper.c,v 1.18 2005/10/20 17:22:19 cwright Exp $
  */
 
 #include "fist.h"
@@ -169,7 +169,7 @@ int check_empty(struct dentry *dentry, struct unionfs_dir_state **namelist)
 	struct super_block *sb;
 	struct file *hidden_file;
 	struct unionfs_rdutil_callback *buf = NULL;
-	int bindex, bstart, bend;
+	int bindex, bstart, bend, bopaque;
 
 	print_entry_location();
 
@@ -182,6 +182,9 @@ int check_empty(struct dentry *dentry, struct unionfs_dir_state **namelist)
 
 	bstart = dbstart(dentry);
 	bend = dbend(dentry);
+	bopaque = dbopaque(dentry);
+	if (0 <= bopaque && bopaque < bend)
+		bend = bopaque;
 
 	buf = KMALLOC(sizeof(struct unionfs_rdutil_callback), GFP_UNIONFS);
 	if (!buf) {

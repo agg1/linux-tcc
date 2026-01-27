@@ -133,6 +133,130 @@ int create_whiteout(struct dentry *dentry, int start)
 	return err;
 }
 
+/* Create a whiteout for filename in parent at 'start' branch */
+/* the parent dentry has to be valid with the hidden parent also being
+valid */
+/* dbopaque has to be set by the caller */
+int create_whiteout_parent(struct dentry *parent_dentry, const char *filename,
+			   int start)
+{
+	int bindex;
+	int old_bstart, old_bend;
+	struct dentry *hidden_dir_dentry;
+	struct dentry *hidden_grand_parent_dentry;
+	struct dentry *hidden_parent_dentry;
+	struct dentry *hidden_wh_dentry;
+	char *name = NULL;
+	int err = -EINVAL;
+
+	print_entry_location();
+
+	PASSERT(parent_dentry);
+	verify_locked(parent_dentry);
+
+	old_bstart = dbstart(parent_dentry);
+	old_bend = dbend(parent_dentry);
+
+	fist_print_dentry("IN create_whiteout_parent", parent_dentry);
+
+	/* create dentry's whiteout equivalent */
+	name = KMALLOC(strlen(filename) + sizeof(".wh."), GFP_UNIONFS);
+	if (!name) {
+		err = -ENOMEM;
+		goto out;
+	}
+	strcpy(name, ".wh.");
+	strncat(name, filename, strlen(filename));
+	name[strlen(filename) + 4] = '\0';
+
+	for (bindex = start; bindex >= 0; bindex--) {
+		hidden_parent_dentry = dtohd_index(parent_dentry, bindex);
+
+		if (!hidden_parent_dentry) {
+			/* create the recursive directory structure and return
+			 * the negative dentry for the parent where we want to
+			 * create whiteout. */
+			ASSERT(parent_dentry->d_inode != NULL);
+			hidden_parent_dentry =
+			    create_parents(parent_dentry->d_parent->d_inode,
+					   parent_dentry, bindex);
+			if (!hidden_parent_dentry
+			    || IS_ERR(hidden_parent_dentry)) {
+				fist_dprint(8,
+					    "hidden dentry NULL for bindex = %d\n",
+					    bindex);
+				continue;
+			}
+
+			/* create directory of the hidden parent, 
+			 * if it is negative.
+			 * This is where whiteout is created
+			 */
+			hidden_grand_parent_dentry =
+			    lock_parent(hidden_parent_dentry);
+			PASSERT(hidden_grand_parent_dentry->d_inode);
+
+			/* We shouldn't create things in a read-only branch. */
+			if (!
+			    (err =
+			     is_robranch_super(parent_dentry->d_sb, bindex)))
+				err =
+				    vfs_mkdir(hidden_grand_parent_dentry->
+					      d_inode, hidden_parent_dentry,
+					      S_IRWXU);
+
+			unlock_dir(hidden_grand_parent_dentry);
+			if (err || !hidden_parent_dentry->d_inode) {
+				DPUT(hidden_parent_dentry);
+				if (!IS_COPYUP_ERR(err))
+					break;
+				else
+					continue;
+			}
+			set_itohi_index(parent_dentry->d_inode, bindex,
+					igrab(hidden_parent_dentry->d_inode));
+		}
+
+		/* lookup for the whiteout dentry that we want to create */
+		hidden_wh_dentry =
+		    lookup_one_len(name, hidden_parent_dentry,
+				   strlen(filename) + 4);
+		if (!hidden_wh_dentry || IS_ERR(hidden_wh_dentry))
+			continue;
+		ASSERT(!hidden_wh_dentry->d_inode);
+
+		/* hidden_dir_dentry and hidden_parent_dentry 
+		 * are going to be the same */
+		hidden_dir_dentry = lock_parent(hidden_wh_dentry);
+
+		/* We shouldn't create things in a read-only branch. */
+		if (!(err = is_robranch_super(parent_dentry->d_sb, bindex))) {
+			err =
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
+			    vfs_create(hidden_dir_dentry->d_inode,
+				       hidden_wh_dentry,
+				       ~current->fs->umask & S_IRWXUGO);
+#else
+			    vfs_create(hidden_dir_dentry->d_inode,
+				       hidden_wh_dentry,
+				       ~current->fs->umask & S_IRWXUGO, NULL);
+#endif
+		}
+
+		unlock_dir(hidden_dir_dentry);
+		DPUT(hidden_wh_dentry);
+
+		if (!err || !IS_COPYUP_ERR(err))
+			break;
+	}
+
+      out:
+	fist_print_dentry("OUT create_whiteout_parent", parent_dentry);
+	KFREE(name);
+	print_exit_status(err);
+	return err;
+}
+
 /* This is a helper function for rename, which ends up with hosed over dentries
  * when it needs to revert. */
 int unionfs_refresh_hidden_dentry(struct dentry *dentry, int bindex)
