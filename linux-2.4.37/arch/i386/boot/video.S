@@ -20,13 +20,13 @@
 #define CONFIG_VIDEO_VESA
 
 /* Enable compacting of mode table */
-#define CONFIG_VIDEO_COMPACT
+#undef CONFIG_VIDEO_COMPACT
 
 /* Retain screen contents when switching modes */
 #define CONFIG_VIDEO_RETAIN
 
 /* Enable local mode list */
-#undef CONFIG_VIDEO_LOCAL
+#define CONFIG_VIDEO_LOCAL
 
 /* Force 400 scan lines for standard modes (hack to fix bad BIOS behaviour */
 #undef CONFIG_VIDEO_400_HACK
@@ -434,11 +434,12 @@ _set_80x25:	jmp	set_80x25
 setalias:
 	movw	$VIDEO_80x25, %ax
 	incw	%bx
-	jz	mode_set
-
-	movb	$VIDEO_8POINT-VIDEO_FIRST_SPECIAL, %al
-	incw	%bx
+#	jz	mode_set
 	jnz	setbad				# Fall-through!
+
+#	movb	$VIDEO_8POINT-VIDEO_FIRST_SPECIAL, %al
+#	incw	%bx
+#	jnz	setbad				# Fall-through!
 
 # Setting of user mode (AX=mode ID) => CF=success
 mode_set:
@@ -966,18 +967,18 @@ ret0:	ret
 
 # Modes usable on all standard VGAs
 vga_modes:
-	.word	VIDEO_8POINT
-	.word	0x5032				# 80x50
-	.word	VIDEO_80x43
-	.word	0x502b				# 80x43
-	.word	VIDEO_80x28
-	.word	0x501c				# 80x28
-	.word	VIDEO_80x30
-	.word	0x501e				# 80x30
-	.word	VIDEO_80x34
-	.word	0x5022				# 80x34
-	.word	VIDEO_80x60
-	.word	0x503c				# 80x60
+#	.word	VIDEO_8POINT
+#	.word	0x5032				# 80x50
+#	.word	VIDEO_80x43
+#	.word	0x502b				# 80x43
+#	.word	VIDEO_80x28
+#	.word	0x501c				# 80x28
+#	.word	VIDEO_80x30
+#	.word	0x501e				# 80x30
+#	.word	VIDEO_80x34
+#	.word	0x5022				# 80x34
+#	.word	VIDEO_80x60
+#	.word	0x503c				# 80x60
 #ifdef CONFIG_VIDEO_GFX_HACK
 	.word	VIDEO_GFX_HACK
 	.word	VIDEO_GFX_DUMMY_RESOLUTION
@@ -1806,11 +1807,24 @@ locm2:	ret
 # compacting is enabled. The table must end with a zero word followed
 # by NUL-terminated video adapter name.
 local_mode_table:
-	.word	0x0100				# Example: 40x25
-	.byte	25,40
+	.word	0x0301				# 640x480	8bit
+	.byte	00,00
+	.word	0x0315				# 800x600	24bit
+	.byte	00,00
+	.word	0x0318				# 1024x768	24bit
+	.byte	00,00
+	.word	0x033d				# 1280x1024	32bit
+	.byte	00,00
+	.word	0x03d4				# 1920x1080	32bit
+	.byte	00,00
 	.word	0
 	.ascii	"Local"
 	.byte	0
+#	.word	0x0100				# Example: 40x25
+#	.byte	25,40
+#	.word	0
+#	.ascii	"Local"
+#	.byte	0
 #endif	/* CONFIG_VIDEO_LOCAL */
 
 # Read a key and return the ASCII code in al, scan code in ah
