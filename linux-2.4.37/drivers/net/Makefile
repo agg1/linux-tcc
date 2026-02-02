@@ -243,7 +243,7 @@ obj-$(CONFIG_MAC89x0) += mac89x0.o
 obj-$(CONFIG_TUN) += tun.o
 obj-$(CONFIG_ETHER00) +=ether00.o
 obj-$(CONFIG_DL2K) += dl2k.o
-obj-$(CONFIG_R8169) += r8169.o
+obj-$(CONFIG_R8169) += r1000_n.o r1000_ioctl.o
 obj-$(CONFIG_AMD8111_ETH) += amd8111e.o mii.o
 
 # non-drivers/net drivers who want mii lib
