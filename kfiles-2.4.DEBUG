@@ -257,6 +257,20 @@
 #usr/src/linux/fs/shfs/shell.c
 #usr/src/linux/fs/shfs/symlink.c
 
+## CONFIG_SMB_FS
+## failed: cproto -E "tcc -E" -e -v -I /media/DATA/TCC/linux-tcc.git/linux-2.4.37/include/ -DMAKING_PROTO -D__KERNEL__ proc.c dir.c cache.c sock.c inode.c file.c ioctl.c symlink.c >proto2.h
+## consider pre-generaged proto2.h
+## touch empty proto2.h suffices for kernel compilation
+#usr/src/linux/fs/smbfs/proc.c
+#usr/src/linux/fs/smbfs/dir.c
+#usr/src/linux/fs/smbfs/cache.c
+#usr/src/linux/fs/smbfs/sock.c
+#usr/src/linux/fs/smbfs/inode.c
+#usr/src/linux/fs/smbfs/file.c
+#usr/src/linux/fs/smbfs/ioctl.c
+#usr/src/linux/fs/smbfs/getopt.c
+#usr/src/linux/fs/smbfs/symlink.c
+
 ## CONFIG_ROMFS_FS
 #usr/src/linux/fs/romfs/inode.c
 
