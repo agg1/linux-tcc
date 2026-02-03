@@ -299,6 +299,7 @@ usr/src/linux/arch/i386/kernel/sys_i386.c
 usr/src/linux/arch/i386/kernel/time.c
 usr/src/linux/arch/i386/kernel/traps.c
 usr/src/linux/arch/i386/kernel/vm86.c
+usr/src/linux/arch/i386/kernel/apm.c
 usr/src/linux/arch/i386/lib/delay.c
 usr/src/linux/arch/i386/lib/memcpy.c
 usr/src/linux/arch/i386/lib/old-checksum.c
@@ -327,6 +328,7 @@ usr/src/linux/kernel/kmod.c
 usr/src/linux/kernel/module.c
 usr/src/linux/kernel/panic.c
 usr/src/linux/kernel/pid.c
+usr/src/linux/kernel/pm.c
 usr/src/linux/kernel/printk.c
 usr/src/linux/kernel/ptrace.c
 usr/src/linux/kernel/resource.c
