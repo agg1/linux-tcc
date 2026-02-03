@@ -257,6 +257,25 @@
 #usr/src/linux/fs/shfs/shell.c
 #usr/src/linux/fs/shfs/symlink.c
 
+## CONFIG_ROMFS_FS
+#usr/src/linux/fs/romfs/inode.c
+
+## CONFIG_PM CONFIG_APM
+#usr/src/linux/arch/i386/kernel/apm.c
+#usr/src/linux/kernel/pm.c
+
+## CONFIG_FILTER
+#usr/src/linux/net/core/filter.c
+
+## CONFIG_IP_NF_QUEUE
+#usr/src/linux/net/ipv4/netfilter/ip_queue.c
+
+## CONFIG_NET_SCH_HTB CONFIG_NET_SCH_HFSC CONFIG_NET_SCH_SFQ CONFIG_NET_SCH_GRED
+#usr/src/linux/net/sched/sch_gred.c
+#usr/src/linux/net/sched/sch_hfsc.c
+#usr/src/linux/net/sched/sch_htb.c
+#usr/src/linux/net/sched/sch_sfq.c
+
 #usr/src/linux/ipc/msg.c
 #usr/src/linux/ipc/sem.c
 #usr/src/linux/ipc/shm.c
@@ -299,7 +318,6 @@ usr/src/linux/arch/i386/kernel/sys_i386.c
 usr/src/linux/arch/i386/kernel/time.c
 usr/src/linux/arch/i386/kernel/traps.c
 usr/src/linux/arch/i386/kernel/vm86.c
-usr/src/linux/arch/i386/kernel/apm.c
 usr/src/linux/arch/i386/lib/delay.c
 usr/src/linux/arch/i386/lib/memcpy.c
 usr/src/linux/arch/i386/lib/old-checksum.c
@@ -328,7 +346,6 @@ usr/src/linux/kernel/kmod.c
 usr/src/linux/kernel/module.c
 usr/src/linux/kernel/panic.c
 usr/src/linux/kernel/pid.c
-usr/src/linux/kernel/pm.c
 usr/src/linux/kernel/printk.c
 usr/src/linux/kernel/ptrace.c
 usr/src/linux/kernel/resource.c
@@ -414,7 +431,6 @@ usr/src/linux/fs/pipe.c
 usr/src/linux/fs/quota.c
 usr/src/linux/fs/read_write.c
 usr/src/linux/fs/readdir.c
-usr/src/linux/fs/romfs/inode.c
 usr/src/linux/fs/select.c
 usr/src/linux/fs/seq_file.c
 usr/src/linux/fs/stat.c
@@ -734,7 +750,6 @@ usr/src/linux/net/core/dev_mcast.c
 usr/src/linux/net/core/dst.c
 usr/src/linux/net/core/dv.c
 usr/src/linux/net/core/ethtool.c
-usr/src/linux/net/core/filter.c
 usr/src/linux/net/core/iovec.c
 usr/src/linux/net/core/neighbour.c
 usr/src/linux/net/core/netfilter.c
@@ -787,7 +802,6 @@ usr/src/linux/net/ipv4/netfilter/arp_tables.c
 usr/src/linux/net/ipv4/netfilter/arpt_mangle.c
 usr/src/linux/net/ipv4/netfilter/arptable_filter.c
 usr/src/linux/net/ipv4/netfilter/ip_tables.c
-usr/src/linux/net/ipv4/netfilter/ip_queue.c
 usr/src/linux/net/ipv4/netfilter/ipt_CLASSIFY.c
 usr/src/linux/net/ipv4/netfilter/ipt_DSCP.c
 usr/src/linux/net/ipv4/netfilter/ipt_ECN.c
@@ -875,13 +889,9 @@ usr/src/linux/net/sched/sch_cbq.c
 usr/src/linux/net/sched/sch_csz.c
 usr/src/linux/net/sched/sch_dsmark.c
 usr/src/linux/net/sched/sch_fifo.c
-usr/src/linux/net/sched/sch_gred.c
-usr/src/linux/net/sched/sch_hfsc.c
-usr/src/linux/net/sched/sch_htb.c
 usr/src/linux/net/sched/sch_ingress.c
 usr/src/linux/net/sched/sch_prio.c
 usr/src/linux/net/sched/sch_red.c
-usr/src/linux/net/sched/sch_sfq.c
 usr/src/linux/net/sched/sch_tbf.c
 usr/src/linux/net/sched/sch_teql.c
 usr/src/linux/net/packet/af_packet.c
