@@ -4,4 +4,6 @@
 mainmenu_option next_comment
 comment 'Misc devices'
 
+tristate "scrandom ultra high speed LFSR PRNG" CONFIG_SCRANDOM
+
 endmenu

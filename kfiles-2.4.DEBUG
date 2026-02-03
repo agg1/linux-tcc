@@ -529,7 +529,7 @@ usr/src/linux/drivers/char/n_tty.c
 usr/src/linux/drivers/char/parport_serial.c
 usr/src/linux/drivers/char/pc_keyb.c
 usr/src/linux/drivers/char/pty.c
-usr/src/linux/drivers/char/random.c
+usr/src/linux/drivers/char/random_scrandom.c
 usr/src/linux/drivers/char/raw.c
 usr/src/linux/drivers/char/rtc.c
 usr/src/linux/drivers/char/selection.c

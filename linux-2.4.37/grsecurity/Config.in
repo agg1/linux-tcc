@@ -4,7 +4,7 @@ if [ "$CONFIG_PAX_ASLR" = "y" ]; then
   bool '  Randomize kernel stack base' CONFIG_PAX_RANDKSTACK
  fi
  bool '  Randomize user stack base' CONFIG_PAX_RANDUSTACK
-# bool '  Randomize mmap() base' CONFIG_PAX_RANDMMAP
+ bool '  Randomize mmap() base' CONFIG_PAX_RANDMMAP
 fi
 
 bool 'Harden kernel heap management' CONFIG_GRKERNSEC_KHEAP

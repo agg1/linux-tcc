@@ -458,7 +458,7 @@ fi
 source drivers/input/Config.in
 source drivers/char/Config.in
 
-#source drivers/misc/Config.in
+source drivers/misc/Config.in
 
 source drivers/media/Config.in
 
