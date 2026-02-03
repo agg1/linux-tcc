@@ -276,6 +276,17 @@
 #usr/src/linux/net/sched/sch_htb.c
 #usr/src/linux/net/sched/sch_sfq.c
 
+## CONFIG_EEPRO100
+#usr/src/linux/drivers/net/eepro100.c
+
+## CONFIG_E100
+#usr/src/linux/drivers/net/e100/e100_main.c
+#usr/src/linux/drivers/net/e100/e100_config.c
+#usr/src/linux/drivers/net/e100/e100_phy.c
+#usr/src/linux/drivers/net/e100/e100_eeprom.c
+#usr/src/linux/drivers/net/e100/e100_test.c
+
+## CONFIG_SYSVIPC
 #usr/src/linux/ipc/msg.c
 #usr/src/linux/ipc/sem.c
 #usr/src/linux/ipc/shm.c
@@ -592,7 +603,6 @@ usr/src/linux/drivers/net/Space.c
 usr/src/linux/drivers/net/auto_irq.c
 usr/src/linux/drivers/net/bsd_comp.c
 usr/src/linux/drivers/net/dummy.c
-usr/src/linux/drivers/net/eepro100.c
 usr/src/linux/drivers/net/eql.c
 usr/src/linux/drivers/net/ethertap.c
 usr/src/linux/drivers/net/loopback.c
