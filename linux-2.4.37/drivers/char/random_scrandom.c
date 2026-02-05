@@ -222,39 +222,14 @@ static void MD5Transform(__u32 buf[HASH_BUFFER_SIZE], __u32 const in[16])
 #undef F4
 #undef MD5STEP
 
-static unsigned int
-random_poll(struct file *file, poll_table * wait)
-{
-	return 0;
-}
-
-static ssize_t
-random_write(struct file * file, const char * buffer,
-	     size_t count, loff_t *ppos)
-{
-	return count;
-}
-
-static int
-random_ioctl(struct inode * inode, struct file * file,
-	     unsigned int cmd, unsigned long arg)
-{
-	return 0;
-}
-
 const struct file_operations random_fops = {
 	read:		scrandom_read,
 	open:		scrandom_open,
-	write:		random_write,
-	poll:		random_poll,
-	ioctl:		random_ioctl,
 };
 
 const struct file_operations urandom_fops = {
 	read:		scrandom_read,
 	open:		scrandom_open,
-	write:		random_write,
-	ioctl:		random_ioctl,
 };
 
 /***************************************************************

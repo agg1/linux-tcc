@@ -43,15 +43,18 @@
 //#define SCRANDOM_LFSRSIZE sizeof(void *)
 #define SCRANDOM_LFSRSIZE 4
 // larger buf increases throughput with the tradeoff random seed initialization is more expensive
-// a total 64byte/512bit sized LFSR scrambler matrix is sufficient for all intents and purposes
-#define SCRANDOM_BUFNUM 16
+// a total 128byte/1024bit sized LFSR scrambler matrix is sufficient for all intents and purposes
+#define SCRANDOM_BUFNUM 32
 #define SCRANDOM_BUFSIZE SCRANDOM_BUFNUM*SCRANDOM_LFSRSIZE
 
 struct scrandom {
 	struct semaphore sem;
 
-	u32 *scrambler;
+	// LFSR scrambler matrix of SCRANDOM_BUFNUM amount of LFSRSIZE/u32
+	u32 scrambler[SCRANDOM_BUFNUM]; // u32 *scrambler;
+	// index of current LFSR
 	u32 index;
+	// generator polynome
 	u32 s1;
 	u32 s2;
 	u32 s3;
@@ -66,13 +69,16 @@ static int scr_major = SCRANDOM_MAJOR;
 static int scr_minor = SCRANDOM_MINOR;
 
 static void scrandom_shift(struct scrandom *scr) {
+	// prevent out of bounds array index
 	scr->index %= SCRANDOM_BUFNUM;
 	u32 *scrambler = &(scr->scrambler[scr->index]);
 
+	// scramble seeded input for quality random
 	*scrambler^=((*scrambler)>>scr->s1);
 	*scrambler^=((*scrambler)<<scr->s2);
 	*scrambler^=((*scrambler)>>scr->s3);
 
+	// update dynamic generator polynome derived from internal scrambler state
 	scr->s1=((*scrambler)%SCRANDOM_MODUL)+SCRANDOM_DIST1;
 	scr->s2=((*scrambler)%SCRANDOM_MODUL)+SCRANDOM_DIST2;
 	scr->s3=((*scrambler)%SCRANDOM_MODUL)+SCRANDOM_DIST3;
@@ -81,6 +87,8 @@ static void scrandom_shift(struct scrandom *scr) {
 static void scrandom_init(struct scrandom *scr) {
 	u32 *pos32;
 	scr->index=0;
+
+	// first  generator polynome to scramble initial timer entropy
 	scr->s1 = SCRANDOM_SALT1;
 	scr->s2 = SCRANDOM_SALT2;
 	scr->s3 = SCRANDOM_SALT3;
@@ -88,10 +96,12 @@ static void scrandom_init(struct scrandom *scr) {
 	u32 entropy_clock = 0;
 	struct timeval entropy_time;
 
+	// iterate the entire LFSR scrambler matrix
 	while ( scr->index < SCRANDOM_BUFNUM ) {
 		pos32 = &(scr->scrambler[(scr->index)%SCRANDOM_BUFNUM]);
-		if ( scr->index == 0) {
-			*pos32 = global_seed;
+		*pos32 ^= global_seed;
+		if ( (scr->index)%SCRANDOM_BUFNUM == 0) {
+			// seed the first LFSR scrambler with some timer entropy
 			entropy_clock = get_cycles();
 			*pos32 ^= entropy_clock;
 			do_gettimeofday(&entropy_time);
@@ -99,9 +109,15 @@ static void scrandom_init(struct scrandom *scr) {
 		}
 		scrandom_shift(scr);
 		scr->index++;
+		// interleave scrambler state into next LFSR buffer with an updated generator polynome
+		if (scr->index < SCRANDOM_BUFNUM)
+			scr->scrambler[(scr->index)%SCRANDOM_BUFNUM] ^= *pos32;
 	}
-	global_seed = *pos32;
+
 	scr->index = 0;
+
+	// update global seed to improve entropy whenever a scrandom instance is created
+	global_seed = *pos32;
 }
 
 static int scrandom_open(struct inode *inode, struct file *filp) {
@@ -115,11 +131,11 @@ static int scrandom_open(struct inode *inode, struct file *filp) {
 	if (!scr)
 		return -ENOMEM;
 
-	scr->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
-	if (!scr->scrambler) {
-		kfree(scr);
-		return -ENOMEM;
-	};
+	//scr->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
+	//if (!scr->scrambler) {
+	//	kfree(scr);
+	//	return -ENOMEM;
+	//};
 
 	sema_init(&scr->sem, 1); /* Init semaphore as a mutex */
 
@@ -132,7 +148,7 @@ static int scrandom_open(struct inode *inode, struct file *filp) {
 static int scrandom_release(struct inode *inode, struct file *filp) {
 	struct scrandom *scr = filp->private_data;
 
-	kfree(scr->scrambler);
+	//kfree(scr->scrambler);
 	kfree(scr);
 
 	return 0;
@@ -189,7 +205,7 @@ static struct file_operations scr_fops = {
 };
 
 static void scrandom_cleanup_module(void) {
-	kfree(scrandom_state->scrambler);
+	//kfree(scrandom_state->scrambler);
 	kfree(scrandom_state);
 
 	unregister_chrdev(scr_major, "scrandom");
@@ -209,11 +225,11 @@ int scrandom_init_module(void) {
 	if (!scrandom_state)
 		return -ENOMEM;
 
-	scrandom_state->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
-	if (!scrandom_state->scrambler) {
-		kfree(scrandom_state);
-		return -ENOMEM;
-	}
+	//scrandom_state->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
+	//if (!scrandom_state->scrambler) {
+	//	kfree(scrandom_state);
+	//	return -ENOMEM;
+	//}
 
 	sema_init(&scrandom_state->sem, 1); /* Init semaphore as a mutex */
 
@@ -229,7 +245,7 @@ int scrandom_init_module(void) {
 	if (result < 0) {
 		printk(KERN_WARNING "scrandom: can't get major %d\n", scr_major);
 
-		kfree(scrandom_state->scrambler);
+		//kfree(scrandom_state->scrambler);
 		kfree(scrandom_state);
 	
 		return result;
@@ -264,12 +280,12 @@ static void scrandom_get_random_bytes(char *buf, int count)
 		return;
 	}
 
-	scr->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
-	if (!scr->scrambler) {
-		count = -ENOMEM;
-		kfree(scr);
-		return;
-	};
+	//scr->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
+	//if (!scr->scrambler) {
+	//	count = -ENOMEM;
+	//	kfree(scr);
+	//	return;
+	//};
 
 //	sema_init(&scr->sem, 1); /* Init semaphore as a mutex */
 
@@ -313,7 +329,7 @@ static void scrandom_get_random_bytes(char *buf, int count)
 	}
 
 out:
-	kfree(scr->scrambler);
+	//kfree(scr->scrambler);
 	kfree(scr);
 //	up(&scr->sem);
 }
