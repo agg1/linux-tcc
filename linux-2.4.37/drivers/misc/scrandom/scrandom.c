@@ -42,6 +42,8 @@
 #define SCRANDOM_SALT3 ((SCRANDOM_SALT%SCRANDOM_MODUL)+SCRANDOM_DIST3)
 //#define SCRANDOM_LFSRSIZE sizeof(void *)
 #define SCRANDOM_LFSRSIZE 4
+// larger buf increases throughput with the tradeoff random seed initialization is more expensive
+// a total 64byte/512bit sized LFSR scrambler matrix is sufficient for all intents and purposes
 #define SCRANDOM_BUFNUM 16
 #define SCRANDOM_BUFSIZE SCRANDOM_BUFNUM*SCRANDOM_LFSRSIZE
 
@@ -274,7 +276,7 @@ static void scrandom_get_random_bytes(char *buf, int count)
 	scrandom_init(scr);
 
 	u32 done_bytes = 0;
-	scr->index=0;
+	scr->index = 0;
   
 //	if (down_interruptible(&scr->sem))
 //		return -ERESTARTSYS;

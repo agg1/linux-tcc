@@ -3,19 +3,13 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/major.h>
-#include <linux/string.h>
-#include <linux/fcntl.h>
-#include <linux/slab.h>
 #include <linux/random.h>
 #include <linux/poll.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 
-//#include <asm/processor.h>
 #include <asm/uaccess.h>
-//#include <asm/irq.h>
-//#include <asm/io.h>
 
 //
 #define SCRANDOM_NOMODULE 1
@@ -24,10 +18,6 @@
 /*
  * Forward procedure declarations
  */
-//#ifdef CONFIG_SYSCTL
-//static void sysctl_init_random(struct entropy_store *random_state);
-//#endif
-
 
 /*
  * Changes to the entropy data is put into a queue rather than being added to
@@ -35,25 +25,23 @@
  * hashing calculations during an interrupt in add_timer_randomness().
  * Instead, the entropy is only added to the pool once per timer tick.
  */
-void batch_entropy_store(u32 a, u32 b, int num)
-{ }
 
 #ifndef CONFIG_ARCH_S390
-void add_keyboard_randomness(unsigned char scancode)
-{
+void add_keyboard_randomness(unsigned char scancode) {
+	int nop = 0;
 }
 
-void add_mouse_randomness(__u32 mouse_data)
-{
+void add_mouse_randomness(__u32 mouse_data) {
+	int nop = 0;
 }
 
-void add_interrupt_randomness(int irq)
-{
+void add_interrupt_randomness(int irq) {
+	int nop = 0;
 }
 #endif
 
-void add_blkdev_randomness(int major)
-{
+void add_blkdev_randomness(int major) {
+	int nop = 0;
 }
 
 /*
@@ -75,32 +63,17 @@ void get_random_bytes(void *buf, int nbytes)
 
 void __init rand_initialize(void)
 {
-//	scr = kmalloc(sizeof(struct scrandom), GFP_KERNEL);
-//	if (!scrandom_state)
-//		return -ENOMEM;
-//
-//	scr->scrambler = kmalloc(SCRANDOM_BUFSIZE, GFP_KERNEL);
-//	if (!scr->scrambler) {
-//		kfree(scrandom_state);
-//		return -ENOMEM;
-//	}
-//
-//	sema_init(&scr->sem, 1); /* Init semaphore as a mutex */
-//
-//	//
-//	scrandom_init(scr);
-
 	printk(KERN_INFO "random: OK.\n");
 }
 
 #ifndef CONFIG_ARCH_S390
-void rand_initialize_irq(int irq)
-{
+void rand_initialize_irq(int irq) {
+	int nop = 0;
 }
 #endif
 
-void rand_initialize_blkdev(int major, int mode)
-{
+void rand_initialize_blkdev(int major, int mode) {
+	int nop = 0;
 }
 
 /******************************************************************
@@ -249,17 +222,6 @@ static void MD5Transform(__u32 buf[HASH_BUFFER_SIZE], __u32 const in[16])
 #undef F4
 #undef MD5STEP
 
-//static ssize_t
-//random_read(struct file * file, char * buf, size_t nbytes, loff_t *ppos)
-//{
-//}
-//
-//static ssize_t
-//urandom_read(struct file * file, char * buf,
-//		      size_t nbytes, loff_t *ppos)
-//{
-//}
-
 static unsigned int
 random_poll(struct file *file, poll_table * wait)
 {
@@ -326,33 +288,7 @@ void generate_random_uuid(unsigned char uuid_out[16])
 
 static int sysctl_poolsize = 8192;
 static int entropy_avail = 8192;
-static int min_read_thresh, max_read_thresh;
-static int min_write_thresh, max_write_thresh;
-static int random_read_wakeup_thresh = 8;
-static int random_write_wakeup_thresh = 128;
 static char sysctl_bootid[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-/*
- * This function handles a request from the user to change the pool size 
- * of the primary entropy store.
- */
-static int change_poolsize(int poolsize)
-{
-	return 0;
-}
-
-static int proc_do_poolsize(ctl_table *table, int write, struct file *filp,
-			    void *buffer, size_t *lenp)
-{
-	return 0;
-}
-
-static int poolsize_strategy(ctl_table *table, int *name, int nlen,
-			     void *oldval, size_t *oldlenp,
-			     void *newval, size_t newlen, void **context)
-{
-	return 0;
-}
 
 static int proc_do_bootid(ctl_table *table, int write, struct file *filp,
 			void *buffer, size_t *lenp)
@@ -439,20 +375,6 @@ static int uuid_strategy(ctl_table *table, int *name, int nlen,
 }
 
 ctl_table random_table[] = {
-	{RANDOM_POOLSIZE, "poolsize",
-	 &sysctl_poolsize, sizeof(int), 0644, NULL,
-	 &proc_do_poolsize, &poolsize_strategy},
-	{RANDOM_ENTROPY_COUNT, "entropy_avail",
-	 NULL, sizeof(int), 0444, NULL,
-	 &proc_dointvec},
-	{RANDOM_READ_THRESH, "read_wakeup_threshold",
-	 &random_read_wakeup_thresh, sizeof(int), 0644, NULL,
-	 &proc_dointvec_minmax, &sysctl_intvec, 0,
-	 &min_read_thresh, &max_read_thresh},
-	{RANDOM_WRITE_THRESH, "write_wakeup_threshold",
-	 &random_write_wakeup_thresh, sizeof(int), 0644, NULL,
-	 &proc_dointvec_minmax, &sysctl_intvec, 0,
-	 &min_write_thresh, &max_write_thresh},
 	{RANDOM_BOOT_ID, "boot_id",
 	 &sysctl_bootid, 16, 0444, NULL,
 	 &proc_do_bootid, &uuid_strategy},
@@ -462,13 +384,6 @@ ctl_table random_table[] = {
 	{0}
 };
 
-static void sysctl_init_random(struct entropy_store *random_state)
-{
-//	min_read_thresh = 8;
-//	min_write_thresh = 0;
-//	max_read_thresh = max_write_thresh = 8192; //random_state->poolinfo.POOLBITS;
-	random_table[1].data = &entropy_avail; //&random_state->entropy_count;
-}
 #endif 	/* CONFIG_SYSCTL */
 
 /********************************************************************
@@ -879,13 +794,11 @@ __u32 check_tcp_syn_cookie(__u32 cookie, __u32 saddr, __u32 daddr, __u16 sport,
 #endif
 
 
-
 #ifndef CONFIG_ARCH_S390
 EXPORT_SYMBOL(add_keyboard_randomness);
 EXPORT_SYMBOL(add_mouse_randomness);
 EXPORT_SYMBOL(add_interrupt_randomness);
 #endif
 EXPORT_SYMBOL(add_blkdev_randomness);
-EXPORT_SYMBOL(batch_entropy_store);
 EXPORT_SYMBOL(generate_random_uuid);
 
