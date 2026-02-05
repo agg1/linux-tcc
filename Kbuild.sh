@@ -87,7 +87,7 @@ compile_kernel() {
 			-o ${KTMP}/temp/$i.o \
 			-fno-common -nostdinc -nostdlib \
 			-I${CWD}/${KDIR}/include \
-			-D__KERNEL__ -D__OPTIMIZE__ \
+			-D__KERNEL__ \
 			-c ${CWD}/${i} 2>&1 | tee -a LOG
 
 			FILE_LIST_o="$FILE_LIST_o ${KTMP}/temp/$i.o"
@@ -118,7 +118,7 @@ compilelink_kernel() {
 	-o ${KTMP}/vmlinux \
 	-fno-common -nostdinc -nostdlib -static -Wl,-Ttext,0xc0100000 -Wl,--oformat,binary  \
 	-I$KDIR/include \
-	-D__KERNEL__ -D__OPTIMIZE__ \
+	-D__KERNEL__ \
 	$FILE_LIST \
 	$CCLIB 2>&1 | tee -a LOG
 
@@ -218,11 +218,17 @@ KTMP="/var/tmp/ktmp"
 ### keep tcc for prepare_loader
 ## ? -D__STRICT_ANSI__ see in types.h
 HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
-#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586'"
-CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline"
-LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline"
-AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
-#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95"
+#
+### -O1 raised suspicion if this was related to random kernel panics in ahci.c and scrandom.c related testing
+#OPTIMIZE=" -D__OPTIMIZE__ -O1"
+## note linux-2.4.37/arch/i386/lib/dummy_syms.c needs additional symbols with -O0 for htonl/ntohl/ntohs/htons
+OPTIMIZE=" -U__OPTIMIZE__ -O0"
+#
+#CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586' ${OPTIMIZE}"
+CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
+LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
+AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
+#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
 # 16bit x86 real-mode assembler support
 REALAS="i586-tcc-linux-musl-as"
 
@@ -262,11 +268,9 @@ export TCC_CPATH="/dev/null"
 ## some missing functions from libtcc can be added to arch/i386/lib/dummy_syms.c when CCLIB=""
 ## Freeing initrd memory PANIC -> libtcc1 linked against kernel needed for unknown reason
 ##
-## compilelink_kernel produces mis-compiled/mis-linked binary when tcc compiles/links in a single-pass !!!
-## noticed with ahci.c which panics kernel in interrupt handler (dd if=/dev/sdX of=/dev/null bs=1M count=1024)!
-#CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
-## first compiling objects and linking in a separate stage with tcc didn't show errors with ahci.c/sata
-compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
+CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
+## first compiling objects and linking in a separate stage
+#compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
 
 
 ### gcc-4.7.4
