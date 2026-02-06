@@ -268,9 +268,11 @@ export TCC_CPATH="/dev/null"
 ## some missing functions from libtcc can be added to arch/i386/lib/dummy_syms.c when CCLIB=""
 ## Freeing initrd memory PANIC -> libtcc1 linked against kernel needed for unknown reason
 ##
-CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
-## first compiling objects and linking in a separate stage
-#compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
+## compilelink_kernel produces mis-compiled/mis-linked binary when tcc compiles/links in a single-pass !!!
+## noticed with ahci.c which panics kernel in interrupt handler (dd if=/dev/sdX of=/dev/null bs=1M count=1024)!
+#CCLIB="/usr/lib/tcc/i386-libtcc1.a" compilelink_kernel
+## first compiling objects and linking in a separate stage with tcc does not cause kernel panics with ahci.c/sata
+compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
 
 
 ### gcc-4.7.4
