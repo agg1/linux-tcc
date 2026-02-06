@@ -306,6 +306,10 @@
 #usr/src/linux/ipc/shm.c
 #usr/src/linux/grsecurity/grsec_ipc.c
 
+## override default random.c
+## seems to cause sporadic/non-reproducible kernel panics for unknown reason
+#usr/src/linux/drivers/char/random_scrandom.c
+
 FILE_LIST="
 usr/src/linux/tcc/kstart.S
 usr/src/linux/arch/i386/kernel/head.S
@@ -572,7 +576,7 @@ usr/src/linux/drivers/char/n_tty.c
 usr/src/linux/drivers/char/parport_serial.c
 usr/src/linux/drivers/char/pc_keyb.c
 usr/src/linux/drivers/char/pty.c
-usr/src/linux/drivers/char/random_scrandom.c
+usr/src/linux/drivers/char/random.c
 usr/src/linux/drivers/char/raw.c
 usr/src/linux/drivers/char/rtc.c
 usr/src/linux/drivers/char/selection.c
@@ -749,6 +753,7 @@ usr/src/linux/drivers/video/vgacon.c
 usr/src/linux/drivers/md/xor.c
 usr/src/linux/drivers/md/raid1.c
 usr/src/linux/drivers/md/md.c
+usr/src/linux/drivers/misc/scrandom/scrandom.c
 usr/src/linux/net/socket.c
 usr/src/linux/net/sysctl_net.c
 usr/src/linux/net/802/p8023.c

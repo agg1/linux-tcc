@@ -220,9 +220,9 @@ KTMP="/var/tmp/ktmp"
 HOSTCC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 "
 #
 ### -O1 raised suspicion if this was related to random kernel panics in ahci.c and scrandom.c related testing
-#OPTIMIZE=" -D__OPTIMIZE__ -O1"
+#OPTIMIZE=" -O1 -D__OPTIMIZE__ "
 ## note linux-2.4.37/arch/i386/lib/dummy_syms.c needs additional symbols with -O0 for htonl/ntohl/ntohs/htons
-OPTIMIZE=" -U__OPTIMIZE__ -O0"
+OPTIMIZE=" -O0 -U__OPTIMIZE__ "
 #
 #CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline -DUTS_MACHINE='i586' ${OPTIMIZE}"
 CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
