@@ -3,7 +3,7 @@
 
 // https://www.kernel.org/pub/linux/kernel/people/rml/variable-HZ/v2.4/vhz-j64-2.4.23.patch
 #ifndef HZ
-#define HZ 500
+#define HZ 1000
 #endif
 
 #define EXEC_PAGESIZE	4096
@@ -19,7 +19,7 @@
 #define MAXHOSTNAMELEN	64	/* max length of hostname */
 
 #ifdef __KERNEL__
-# define CLOCKS_PER_SEC	500	/* frequency at which times() counts */
+# define CLOCKS_PER_SEC	1000	/* frequency at which times() counts */
 #endif
 
 #endif
