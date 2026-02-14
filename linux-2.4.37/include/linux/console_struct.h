@@ -107,7 +107,8 @@ extern struct vc vc_cons [MAX_NR_CONSOLES];
 #define CUR_HWMASK	0x0f
 #define CUR_SWMASK	0xfff0
 
-#define CUR_DEFAULT CUR_UNDERLINE
+// full block non-blinking solid: 32 green | 64 red | 96 orange | 128 grey
+#define CUR_DEFAULT 17|(0<<8)|(128<<16)
 
 #define CON_IS_VISIBLE(conp) (*conp->vc_display_fg == conp)
 
