@@ -301,13 +301,13 @@ static void urb_print (struct urb * urb, char * str, int small)
 		int i, len;
 
 		if (usb_pipecontrol (pipe)) {
-			printk (KERN_DEBUG __FILE__ ": cmd(8):");
+			printk (KERN_DEBUG "cmd(8):");
 			for (i = 0; i < 8 ; i++) 
 				printk (" %02x", ((__u8 *) urb->setup_packet) [i]);
 			printk ("\n");
 		}
 		if (urb->transfer_buffer_length > 0 && urb->transfer_buffer) {
-			printk (KERN_DEBUG __FILE__ ": data(%d/%d):", 
+			printk (KERN_DEBUG "data(%d/%d):", 
 				urb->actual_length, 
 				urb->transfer_buffer_length);
 			len = usb_pipeout (pipe)? 
@@ -329,7 +329,7 @@ void ep_print_int_eds (ohci_t * ohci, char * str) {
 		ed_p = &(ohci->hcca->int_table [i]);
 		if (*ed_p == 0)
 		    continue;
-		printk (KERN_DEBUG __FILE__ ": %s branch int %2d(%2x):", str, i, i);
+		printk (KERN_DEBUG "%s branch int %2d(%2x):", str, i, i);
 		while (*ed_p != 0 && j--) {
 			ed_t *ed = dma_to_ed (ohci, le32_to_cpup(ed_p));
 			printk (" ed: %4x;", ed->hwINFO);
@@ -2552,9 +2552,9 @@ hc_found_ohci (struct pci_dev *dev, int irq,
 #else
 	bufp = __irq_itoa(irq);
 #endif
-	printk(KERN_INFO __FILE__ ": USB OHCI at membase 0x%lx, IRQ %s\n",
+	printk(KERN_INFO "USB OHCI at membase 0x%lx, IRQ %s\n",
 		(unsigned long)	mem_base, bufp);
-	printk(KERN_INFO __FILE__ ": usb-%s, %s\n", dev->slot_name, dev->name);
+	printk(KERN_INFO "usb-%s, %s\n", dev->slot_name, dev->name);
     
 	ohci = hc_alloc_ohci (dev, mem_base);
 	if (!ohci) {
@@ -2579,9 +2579,9 @@ hc_found_ohci (struct pci_dev *dev, int irq,
 	}
 	
 	if (ohci->flags & OHCI_QUIRK_SUCKYIO)
-		printk (KERN_INFO __FILE__ ": Using NSC SuperIO setup\n");
+		printk (KERN_INFO "Using NSC SuperIO setup\n");
 	if (ohci->flags & OHCI_QUIRK_AMD756)
-		printk (KERN_INFO __FILE__ ": AMD756 erratum 4 workaround\n");
+		printk (KERN_INFO "AMD756 erratum 4 workaround\n");
 
 	if (hc_reset (ohci) < 0) {
 		hc_release_ohci (ohci);

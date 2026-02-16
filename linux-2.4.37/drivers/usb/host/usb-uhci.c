@@ -2924,7 +2924,7 @@ _static int __devinit alloc_uhci (struct pci_dev *dev, int irq, unsigned int io_
 #else
 	bufp = __irq_itoa(irq);
 #endif
-	printk(KERN_INFO __FILE__ ": USB UHCI at I/O 0x%x, IRQ %s\n",
+	printk(KERN_INFO "USB UHCI at I/O 0x%x, IRQ %s\n",
 		io_addr, bufp);
 
 	s = kmalloc (sizeof (uhci_t), GFP_KERNEL);
