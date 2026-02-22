@@ -1,0 +1,658 @@
+diff --git a/linux-2.4.37/include/asm-i386/posix_types.h b/linux-2.4.37/include/asm-i386/posix_types.h
+index a9b3799..7f3bec9 100644
+--- a/linux-2.4.37/include/asm-i386/posix_types.h
++++ b/linux-2.4.37/include/asm-i386/posix_types.h
+@@ -30,6 +30,8 @@ typedef int		__kernel_ptrdiff_t;
+ typedef long		__kernel_time_t;
+ typedef long		__kernel_suseconds_t;
+ typedef long		__kernel_clock_t;
++typedef int		__kernel_timer_t;
++typedef int		__kernel_clockid_t;
+ typedef int		__kernel_daddr_t;
+ typedef char *		__kernel_caddr_t;
+ typedef unsigned short	__kernel_uid16_t;
+diff --git a/linux-2.4.37/include/asm-i386/siginfo.h b/linux-2.4.37/include/asm-i386/siginfo.h
+index d2686ed..6c5eaf3 100644
+--- a/linux-2.4.37/include/asm-i386/siginfo.h
++++ b/linux-2.4.37/include/asm-i386/siginfo.h
+@@ -31,6 +31,13 @@ typedef struct siginfo {
+ 		struct {
+ 			unsigned int _timer1;
+ 			unsigned int _timer2;
++
++			// posix-timers.c
++			timer_t _tid;		/* timer id */
++			int _overrun;		/* overrun count */
++			char _pad[sizeof(uid_t) - sizeof(int)];
++			sigval_t _sigval;	/* same as below */
++			int _sys_private;       /* not to be passed to user */
+ 		} _timer;
+ 
+ 		/* POSIX.1b signals */
+@@ -67,6 +74,9 @@ typedef struct siginfo {
+  */
+ #define si_pid		_sifields._kill._pid
+ #define si_uid		_sifields._kill._uid
++#define si_tid		_sifields._timer._tid
++#define si_overrun	_sifields._timer._overrun
++#define si_sys_private  _sifields._timer._sys_private
+ #define si_status	_sifields._sigchld._status
+ #define si_utime	_sifields._sigchld._utime
+ #define si_stime	_sifields._sigchld._stime
+@@ -193,9 +203,12 @@ typedef struct siginfo {
+ #define SIGEV_SIGNAL	0	/* notify via signal */
+ #define SIGEV_NONE	1	/* other notification: meaningless */
+ #define SIGEV_THREAD	2	/* deliver via thread creation */
++#define SIGEV_THREAD_ID 4	/* deliver to thread */
+ 
+ #define SIGEV_MAX_SIZE	64
++#ifndef SIGEV_PAD_SIZE
+ #define SIGEV_PAD_SIZE	((SIGEV_MAX_SIZE/sizeof(int)) - 3)
++#endif
+ 
+ typedef struct sigevent {
+ 	sigval_t sigev_value;
+diff --git a/linux-2.4.37/include/linux/errno.h b/linux-2.4.37/include/linux/errno.h
+index 6532278..efd4fd8 100644
+--- a/linux-2.4.37/include/linux/errno.h
++++ b/linux-2.4.37/include/linux/errno.h
+@@ -10,6 +10,7 @@
+ #define ERESTARTNOINTR	513
+ #define ERESTARTNOHAND	514	/* restart if no handler.. */
+ #define ENOIOCTLCMD	515	/* No ioctl command */
++#define ERESTART_RESTARTBLOCK 516 /* restart by calling sys_restart_syscall */
+ 
+ /* Defined for the NFSv3 protocol */
+ #define EBADHANDLE	521	/* Illegal NFS file handle */
+diff --git a/linux-2.4.37/include/linux/kernel_stat.h b/linux-2.4.37/include/linux/kernel_stat.h
+index dd6bec4..cfbfd8d 100644
+--- a/linux-2.4.37/include/linux/kernel_stat.h
++++ b/linux-2.4.37/include/linux/kernel_stat.h
+@@ -16,7 +16,7 @@
+ #define DK_MAX_DISK 16
+ 
+ struct kernel_stat {
+-	unsigned int per_cpu_user[NR_CPUS],
++	unsigned long per_cpu_user[NR_CPUS],
+ 	             per_cpu_nice[NR_CPUS],
+ 	             per_cpu_system[NR_CPUS],
+ 	             per_cpu_iowait[NR_CPUS],
+diff --git a/linux-2.4.37/include/linux/sched.h b/linux-2.4.37/include/linux/sched.h
+index 64d8a02..b9619b5 100644
+--- a/linux-2.4.37/include/linux/sched.h
++++ b/linux-2.4.37/include/linux/sched.h
+@@ -13,6 +13,7 @@ extern unsigned long event;
+ #include <linux/types.h>
+ #include <linux/times.h>
+ #include <linux/timex.h>
++#include <linux/jiffies.h>
+ #include <linux/rbtree.h>
+ 
+ #include <asm/system.h>
+@@ -365,6 +366,24 @@ extern struct user_struct *find_user(uid_t);
+ extern struct user_struct root_user;
+ #define INIT_USER (&root_user)
+ 
++/* POSIX.1b interval timer structure. */
++struct k_itimer {
++	struct list_head list;		 /* free/ allocate list */
++	spinlock_t it_lock;
++	clockid_t it_clock;		/* which timer type */
++	timer_t it_id;			/* timer id */
++	int it_overrun;			/* overrun on pending signal  */
++	int it_overrun_last;		 /* overrun on last delivered signal */
++	int it_requeue_pending;          /* waiting to requeue this timer */
++	int it_sigev_notify;		 /* notify word of sigevent struct */
++	int it_sigev_signo;		 /* signo word of sigevent struct */
++	sigval_t it_sigev_value;	 /* value word of sigevent struct */
++	unsigned long it_incr;		/* interval specified in jiffies */
++	struct task_struct *it_process;	/* process to send signal to */
++	struct timer_list it_timer;
++	struct sigqueue *sigq;		/* signal queue entry. */
++};
++
+ typedef struct prio_array prio_array_t;
+ 
+ struct task_struct {
+@@ -449,9 +468,10 @@ struct task_struct {
+ 	unsigned long it_real_value, it_prof_value, it_virt_value;
+ 	unsigned long it_real_incr, it_prof_incr, it_virt_incr;
+ 	struct timer_list real_timer;
++	struct list_head posix_timers; /* POSIX.1b Interval Timers */
+ 	struct tms times;
+ 	struct tms group_times;
+-	unsigned long start_time;
++	u64 start_time;
+ 	long per_cpu_utime[NR_CPUS], per_cpu_stime[NR_CPUS];
+ /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
+ 	unsigned long min_flt, maj_flt, nswap, cmin_flt, cmaj_flt, cnswap;
+@@ -773,6 +793,12 @@ extern int send_sig(int, task_t *, int);
+ extern void zap_other_threads(struct task_struct *p);
+ extern int kill_pg(pid_t, int, int);
+ extern int kill_sl(pid_t, int, int);
++//
++extern struct sigqueue *sigqueue_alloc(void);
++extern void sigqueue_free(struct sigqueue *);
++extern int send_sigqueue(int, struct sigqueue *,  struct task_struct *);
++extern int send_group_sigqueue(int, struct sigqueue *,  struct task_struct *);
++//
+ extern int kill_proc(pid_t, int, int);
+ extern int do_sigaction(int, const struct k_sigaction *, struct k_sigaction *);
+ extern int do_sigaltstack(const stack_t *, stack_t *, unsigned long);
+diff --git a/linux-2.4.37/include/linux/signal.h b/linux-2.4.37/include/linux/signal.h
+index a6f0da8..399a641 100644
+--- a/linux-2.4.37/include/linux/signal.h
++++ b/linux-2.4.37/include/linux/signal.h
+@@ -1,8 +1,10 @@
+ #ifndef _LINUX_SIGNAL_H
+ #define _LINUX_SIGNAL_H
+ 
++#include <linux/list.h>
+ #include <asm/signal.h>
+ #include <asm/siginfo.h>
++#include <linux/spinlock.h>
+ 
+ #ifdef __KERNEL__
+ /*
+@@ -10,11 +12,20 @@
+  */
+ 
+ struct sigqueue {
++	struct list_head list;
++	spinlock_t *lock;
++	int flags;
++
+ 	struct sigqueue *next;
+ 	siginfo_t info;
+ };
+ 
++/* flags values. */
++#define SIGQUEUE_PREALLOC	1
++
+ struct sigpending {
++	struct list_head list;
++
+ 	struct sigqueue *head, **tail;
+ 	sigset_t signal;
+ };
+diff --git a/linux-2.4.37/include/linux/time.h b/linux-2.4.37/include/linux/time.h
+index 15ba838..2caa304 100644
+--- a/linux-2.4.37/include/linux/time.h
++++ b/linux-2.4.37/include/linux/time.h
+@@ -14,6 +14,8 @@ struct timespec {
+ 
+ #ifdef __KERNEL__
+ 
++#include <linux/seqlock.h>
++
+ /*
+  * Change timeval to jiffies, trying to avoid the
+  * most obvious overflows..
+@@ -28,6 +30,48 @@ struct timespec {
+  */
+ #define MAX_JIFFY_OFFSET ((~0UL >> 1)-1)
+ 
++/* Parameters used to convert the timespec values */
++#ifndef USEC_PER_SEC
++#define USEC_PER_SEC (1000000L)
++#endif
++
++#ifndef NSEC_PER_SEC
++#define NSEC_PER_SEC (1000000000L)
++#endif
++
++#ifndef NSEC_PER_USEC
++#define NSEC_PER_USEC (1000L)
++#endif
++
++/*
++ * We want to do realistic conversions of time so we need to use the same
++ * values the update wall clock code uses as the jiffie size.  This value
++ * is: TICK_NSEC (both of which are defined in timex.h).  This 
++ * is a constant and is in nanoseconds.  We will used scaled math and
++ * with a scales defined here as SEC_JIFFIE_SC,  USEC_JIFFIE_SC and 
++ * NSEC_JIFFIE_SC.  Note that these defines contain nothing but
++ * constants and so are computed at compile time.  SHIFT_HZ (computed in
++ * timex.h) adjusts the scaling for different HZ values.
++ */
++#define SEC_JIFFIE_SC (30 - SHIFT_HZ)
++#define NSEC_JIFFIE_SC (SEC_JIFFIE_SC + 30)
++#define USEC_JIFFIE_SC (SEC_JIFFIE_SC + 20)
++#define SEC_CONVERSION ((unsigned long)(((u64)NSEC_PER_SEC << SEC_JIFFIE_SC) /\
++				(u64)TICK_NSEC))
++#define NSEC_CONVERSION ((unsigned long)(((u64)1 << NSEC_JIFFIE_SC) /\
++				(u64)TICK_NSEC))
++#define USEC_CONVERSION ((unsigned long)(((u64)NSEC_PER_USEC << USEC_JIFFIE_SC)/\
++				(u64)TICK_NSEC))
++#if BITS_PER_LONG < 64
++# define MAX_SEC_IN_JIFFIES \
++	(long)((u64)((u64)MAX_JIFFY_OFFSET * TICK_NSEC) / NSEC_PER_SEC)
++#else	/* take care of overflow on 64 bits machines */
++# define MAX_SEC_IN_JIFFIES \
++	(SH_DIV((MAX_JIFFY_OFFSET >> SEC_JIFFIE_SC) * TICK_NSEC, NSEC_PER_SEC, 1) - 1)
++
++#endif
++
++
+ static __inline__ unsigned long
+ timespec_to_jiffies(struct timespec *value)
+ {
+@@ -82,6 +126,20 @@ mktime (unsigned int year, unsigned int mon,
+ 	)*60 + sec; /* finally seconds */
+ }
+ 
++//extern struct timespec xtime;
++extern struct timespec wall_to_monotonic;
++//extern seqlock_t xtime_lock;
++extern rwlock_t xtime_lock;
++
++static inline unsigned long get_seconds(void)
++{ 
++	return xtime.tv_sec;
++}
++
++struct timespec current_kernel_time(void);
++
++//#define CURRENT_TIME (current_kernel_time())
++
+ #endif /* __KERNEL__ */
+ 
+ 
+@@ -100,6 +158,11 @@ struct timezone {
+ #ifdef __KERNEL__
+ extern void do_gettimeofday(struct timeval *tv);
+ extern void do_settimeofday(struct timeval *tv);
++extern int do_sys_settimeofday(struct timespec *tv, struct timezone *tz);
++//extern void clock_was_set(void); // call when ever the clock is set
++//extern int do_posix_clock_monotonic_gettime(struct timespec *tp);
++//extern long do_nanosleep(struct timespec *t);
++//extern long do_utimes(char __user * filename, struct timeval * times);
+ #endif
+ 
+ #define FD_SETSIZE		__FD_SETSIZE
+@@ -126,4 +189,26 @@ struct	itimerval {
+ 	struct	timeval it_value;	/* current value */
+ };
+ 
++/*
++ * The IDs of the various system clocks (for POSIX.1b interval timers).
++ */
++#define CLOCK_REALTIME		  0
++#define CLOCK_MONOTONIC	  1
++#define CLOCK_PROCESS_CPUTIME_ID 2
++#define CLOCK_THREAD_CPUTIME_ID	 3
++#define CLOCK_REALTIME_HR	 4
++#define CLOCK_MONOTONIC_HR	  5
++
++#define MAX_CLOCKS 6
++#define CLOCKS_MASK  (CLOCK_REALTIME | CLOCK_MONOTONIC | \
++                     CLOCK_REALTIME_HR | CLOCK_MONOTONIC_HR)
++#define CLOCKS_MONO (CLOCK_MONOTONIC & CLOCK_MONOTONIC_HR)
++
++/*
++ * The various flags for setting POSIX.1b interval timers.
++ */
++
++#define TIMER_ABSTIME 0x01
++
++
+ #endif
+diff --git a/linux-2.4.37/include/linux/timex.h b/linux-2.4.37/include/linux/timex.h
+index 3a00a26..58cd78e 100644
+--- a/linux-2.4.37/include/linux/timex.h
++++ b/linux-2.4.37/include/linux/timex.h
+@@ -154,6 +154,32 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
+ 
++/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, the we can
++ * improve accuracy by shifting LSH bits, hence calculating:
++ *     (NOM << LSH) / DEN
++ * This however means trouble for large NOM, because (NOM << LSH) may no
++ * longer fit in 32 bits. The following way of calculating this gives us
++ * some slack, under the following conditions:
++ *   - (NOM / DEN) fits in (32 - LSH) bits.
++ *   - (NOM % DEN) fits in (32 - LSH) bits.
++ */
++#define SH_DIV(NOM,DEN,LSH) (   ((NOM / DEN) << LSH)                    \
++                             + (((NOM % DEN) << LSH) + DEN / 2) / DEN)
++
++/* HZ is the requested value. ACTHZ is actual HZ ("<< 8" is for accuracy) */
++#define ACTHZ (SH_DIV (CLOCK_TICK_RATE, LATCH, 8))
++
++/* TICK_NSEC is the time between ticks in nsec assuming real ACTHZ */
++#define TICK_NSEC (SH_DIV (1000000UL * 1000, ACTHZ, 8))
++
++/* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
++//#define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
++
++/* TICK_USEC_TO_NSEC is the time between ticks in nsec assuming real ACTHZ and	*/
++/* a value TUSEC for TICK_USEC (can be set bij adjtimex)		*/
++//#define TICK_USEC_TO_NSEC(TUSEC) (SH_DIV (TUSEC * USER_HZ * 1000, ACTHZ, 8))
++
++
+ /*
+  * syscall interface - used (mainly by NTP daemon)
+  * to discipline kernel clock oscillator
+diff --git a/linux-2.4.37/include/linux/types.h b/linux-2.4.37/include/linux/types.h
+index 6c6d790..2d715e9 100644
+--- a/linux-2.4.37/include/linux/types.h
++++ b/linux-2.4.37/include/linux/types.h
+@@ -27,6 +27,8 @@ typedef __kernel_pid_t		pid_t;
+ typedef __kernel_daddr_t	daddr_t;
+ typedef __kernel_key_t		key_t;
+ typedef __kernel_suseconds_t	suseconds_t;
++typedef __kernel_timer_t	timer_t;
++typedef __kernel_clockid_t	clockid_t;
+ 
+ #ifdef __KERNEL__
+ typedef __kernel_uid32_t	uid_t;
+diff --git a/linux-2.4.37/kernel/ksyms.c b/linux-2.4.37/kernel/ksyms.c
+index 0f06c6c..af20d95 100644
+--- a/linux-2.4.37/kernel/ksyms.c
++++ b/linux-2.4.37/kernel/ksyms.c
+@@ -481,9 +481,14 @@ EXPORT_SYMBOL_GPL(set_cpus_allowed);
+ #endif
+ EXPORT_SYMBOL(nr_context_switches);
+ EXPORT_SYMBOL(jiffies);
++EXPORT_SYMBOL(jiffies_64);
+ EXPORT_SYMBOL(xtime);
++EXPORT_SYMBOL(xtime_lock);
+ EXPORT_SYMBOL(do_gettimeofday);
+ EXPORT_SYMBOL(do_settimeofday);
++#if (BITS_PER_LONG < 64)
++EXPORT_SYMBOL(get_jiffies_64);
++#endif
+ 
+ #if !defined(__ia64__)
+ EXPORT_SYMBOL(loops_per_jiffy);
+diff --git a/linux-2.4.37/kernel/signal.c b/linux-2.4.37/kernel/signal.c
+index b950c48..cd2e592 100644
+--- a/linux-2.4.37/kernel/signal.c
++++ b/linux-2.4.37/kernel/signal.c
+@@ -1156,6 +1156,273 @@ kill_proc(pid_t pid, int sig, int priv)
+ 	return kill_proc_info(sig, (void *)(long)(priv != 0), pid);
+ }
+ 
++
++/*
++ * These functions support sending signals using preallocated sigqueue
++ * structures.  This is needed "because realtime applications cannot
++ * afford to lose notifications of asynchronous events, like timer
++ * expirations or I/O completions".  In the case of Posix Timers 
++ * we allocate the sigqueue structure from the timer_create.  If this
++ * allocation fails we are able to report the failure to the application
++ * with an EAGAIN error.
++ */
++
++
++static inline void
++__group_complete_signal(int sig, struct task_struct *p, unsigned int mask)
++{
++	struct task_struct *t;
++
++	/*
++	 * Now find a thread we can wake up to take the signal off the queue.
++	 *
++	 * If the main thread wants the signal, it gets first crack.
++	 * Probably the least surprising to the average bear.
++	 */
++	if (wants_signal(sig, p, mask))
++		t = p;
++	else if (thread_group_empty(p))
++		/*
++		 * There is just one thread and it does not need to be woken.
++		 * It will dequeue unblocked signals before it runs again.
++		 */
++		return;
++	else {
++		/*
++		 * Otherwise try to find a suitable thread.
++		 */
++		t = p->signal->curr_target;
++		if (t == NULL)
++			/* restart balancing at this thread */
++			t = p->signal->curr_target = p;
++		BUG_ON(t->tgid != p->tgid);
++
++		while (!wants_signal(sig, t, mask)) {
++			t = next_thread(t);
++			if (t == p->signal->curr_target)
++				/*
++				 * No thread needs to be woken.
++				 * Any eligible threads will see
++				 * the signal in the queue soon.
++				 */
++				return;
++		}
++		p->signal->curr_target = t;
++	}
++
++	/*
++	 * Found a killable thread.  If the signal will be fatal,
++	 * then start taking the whole group down immediately.
++	 */
++	if (sig_fatal(p, sig) && !p->signal->group_exit &&
++	    !sigismember(&t->real_blocked, sig) &&
++	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
++		/*
++		 * This signal will be fatal to the whole group.
++		 */
++		if (!sig_kernel_coredump(sig)) {
++			/*
++			 * Start a group exit and wake everybody up.
++			 * This way we don't have other threads
++			 * running and doing things after a slower
++			 * thread has the fatal signal pending.
++			 */
++			p->signal->group_exit = 1;
++			p->signal->group_exit_code = sig;
++			p->signal->group_stop_count = 0;
++			t = p;
++			do {
++				sigaddset(&t->pending.signal, SIGKILL);
++				signal_wake_up(t, 1);
++				t = next_thread(t);
++			} while (t != p);
++			return;
++		}
++
++		/*
++		 * There will be a core dump.  We make all threads other
++		 * than the chosen one go into a group stop so that nothing
++		 * happens until it gets scheduled, takes the signal off
++		 * the shared queue, and does the core dump.  This is a
++		 * little more complicated than strictly necessary, but it
++		 * keeps the signal state that winds up in the core dump
++		 * unchanged from the death state, e.g. which thread had
++		 * the core-dump signal unblocked.
++		 */
++		rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
++		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
++		p->signal->group_stop_count = 0;
++		p->signal->group_exit_task = t;
++		t = p;
++		do {
++			p->signal->group_stop_count++;
++			signal_wake_up(t, 0);
++			t = next_thread(t);
++		} while (t != p);
++		wake_up_process(p->signal->group_exit_task);
++		return;
++	}
++
++	/*
++	 * The signal is already in the shared-pending queue.
++	 * Tell the chosen thread to wake up and dequeue it.
++	 */
++	signal_wake_up(t, sig == SIGKILL);
++	return;
++}
++
++
++struct sigqueue *__sigqueue_alloc(void)
++{
++	struct sigqueue *q = 0;
++
++	if (atomic_read(&nr_queued_signals) < max_queued_signals)
++		q = kmem_cache_alloc(sigqueue_cachep, GFP_ATOMIC);
++	if (q) {
++		atomic_inc(&nr_queued_signals);
++		INIT_LIST_HEAD(&q->list);
++		q->flags = 0;
++		q->lock = 0;
++	}
++	return(q);
++}
++
++static inline void __sigqueue_free(struct sigqueue *q)
++{
++	if (q->flags & SIGQUEUE_PREALLOC)
++		return;
++	kmem_cache_free(sigqueue_cachep, q);
++	atomic_dec(&nr_queued_signals);
++}
++
++ 
++struct sigqueue *sigqueue_alloc(void)
++{
++	struct sigqueue *q;
++
++	if ((q = __sigqueue_alloc()))
++		q->flags |= SIGQUEUE_PREALLOC;
++	return(q);
++}
++
++void sigqueue_free(struct sigqueue *q)
++{
++	unsigned long flags;
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
++	/*
++	 * If the signal is still pending remove it from the
++	 * pending queue.
++	 */
++	if (unlikely(!list_empty(&q->list))) {
++		read_lock(&tasklist_lock);  
++		spin_lock_irqsave(q->lock, flags);
++		if (!list_empty(&q->list))
++			list_del_init(&q->list);
++		spin_unlock_irqrestore(q->lock, flags);
++		read_unlock(&tasklist_lock);
++	}
++	q->flags &= ~SIGQUEUE_PREALLOC;
++	__sigqueue_free(q);
++}
++
++int
++send_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	/*
++	 * We need the tasklist lock even for the specific
++	 * thread case (when we don't need to follow the group
++	 * lists) in order to avoid races with "p->sighand"
++	 * going away or changing from under us.
++	 */
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
++	read_lock(&tasklist_lock);  
++	spin_lock_irqsave(&p->sighand->siglock, flags);
++	
++	if (unlikely(!list_empty(&q->list))) {
++		/*
++		 * If an SI_TIMER entry is already queue just increment
++		 * the overrun count.
++		 */
++		if (q->info.si_code != SI_TIMER)
++			BUG();
++		q->info.si_overrun++;
++		goto out;
++	} 
++	/* Short-circuit ignored signals.  */
++	if (sig_ignored(p, sig)) {
++		ret = 1;
++		goto out;
++	}
++
++	q->lock = &p->sighand->siglock;
++	list_add_tail(&q->list, &p->pending.list);
++	sigaddset(&p->pending.signal, sig);
++	if (!sigismember(&p->blocked, sig))
++		signal_wake_up(p, sig == SIGKILL);
++
++out:
++	spin_unlock_irqrestore(&p->sighand->siglock, flags);
++	read_unlock(&tasklist_lock);
++	return(ret);
++}
++
++int
++send_group_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
++{
++	unsigned long flags;
++	unsigned int mask;
++	int ret = 0;
++
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
++	read_lock(&tasklist_lock);
++	spin_lock_irqsave(&p->sighand->siglock, flags);
++	handle_stop_signal(sig, p);
++
++	/* Short-circuit ignored signals.  */
++	if (sig_ignored(p, sig)) {
++		ret = 1;
++		goto out;
++	}
++
++	if (unlikely(!list_empty(&q->list))) {
++		/*
++		 * If an SI_TIMER entry is already queue just increment
++		 * the overrun count.  Other uses should not try to
++		 * send the signal multiple times.
++		 */
++		if (q->info.si_code != SI_TIMER)
++			BUG();
++		q->info.si_overrun++;
++		goto out;
++	} 
++	/*
++	 * Don't bother zombies and stopped tasks (but
++	 * SIGKILL will punch through stopped state)
++	 */
++	mask = TASK_DEAD | TASK_ZOMBIE;
++	if (sig != SIGKILL)
++		mask |= TASK_STOPPED;
++
++	/*
++	 * Put this signal on the shared-pending queue.
++	 * We always use the shared queue for process-wide signals,
++	 * to avoid several races.
++	 */
++	q->lock = &p->sighand->siglock;
++	list_add_tail(&q->list, &p->signal->shared_pending.list);
++	sigaddset(&p->signal->shared_pending.signal, sig);
++
++	__group_complete_signal(sig, p, mask);
++out:
++	spin_unlock_irqrestore(&p->sighand->siglock, flags);
++	read_unlock(&tasklist_lock);
++	return(ret);
++}
++
++
+ /*
+  * Joy. Or not. Pthread wants us to wake up every thread
+  * in our parent group.
+@@ -1587,6 +1854,11 @@ EXPORT_SYMBOL(kill_sl_info);
+ EXPORT_SYMBOL(notify_parent);
+ EXPORT_SYMBOL(send_sig);
+ EXPORT_SYMBOL(send_sig_info);
++EXPORT_SYMBOL(send_group_sig_info);
++EXPORT_SYMBOL(sigqueue_alloc);
++EXPORT_SYMBOL(sigqueue_free);
++EXPORT_SYMBOL(send_sigqueue);
++EXPORT_SYMBOL(send_group_sigqueue);
+ EXPORT_SYMBOL(block_all_signals);
+ EXPORT_SYMBOL(unblock_all_signals);
+ 

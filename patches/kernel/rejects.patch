@@ -1,0 +1,26 @@
+diff --git a/linux-2.4.37/include/linux/kernel_stat.h b/linux-2.4.37/include/linux/kernel_stat.h
+index dd6bec4..be1eb69 100644
+--- a/linux-2.4.37/include/linux/kernel_stat.h
++++ b/linux-2.4.37/include/linux/kernel_stat.h
+@@ -20,7 +20,7 @@ struct kernel_stat {
+ 	             per_cpu_nice[NR_CPUS],
+ 	             per_cpu_system[NR_CPUS],
+ 	             per_cpu_iowait[NR_CPUS],
+-	             per_cpu_idle[NR_CPUS];
++	             per_cpu_idle[NR_CPUS]; // unsigned long
+ 	unsigned int dk_drive[DK_MAX_MAJOR][DK_MAX_DISK];
+ 	unsigned int dk_drive_rio[DK_MAX_MAJOR][DK_MAX_DISK];
+ 	unsigned int dk_drive_wio[DK_MAX_MAJOR][DK_MAX_DISK];
+diff --git a/linux-2.4.37/include/linux/sched.h b/linux-2.4.37/include/linux/sched.h
+index 64d8a02..a858f35 100644
+--- a/linux-2.4.37/include/linux/sched.h
++++ b/linux-2.4.37/include/linux/sched.h
+@@ -451,7 +451,7 @@ struct task_struct {
+ 	struct timer_list real_timer;
+ 	struct tms times;
+ 	struct tms group_times;
+-	unsigned long start_time;
++	unsigned long start_time; // u64 start_time;
+ 	long per_cpu_utime[NR_CPUS], per_cpu_stime[NR_CPUS];
+ /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
+ 	unsigned long min_flt, maj_flt, nswap, cmin_flt, cmaj_flt, cnswap;
