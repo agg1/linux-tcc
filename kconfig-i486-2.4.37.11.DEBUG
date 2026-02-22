@@ -834,7 +834,7 @@ CONFIG_RTC=y
 #
 # Misc devices
 #
-CONFIG_SCRANDOM=y
+# CONFIG_SCRANDOM is not set
 
 #
 # Multimedia devices

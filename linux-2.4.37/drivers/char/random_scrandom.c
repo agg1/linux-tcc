@@ -4,12 +4,16 @@
 #include <linux/kernel.h>
 #include <linux/major.h>
 #include <linux/random.h>
-#include <linux/poll.h>
+//#include <linux/poll.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 
 #include <asm/uaccess.h>
+
+// entropy source
+#include <linux/time.h>
+#include <linux/timex.h>
 
 //
 #define SCRANDOM_NOMODULE 1
@@ -51,7 +55,7 @@ void add_blkdev_randomness(int major) {
  */
 void get_random_bytes(void *buf, int nbytes)
 {
-	scrandom_get_random_bytes((char *)buf, nbytes);
+	scrandom_read(NULL, (char *)buf, nbytes, NULL);
 }
 
 /*********************************************************************
@@ -63,7 +67,15 @@ void get_random_bytes(void *buf, int nbytes)
 
 void __init rand_initialize(void)
 {
-	printk(KERN_INFO "random: OK.\n");
+	// feed global_seed with entropy
+	u32 entropy_clock = get_cycles();
+	struct timeval entropy_time;
+	do_gettimeofday(&entropy_time);
+	global_seed ^= entropy_clock;
+	global_seed ^= (u32)entropy_time.tv_usec;
+
+	// update global_seed early during boot with a dummy call to scrandom_shift()
+	struct scrandom scr; scrandom_shift(&scr);
 }
 
 #ifndef CONFIG_ARCH_S390
@@ -224,12 +236,10 @@ static void MD5Transform(__u32 buf[HASH_BUFFER_SIZE], __u32 const in[16])
 
 const struct file_operations random_fops = {
 	read:		scrandom_read,
-	open:		scrandom_open,
 };
 
 const struct file_operations urandom_fops = {
 	read:		scrandom_read,
-	open:		scrandom_open,
 };
 
 /***************************************************************
