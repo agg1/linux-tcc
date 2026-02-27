@@ -29,21 +29,67 @@ prepare_config() {
 	##make ARCH=i386 CC="$CC" LD="$LD" AS="$AS" HOSTCC="$HOSTCC" dep include/linux/compile.h
 }
 
-prepare_loader() {
+## as86 support to emit 16bit real-mode boot code is incomplete for trampoline.AS86
+## hence it could be used for TINY and SMALL linux-tcc variant
+## full kfiles.DEBUG configuration needs help from yasm and/or gnu-as assembler still
+#prepare_loader_as86() {
+#	echo "### prepare_loader"
+#	cd $CWD
+#
+#	[ -d "${KTMP}" ] && rm -rf ${KTMP} ; mkdir ${KTMP}
+#	cd ${KTMP}
+#
+#	## AS86
+#	cp $CWD/$KDIR/arch/i386/boot/bootsect.AS86 bootsect.AS86
+#	cp $CWD/$KDIR/arch/i386/boot/setup.AS86 setup.AS86
+#	cp $CWD/$KDIR/arch/i386/boot/video.AS86 video.S
+#	cp $CWD/$KDIR/arch/i386/kernel/trampoline.AS86 trampoline.AS86
+#
+#	mcpp -@old -P -D__BIG_KERNEL__ -I${CWD}/${KDIR}/include bootsect.AS86 -o bootsect.as86
+#	$REALAS bootsect.as86 -o bootsect.o
+#	$REALLD -d -o bootsect.tcc bootsect.o
+#	dd if=bootsect.tcc of=bootsect bs=1 count=512 ; chmod 755 bootsect
+#
+#	mcpp -@old -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ setup.AS86 -o setup.as86
+#	$REALAS setup.as86 -o setup.o
+#	$REALLD -d -o setup.tcc setup.o
+#	dd if=setup.tcc of=setup bs=1; chmod 755 setup
+#
+#	### with as86 SMP/trampoline.S cannot is not supported yet
+#	#mcpp -@std -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ trampoline.AS86 -o trampoline.as86
+#	#$REALAS trampoline.as86 -o trampoline.86.o
+#	#$REALLD -d -o trampoline.o trampoline.86.o
+#
+#	## yasm can be used instead here
+#	#cp $CWD/$KDIR/arch/i386/kernel/trampoline.S trampoline.S
+#	#$CC -E -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ trampoline.S -o trampoline.s
+#	#yasm -p gas -f elf32 trampoline.s -o trampoline.o
+#
+#	#
+#	TCC_LIBRARY_PATH="/lib:/usr/lib:/usr/lib/tcc" TCC_CPATH="/usr/include:/usr/lib/tcc/include" $HOSTCC \
+#	-I${CWD}/$KDIR/include -I/usr/lib/tcc/include ${CWD}/$KDIR/arch/i386/boot/tools/build86.c -static -o build ; chmod 755 build
+#
+#	cd $CWD
+#}
+
+prepare_loader_gas() {
 	echo "### prepare_loader"
 	cd $CWD
 
 	[ -d "${KTMP}" ] && rm -rf ${KTMP} ; mkdir ${KTMP}
 	cd ${KTMP}
 
-	cp $CWD/$KDIR/arch/i386/boot/bootsect.S .
+	## GNU gas or YASM confirmed
+	cp $CWD/$KDIR/arch/i386/boot/bootsect.S bootsect.S
+	cp $CWD/$KDIR/arch/i386/boot/setup.S setup.S
+	cp $CWD/$KDIR/arch/i386/boot/video.S video.S
+	cp $CWD/$KDIR/arch/i386/kernel/trampoline.S trampoline.S
+
 	$CC -E -P -nostdinc -nostdlib -D__BIG_KERNEL__ -I${CWD}/${KDIR}/include bootsect.S -o bootsect.s
 	$REALAS bootsect.s -o bootsect.o
 	$LD -nostdlib -static -Wl,-Ttext,0 -Wl,--oformat,binary -o bootsect.tcc bootsect.o
 	dd if=bootsect.tcc of=bootsect bs=1 count=512 ; chmod 755 bootsect
 
-	cp $CWD/$KDIR/arch/i386/boot/setup.S .
-	cp $CWD/$KDIR/arch/i386/boot/video.S .
 	$CC -E -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ setup.S -o setup.s
 	$REALAS setup.s -o setup.o
 	$LD -nostdlib -static -Wl,-Ttext,0 -Wl,--oformat,binary -o setup.tcc setup.o
@@ -51,8 +97,7 @@ prepare_loader() {
 	#dd if=setup.tcc of=setup bs=1 count=2560 ; chmod 755 setup
 	dd if=setup.tcc of=setup bs=1; chmod 755 setup
 
-	# 16bit real-mode routines required for smp init, probably buggy rwlock.h patch
-	cp $CWD/$KDIR/arch/i386/kernel/trampoline.S .
+	# 16bit real-mode routines required for smp init, reconfirm inline assembly in rwlock.h 
 	$CC -E -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ trampoline.S -o trampoline.s
 	$REALAS trampoline.s -o trampoline.o
 
@@ -164,12 +209,8 @@ label linux-nosmp
 
 label linux-debug
 	kernel /boot/linux
-	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check
+	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check vga=ask
 " > ${KTMP}/isoroot/isolinux/isolinux.cfg
-
-#label tccboot
-#	kernel /boot/tccboot
-#	append initrd=/boot/example.romfs root=/dev/ram ramdisk_size=20000 devfs=nomount
 
 
 	cp /usr/share/syslinux/isolinux.bin ${KTMP}/isoroot/isolinux/
@@ -180,7 +221,6 @@ label linux-debug
 	fi
 
 	cd ${KTMP}
-	#./build -b ./bootsect ./setup vmlinux CURRENT >../isoroot/boot/linux
 	./build -b ./bootsect ./setup vmlinux >isoroot/boot/linux
 
 	# fiddle together tccargs and usr/src/linux for final FILE_LIST on target
@@ -228,9 +268,10 @@ OPTIMIZE=" -O0 -U__OPTIMIZE__ "
 CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
 LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
-#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
-# 16bit x86 real-mode assembler support
-REALAS="i586-tcc-linux-musl-as"
+REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
+## 16bit x86 real-mode GNU gas assembler support
+REALAS="yasm -p gas -f elf32"
+#REALAS="i586-tcc-linux-musl-as"
 
 
 ### OK; tiny config does not have ext2fs, use romfs then
@@ -258,7 +299,13 @@ INITRD_SIZE="$(du -B1024 ${INITRD} | cut -d'/' -f1 || echo 0)"
 
 #
 prepare_config
-prepare_loader
+
+### 16bit x86 real-mode AS86 assembler
+##REALAS="/usr/bin/as86 -0 -a"
+##REALLD="/usr/bin/ld86"
+##prepare_loader_as86
+#
+prepare_loader_gas
 
 
 ### tcc
