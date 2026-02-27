@@ -71,6 +71,7 @@ __u32 random_timestamp_base;
 EXPORT_SYMBOL_GPL(random_timestamp_base);
 #endif
 
+#ifdef CONFIG_GRKERNSEC
 void
 grsecurity_init(void)
 {
@@ -239,3 +240,4 @@ grsecurity_init(void)
 
 	return;
 }
+#endif

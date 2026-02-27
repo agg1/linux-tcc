@@ -3,6 +3,8 @@
 #include <linux/mm.h>
 #include <linux/grinternal.h>
 
+#ifdef CONFIG_GRKERNSEC
+
 void
 gr_handle_ioperm(void)
 {
@@ -68,3 +70,5 @@ gr_handle_mem_mmap(const unsigned long offset, struct vm_area_struct *vma)
 
 	return 0;
 }
+
+#endif

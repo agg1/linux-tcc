@@ -4,6 +4,8 @@
 #include <linux/fs.h>
 #include <linux/grinternal.h>
 
+#ifdef CONFIG_GRKERNSEC
+
 #define BEGIN_LOCKS(x) \
 	read_lock(&tasklist_lock); \
 	read_lock(&grsec_exec_file_lock); \
@@ -270,3 +272,5 @@ void gr_log_varargs(int audit, const char *msg, int argtypes, ...)
 	gr_log_end(audit);
 	END_LOCKS(audit);
 }
+
+#endif
