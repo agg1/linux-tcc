@@ -1,0 +1,93 @@
+!	TODO: full refactoring for as86 syntax
+!
+!	Trampoline.S	Derived from Setup.S by Linus Torvalds
+!
+!	4 Jan 1997 Michael Chastain: changed to gnu as.
+!
+!	Entry: CS:IP point to the start of our code, we are 
+!	in real mode with no stack, but the rest of the 
+!	trampoline page to make our stack and everything else
+!	is a mystery.
+!
+!	In fact we dont actually need a stack so we dont
+!	set one up.
+!
+!	We jump into the boot/compressed/head.S code. So youd
+!	better be running a compressed kernel image or you
+!	wont get very far.
+!
+!	On entry to trampoline_data, the processor is in real mode
+!	with 16-bit addressing and 16-bit data.  CS has some value
+!	and IP is zero.  Thus, data addresses need to be absolute
+!	(no relocation) and are taken with regard to r_base.
+!
+!	If you work on this file, check the object module with objdump
+!	--full-contents --reloc to make sure there are no relocation
+!	entries except for the gdt one..
+
+
+#include <linux/linkage.h>
+#include <asm/segment.h>
+#include <asm/page.h>
+
+.data
+
+! .code16
+
+.global trampoline_data
+! .align 16,0x90
+
+trampoline_data:
+r_base = .
+!	wbinvd			! Needed for NUMA-Q should be harmless for others
+	mov	ax, cs		! Code and data in the same place
+	mov	ds, ax
+
+	mov	bx, #1		! Flag an SMP trampoline
+	cli			! We should be safe anyway
+
+	movl	trampoline_data - r_base, #0xA5A5A5A5
+				! write marker for master knows were running
+
+	lidt	idt_48 - r_base	! load idt with 0, 0
+	lgdt	gdt_48 - r_base	! load gdt with whatever is appropriate
+
+	xor	ax, ax
+	inc	ax		! protected mode (PE) bit
+	lmsw	ax		! into protected mode
+	jmp	flush_instr
+flush_instr:
+!### https://stackoverflow.com/questions/39323061/gnu-as-compilation-error-on-instruction-far-jmp-0x8-0x80000
+!### tcc is not aware of ljmpl , and ljmp implies different adressing and sizes (16bit/32bit)
+!#
+!##ifdef __TINYC__
+!#	ljmpl	$__KERNEL_CS, $0x00100000
+!#			# compilation/assembling passes, see what happens...
+!##else
+!#	ljmpl	$__KERNEL_CS, $0x00100000
+!#			# jump to startup_32 in arch/i386/kernel/head.S
+!##endif
+!##ljmpl   $__KERNEL_CS, $SYMBOL_NAME(startup_32) - __PAGE_OFFSET
+!##ljmpl   $96, $startup_32 - (0xC0000000)
+ljmpl   #0x00100000 - __PAGE_OFFSET, #__KERNEL_CS
+
+idt_48:
+	.word	0			! idt limit = 0
+	.word	0, 0			! idt base = 0L
+
+!
+! NOTE: here we actually use CPU#0 GDT - but that is OK, we reload
+! the proper GDT shortly after booting up the secondary CPUs.
+!
+
+gdt_48:
+!	.word   __KERNEL_DS+7
+	.word	0x0800				! gdt limit = 2048, 256 GDT entries
+!	.long   boot_gdt_table-__PAGE_OFFSET	! gdt base = boot_gdt (first SMP CPU)
+	.long   cpu_gdt_table-__PAGE_OFFSET	! gdt base = boot_gdt (first SMP CPU)
+!	.word	0x0800				! gdt limit = 2048, 256 GDT entries
+!	.long	cpu_gdt_table-__PAGE_OFFSET	! gdt base = gdt (first SMP CPU)
+
+.globl trampoline_end
+trampoline_end:
+
