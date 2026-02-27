@@ -109,11 +109,11 @@
 # %ds *must* be pointing to the bootsector
 video:	pushw	%ds		# We use different segments
 	pushw	%ds		# FS contains original DS
-	popw	%fs
+	pop	%fs
 	pushw	%cs		# DS is equal to CS
-	popw	%ds
+	pop	%ds
 	pushw	%cs		# ES is equal to CS
-	popw	%es
+	pop	%es
 	xorw	%ax, %ax
 	movw	%ax, %gs	# GS is zero
 	cld
@@ -139,7 +139,7 @@ vid1:
 #endif /* CONFIG_VIDEO_RETAIN */
 #endif /* CONFIG_VIDEO_SELECT */
 	call	mode_params			# Store mode parameters
-	popw	%ds				# Restore original DS
+	pop	%ds				# Restore original DS
 	ret
 
 # Detect if we have CGA, MDA, EGA or VGA and pass it to the kernel.
@@ -793,7 +793,7 @@ store_screen:
 	xorw	%si, %si
 	rep
 	movsw
-	popw	%ds
+	pop	%ds
 	incb	do_restore			# Screen will be restored later
 sts1:	popw	%bx
 	popw	%ax
@@ -862,7 +862,7 @@ res6:	pushw	%si
 	decb	%dl
 	jnz	res6
 	
-	popw	%es				# Done
+	pop	%es				# Done
 res1:	ret
 #endif /* CONFIG_VIDEO_RETAIN */
 
@@ -1078,7 +1078,7 @@ vesan:	loop	vesa1			# Next mode. Limit exceeded => error
 vesae:	leaw	vesaer, %si
 	call	prtstr
 	movw	%bp, %di			# Discard already found modes.
-vesar:	popw	%gs
+vesar:	pop	%gs
 	ret
 
 # Dimensions of standard VESA text modes
@@ -1904,7 +1904,7 @@ skip10:	movb	%ah, %al
 
 # VIDEO_SELECT-only variables
 mt_end:		.word	0	# End of video mode table if built
-edit_buf:	.space	6	# Line editor buffer
+edit_buf:	.space	6,0	# Line editor buffer
 card_name:	.word	0	# Pointer to adapter name
 scanning:	.byte	0	# Performing mode scan
 do_restore:	.byte	0	# Screen contents altered during mode change

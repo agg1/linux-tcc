@@ -31,7 +31,7 @@
 
 #include <asm/boot.h>
 
-SETUPSECTS	= 32			/* default nr of setup-sectors */
+SETUPSECTS	= 4			/* default nr of setup-sectors */
 BOOTSEG		= 0x07C0		/* original address of boot-sector */
 INITSEG		= DEF_INITSEG		/* we move boot here - out of the way */
 SETUPSEG	= DEF_SETUPSEG		/* setup starts here */
@@ -111,7 +111,7 @@ go:	movw	$0x4000-12, %di		# 0x4000 is an arbitrary value >=
 	rep				# don't worry about cld
 	movsw				# already done above
 	popw	%di
-	popw	%ds
+	pop	%ds
 	movb	$36, 0x4(%di)		# patch sector count
 	movw	%di, %fs:(%bx)
 	movw	%es, %fs:2(%bx)
@@ -179,7 +179,7 @@ no_cyl_crossing:
 	jnz	next_step
 
 	pushw	$SYSSEG
-	popw	%es			# %es = SYSSEG
+	pop	%es			# %es = SYSSEG
 	call	read_it
 	call	kill_motor
 	call	print_nl
@@ -351,12 +351,12 @@ print_loop:
 	cmpb	$5, %cl
 	jae	no_reg			# see if register name is needed
 	
-	movw	$0xe05 + 'A' - 1, %ax
+	movw	$0xe45, %ax
 	subb	%cl, %al
 	int	$0x10
-	movb	$'X', %al
+	movb	$0x58, %al
 	int	$0x10
-	movb	$':', %al
+	movb	$0x3a, %al
 	int	$0x10
 no_reg:
 	addw	$2, %bp			# next register

@@ -170,7 +170,7 @@ ramdisk_max:	.long (__MAXMEM-1) & 0xFFFFFFFF
 					# the contents of an initrd
 
 trampoline:	call	start_of_setup
-		.space	1024
+		.space	1024,0
 # End of setup header #####################################################
 
 start_of_setup:
@@ -249,7 +249,7 @@ bad_sig:
 	movw	$2048, %di			# four sectors loaded by LILO
 	subw	%si, %si
 	pushw	%cs
-	popw	%es
+	pop	%es
 	movw	$SYSSEG, %ax
 	movw	%ax, %ds
 	rep
@@ -285,7 +285,7 @@ good_sig:
 	jnz	loader_ok			# Yes, continue.
 
 	pushw	%cs				# No, we have an old loader,
-	popw	%ds				# die. 
+	pop	%ds				# die. 
 	lea	loader_panic_mess, %si
 	call	prtstr
 
@@ -325,7 +325,7 @@ jmpe820:
 	movl	$SMAP, %edx			# ascii 'SMAP'
 	movl	$20, %ecx			# size of the e820rec
 	pushw	%ds				# data record.
-	popw	%es
+	pop	%es
 	int	$0x15				# make the call
 	jc	bail820				# fall to e801 if it fails
 
@@ -425,7 +425,7 @@ mem88:
 	movw	%ax, %ds
 	ldsw	(4 * 0x46), %si
 	popw	%cx
-	popw	%es
+	pop	%es
 	movw	$0x0090, %di
 	rep
 	movsb
@@ -477,7 +477,7 @@ is_disk1:
 sysdesc_ok:
 	rep
 	movsb
-	popw	%ds
+	pop	%ds
 no_mca:
 # Check for PS/2 pointing device
 	movw	%cs, %ax			# aka SETUPSEG
@@ -562,14 +562,14 @@ done_apm_bios:
 	movw	$1, %cx				# cylinder 0, sector 0
 	pushw	%es
 	pushw	%ds
-	popw	%es
+	pop	%es
 	movw	$EDDBUF, %bx
 	int	$0x13
 	jc	disk_sig_done
 	movl	(EDDBUF+MBR_SIG_OFFSET), %eax
 	movl	%eax, (DISK80_SIG_BUFFER)	# store success
 disk_sig_done:
-	popw	%es
+	pop	%es
 
 # Do the BIOS Enhanced Disk Drive calls
 # This consists of two calls:
@@ -950,7 +950,7 @@ bootsect_second:
 
 	movw	$0x8000, %cx			# full 64K, INT15 moves words
 	pushw	%cs
-	popw	%es
+	pop	%es
 	movw	$bootsect_gdt, %si
 	movw	$0x8700, %ax
 	int	$0x15
@@ -995,7 +995,7 @@ bootsect_es:
 
 bootsect_panic:
 	pushw	%cs
-	popw	%ds
+	pop	%ds
 	cld
 	leaw	bootsect_panic_mess, %si
 	call	prtstr
@@ -1103,7 +1103,10 @@ delay:
 # the GDT, but those wont be used so it's not a problem.
 #
 gdt:
-	.fill GDT_ENTRY_KERNEL_CS,8,0
+#	.word	0, 0, 0, 0			# dummy
+#	.word	0, 0, 0, 0			# unused
+#	.fill GDT_ENTRY_KERNEL_CS,8,0
+	.fill 12,8,0
 
 	.word	0xFFFF				# 4Gb - (0x100000*0x1000 = 4Gb)
 	.word	0				# base address = 0

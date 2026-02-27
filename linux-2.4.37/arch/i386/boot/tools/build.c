@@ -43,7 +43,7 @@ typedef unsigned long u32;
 #define DEFAULT_MINOR_ROOT 0
 
 /* Minimal number of setup sectors (see also bootsect.S) */
-#define SETUP_SECTS 32
+#define SETUP_SECTS 4
 
 byte buf[1024];
 int fd;
