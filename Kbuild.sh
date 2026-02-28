@@ -52,8 +52,7 @@ prepare_config() {
 #
 #	mcpp -@old -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ setup.AS86 -o setup.as86
 #	$REALAS setup.as86 -o setup.o
-#	$REALLD -d -o setup.tcc setup.o
-#	dd if=setup.tcc of=setup bs=1; chmod 755 setup
+#	$REALLD -d -o setup setup.o
 #
 #	### with as86 SMP/trampoline.S cannot is not supported yet
 #	#mcpp -@std -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ trampoline.AS86 -o trampoline.as86
@@ -92,10 +91,7 @@ prepare_loader_gas() {
 
 	$CC -E -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ setup.S -o setup.s
 	$REALAS setup.s -o setup.o
-	$LD -nostdlib -static -Wl,-Ttext,0 -Wl,--oformat,binary -o setup.tcc setup.o
-	## that is exactly 5 sectors on disk ?
-	#dd if=setup.tcc of=setup bs=1 count=2560 ; chmod 755 setup
-	dd if=setup.tcc of=setup bs=1; chmod 755 setup
+	$LD -nostdlib -static -Wl,-Ttext,0 -Wl,--oformat,binary -o setup setup.o
 
 	# 16bit real-mode routines required for smp init, reconfirm inline assembly in rwlock.h 
 	$CC -E -P -I${CWD}/${KDIR}/include -D__ASSEMBLY__ -D__KERNEL__ -D__BIG_KERNEL__ trampoline.S -o trampoline.s
@@ -199,14 +195,6 @@ timeout 10
 ontimeout linux-debug
 prompt 1
 
-label linux-smp
-	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check
-
-label linux-nosmp
-	kernel /boot/linux
-	append earlyprintk video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi nosmp
-
 label linux-debug
 	kernel /boot/linux
 	append debug earlyprintk console=ttyS0,9600 console=tty0 video=vesa:mtrr initrd=/boot/initrd ramdisk_size=${INITRD_SIZE} root=/dev/ram0 noacpi no_timer_check vga=ask
@@ -227,9 +215,6 @@ label linux-debug
 	#genromfs -v -x '.git' -d /media/CACHE/TCC/linux-bellard -f ../isoroot/boot/example.romfs >/dev/null 2>&1
 
 	cd ${KTMP}
-	### mkisofs -J -R -l -V LIVECD -modification-date 19700101000000.00 \
-	#mkisofs -l -V LIVECD -modification-date 19700101000000.00 -o tccboot.iso \
-	#-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-platform x86 -iso-level 4 isoroot
 	mkisofs -l -V LIVECD -o tccboot.iso \
 	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -iso-level 4 isoroot
 
@@ -268,10 +253,6 @@ OPTIMIZE=" -O0 -U__OPTIMIZE__ "
 CC="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
 LD="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 -fgnu89-inline ${OPTIMIZE}"
 AS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
-REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
-## 16bit x86 real-mode GNU gas assembler support
-REALAS="yasm -p gas -f elf32"
-#REALAS="i586-tcc-linux-musl-as"
 
 
 ### OK; tiny config does not have ext2fs, use romfs then
@@ -300,15 +281,21 @@ INITRD_SIZE="$(du -B1024 ${INITRD} | cut -d'/' -f1 || echo 0)"
 #
 prepare_config
 
-### 16bit x86 real-mode AS86 assembler
+
+### AS86 suffices for TINY and SMALL configuration variant only; trampoline.AS86 needs re-feactoring
 ##REALAS="/usr/bin/as86 -0 -a"
 ##REALLD="/usr/bin/ld86"
 ##prepare_loader_as86
-#
+
+## TinyCC is not known for sufficient support of 16bit real-mode assembly to emit linux bootcode
+#REALAS="/usr/bin/i386-tcc -D__GNUC__=2 -D__GNUC_MINOR__=95 ${OPTIMIZE}"
+## binutils introduce a gigantic dependency graph to compile a few hundred lines of real-mode assembly
+#REALAS="i586-tcc-linux-musl-as"
+## YASM can fully replace GNU binutils-as with a much smaller dependency graph and less lines of code
+REALAS="yasm -p gas -f elf32"
 prepare_loader_gas
 
 
-### tcc
 ## ensure tcc does not include nor link anything unknown into; tcc patches/tcc/tcc-9999-library_path.patch
 export TCC_LIBRARY_PATH="/dev/null"
 export TCC_CPATH="/dev/null"
@@ -323,6 +310,7 @@ compile_kernel ; CCLIB="/usr/lib/tcc/i386-libtcc1.a" link_kernel
 
 
 ### gcc-4.7.4
+## GNU toolchain was re-confirmed to compile/link linux-tcc regularly and is known to work
 #CCLIB=""
 #CC="i586-pc-linux-musl-gcc -march=i486 -fno-strict-aliasing -fomit-frame-pointer -mpreferred-stack-boundary=2 -ffreestanding -O"
 #LD="i586-pc-linux-musl-gcc -ffreestanding -O"
